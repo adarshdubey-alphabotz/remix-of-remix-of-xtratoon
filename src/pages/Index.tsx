@@ -1,11 +1,21 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, TrendingUp, Star, Sparkles, Award, Play, ArrowRight, BookOpen, Users, Zap, Heart, Eye } from 'lucide-react';
+import { ChevronRight, ChevronLeft, TrendingUp, Star, Sparkles, Play, ArrowRight, Instagram, Globe, MessageCircle } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { manhwaList, allGenres, formatViews, publishers } from '@/data/mockData';
+import { manhwaList, allGenres, formatViews } from '@/data/mockData';
 import ManhwaCard from '@/components/ManhwaCard';
 import MagneticButton from '@/components/MagneticButton';
-import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
+import ScrollReveal from '@/components/ScrollReveal';
+
+import featureLibrary from '@/assets/feature-library.png';
+import featureUpdates from '@/assets/feature-updates.png';
+import featureCreators from '@/assets/feature-creators.png';
+
+const XIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 const CarouselSection: React.FC<{ title: string; icon: React.ReactNode; items: typeof manhwaList; delay?: number; viewAllLink?: string }> = ({ title, icon, items, delay = 0, viewAllLink }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -80,42 +90,33 @@ const FeaturedCard: React.FC<{ manhwa: typeof manhwaList[0]; index: number }> = 
   </motion.div>
 );
 
-const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; desc: string; gradient: string; index: number }> = ({ icon, title, desc, gradient, index }) => (
-  <StaggerItem>
-    <div className={`relative p-6 sm:p-8 rounded-3xl border border-border overflow-hidden group hover:scale-[1.02] transition-all duration-500`} style={{ boxShadow: 'var(--shadow-card)' }}>
-      <div className={`absolute inset-0 opacity-[0.06] ${gradient}`} />
-      <div className="relative z-10">
-        <div className="w-12 h-12 rounded-2xl border border-border flex items-center justify-center mb-4 bg-background/80 backdrop-blur-sm">
-          {icon}
-        </div>
-        <h3 className="text-display text-xl sm:text-2xl tracking-wider mb-2">{title}</h3>
+/* Premium "Why Xtratoon" card — image-first like reference */
+const WhyCard: React.FC<{ image: string; title: string; desc: string; index: number }> = ({ image, title, desc, index }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: index * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    className="group"
+  >
+    <div className="rounded-2xl border border-border bg-card overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-1" style={{ boxShadow: 'var(--shadow-card)' }}>
+      {/* Image area with subtle grid pattern background */}
+      <div className="relative h-48 sm:h-56 bg-muted/40 flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 0.5px, transparent 0)', backgroundSize: '16px 16px' }} />
+        <motion.img
+          src={image}
+          alt={title}
+          className="h-36 sm:h-44 object-contain relative z-10 drop-shadow-lg"
+          whileHover={{ scale: 1.05, y: -4 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </div>
+      {/* Text */}
+      <div className="p-6">
+        <h3 className="font-semibold text-lg text-foreground mb-2 tracking-tight">{title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
       </div>
     </div>
-  </StaggerItem>
-);
-
-const CreatorCard: React.FC<{ publisher: typeof publishers[0]; index: number }> = ({ publisher, index }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-  >
-    <Link to={`/publisher/${publisher.id}`} className="group block">
-      <div className="p-5 rounded-2xl border border-border hover:border-primary/30 transition-all duration-400 bg-muted/20 hover:bg-muted/40" style={{ boxShadow: 'var(--shadow-sm)' }}>
-        <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-2xl ${publisher.avatarGradient} flex items-center justify-center text-lg font-bold text-foreground flex-shrink-0`}>
-            {publisher.username[0]}
-          </div>
-          <div className="min-w-0">
-            <h4 className="font-display text-base tracking-wide group-hover:text-primary transition-colors truncate">{publisher.username}</h4>
-            <p className="text-xs text-muted-foreground mt-0.5">{formatViews(publisher.totalViews)} total views</p>
-            <p className="text-xs text-muted-foreground">{publisher.works.length} series</p>
-          </div>
-        </div>
-      </div>
-    </Link>
   </motion.div>
 );
 
@@ -131,7 +132,6 @@ const HomePage: React.FC = () => {
   const trending = [...manhwaList].sort((a, b) => b.views - a.views);
   const topRated = [...manhwaList].sort((a, b) => b.rating - a.rating);
   const newReleases = [...manhwaList].reverse();
-  const editorPicks = [manhwaList[3], manhwaList[0], manhwaList[9], manhwaList[7], manhwaList[4]];
   const featuredSpotlight = manhwaList.slice(0, 4);
 
   const filteredByGenre = activeGenre
@@ -283,52 +283,51 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-20 sm:space-y-28">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-32">
 
-        {/* Why Xtratoon — feature cards inspired by Lavender reference */}
-        <ScrollReveal>
-          <section className="text-center mb-8">
-            <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 border border-primary/20 rounded-full text-xs font-semibold mb-4 bg-primary/5 text-primary"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-            >
-              <Sparkles className="w-3.5 h-3.5" /> Why Xtratoon?
-            </motion.div>
-            <h2 className="text-display text-4xl sm:text-6xl tracking-wider mb-3">
-              THE <span className="text-primary">ULTIMATE</span> READING
-              <br />EXPERIENCE
-            </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto text-sm sm:text-base">
-              Everything you need to discover, read, and fall in love with manhwa — all in one place.
-            </p>
-          </section>
-        </ScrollReveal>
+        {/* Why Choose Xtratoon — Figma-quality image cards */}
+        <section>
+          <ScrollReveal>
+            <div className="text-center mb-14">
+              <motion.p
+                className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-4"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                Why readers love us
+              </motion.p>
+              <h2 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-wider mb-4">
+                Why Choose{' '}
+                <span className="text-primary">Xtratoon</span>.
+              </h2>
+              <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+                We create meaningful connections between creators and readers, delivering tailored, immersive experiences with a reader-first approach.
+              </p>
+            </div>
+          </ScrollReveal>
 
-        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <FeatureCard
-            icon={<BookOpen className="w-6 h-6 text-primary" />}
-            title="ENDLESS LIBRARY"
-            desc="500+ series across every genre — action, romance, fantasy, horror, and more. Updated daily."
-            gradient="gradient-cover-1"
-            index={0}
-          />
-          <FeatureCard
-            icon={<Zap className="w-6 h-6 text-primary" />}
-            title="INSTANT UPDATES"
-            desc="Get new chapters the moment they drop. No waiting, no delays. First to read, always."
-            gradient="gradient-cover-2"
-            index={1}
-          />
-          <FeatureCard
-            icon={<Heart className="w-6 h-6 text-primary" />}
-            title="CREATOR-FIRST"
-            desc="We support creators with fair revenue sharing, analytics, and tools to grow their audience."
-            gradient="gradient-cover-5"
-            index={2}
-          />
-        </StaggerContainer>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <WhyCard
+              image={featureLibrary}
+              title="Endless Library"
+              desc="500+ series across every genre. Built for today, flexible for what's next. Updated daily."
+              index={0}
+            />
+            <WhyCard
+              image={featureUpdates}
+              title="Instant Updates"
+              desc="Get new chapters the moment they drop. A streamlined process — quick, clean, no delays."
+              index={1}
+            />
+            <WhyCard
+              image={featureCreators}
+              title="Creator-First Platform"
+              desc="We support creators with fair revenue sharing, analytics, and tools to grow their audience."
+              index={2}
+            />
+          </div>
+        </section>
 
         {/* Browse by genre */}
         <ScrollReveal>
@@ -379,62 +378,83 @@ const HomePage: React.FC = () => {
         <CarouselSection title="TOP RATED" icon={<Star className="w-5 h-5 text-gold" />} items={topRated} delay={0.05} viewAllLink="/charts" />
         <CarouselSection title="NEW RELEASES" icon={<Sparkles className="w-5 h-5 text-foreground" />} items={newReleases} delay={0.1} viewAllLink="/browse?sort=new" />
 
-        {/* Top Creators section */}
+        {/* Connect with us — Social section */}
         <ScrollReveal>
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-display text-2xl sm:text-3xl flex items-center gap-3 tracking-wider">
-                <span className="w-10 h-10 rounded-xl border border-border flex items-center justify-center bg-muted/30"><Users className="w-5 h-5 text-primary" /></span>
-                TOP CREATORS
+          <section className="relative rounded-3xl border border-border overflow-hidden bg-card" style={{ boxShadow: 'var(--shadow-card)' }}>
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 0.5px, transparent 0)', backgroundSize: '20px 20px' }} />
+            <div className="relative z-10 p-8 sm:p-14 text-center">
+              <motion.p
+                className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-3"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                Stay connected
+              </motion.p>
+              <h2 className="text-display text-4xl sm:text-6xl tracking-wider mb-4">
+                JOIN THE <span className="text-primary">COMMUNITY</span>
               </h2>
-              <Link to="/browse" className="text-xs font-semibold text-primary hover:underline underline-offset-4 transition-colors">
-                View All →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {publishers.slice(0, 6).map((p, i) => (
-                <CreatorCard key={p.id} publisher={p} index={i} />
-              ))}
-            </div>
-          </section>
-        </ScrollReveal>
+              <p className="text-muted-foreground max-w-lg mx-auto text-sm sm:text-base leading-relaxed mb-10">
+                Follow us for exclusive previews, creator spotlights, chapter drop announcements, and behind-the-scenes content.
+              </p>
 
-        <CarouselSection title="EDITOR'S PICKS" icon={<Award className="w-5 h-5 text-foreground" />} items={editorPicks} delay={0.15} viewAllLink="/browse" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                <motion.a
+                  href="https://instagram.com/XtraToon.global"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-5 rounded-2xl border border-border bg-background hover:border-primary/40 hover:-translate-y-1 transition-all duration-400 group"
+                  style={{ boxShadow: 'var(--shadow-sm)' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0, duration: 0.5 }}
+                >
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center text-white flex-shrink-0">
+                    <Instagram className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">Instagram</p>
+                    <p className="text-xs text-muted-foreground">@XtraToon.global</p>
+                  </div>
+                </motion.a>
 
-        {/* Big Browse CTA — inspired by the colorful reference images */}
-        <ScrollReveal>
-          <section className="relative rounded-3xl overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
-            <div className="absolute inset-0 gradient-cover-1 opacity-[0.08]" />
-            <div className="relative z-10 p-8 sm:p-14 flex flex-col lg:flex-row items-center gap-8">
-              <div className="flex-1 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-primary/20 rounded-full text-[11px] font-semibold mb-4 bg-primary/5 text-primary">
-                  <Eye className="w-3 h-3" /> Explore Everything
-                </div>
-                <h2 className="text-display text-4xl sm:text-6xl tracking-wider mb-3">
-                  SEE ALL <span className="text-primary">SECTIONS</span>
-                </h2>
-                <p className="text-muted-foreground max-w-md text-sm sm:text-base leading-relaxed mb-6">
-                  From trending hits to hidden gems, editor picks to new releases — browse every collection in one place.
-                </p>
-                <Link to="/browse">
-                  <MagneticButton className="btn-accent text-base px-8 py-4">
-                    Browse Everything <ArrowRight className="w-5 h-5" />
-                  </MagneticButton>
-                </Link>
-              </div>
-              <div className="flex gap-3 flex-shrink-0">
-                {manhwaList.slice(0, 3).map((m, i) => (
-                  <motion.div
-                    key={m.id}
-                    initial={{ opacity: 0, y: 20, rotate: i === 0 ? -6 : i === 2 ? 6 : 0 }}
-                    whileInView={{ opacity: 1, y: 0, rotate: i === 0 ? -6 : i === 2 ? 6 : 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1, duration: 0.5 }}
-                    className="hidden sm:block"
-                  >
-                    <div className={`w-28 sm:w-36 aspect-[2/3] ${m.coverGradient} rounded-2xl border border-border`} style={{ boxShadow: 'var(--shadow-card)' }} />
-                  </motion.div>
-                ))}
+                <motion.a
+                  href="https://x.com/Xtratoonglobal"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-5 rounded-2xl border border-border bg-background hover:border-primary/40 hover:-translate-y-1 transition-all duration-400 group"
+                  style={{ boxShadow: 'var(--shadow-sm)' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1, duration: 0.5 }}
+                >
+                  <div className="w-11 h-11 rounded-xl bg-foreground flex items-center justify-center text-background flex-shrink-0">
+                    <XIcon />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">X (Twitter)</p>
+                    <p className="text-xs text-muted-foreground">@Xtratoonglobal</p>
+                  </div>
+                </motion.a>
+
+                <motion.div
+                  className="flex items-center gap-3 p-5 rounded-2xl border border-border bg-background hover:border-primary/40 hover:-translate-y-1 transition-all duration-400 group cursor-default"
+                  style={{ boxShadow: 'var(--shadow-sm)' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
+                    <Globe className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-sm text-foreground">Website</p>
+                    <p className="text-xs text-muted-foreground">xtratoon.com</p>
+                  </div>
+                </motion.div>
               </div>
             </div>
           </section>
