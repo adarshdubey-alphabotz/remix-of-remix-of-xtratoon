@@ -40,53 +40,34 @@ const FeaturedCard: React.FC<{ manhwa: typeof manhwaList[0]; index: number }> = 
   </motion.div>
 );
 
-const WhyCard: React.FC<{ image: string; title: string; desc: string; index: number }> = ({ image, title, desc, index }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: cardRef,
-    offset: ['start end', 'end start'],
-  });
-
-  const y = useTransform(scrollYProgress, [0, 0.5, 1], [60, 0, -30]);
-  const smoothY = useSpring(y, { stiffness: 100, damping: 30 });
-  const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.92, 1, 1, 0.96]);
-  const imgY = useTransform(scrollYProgress, [0, 0.5, 1], [20, -10, -30]);
-  const smoothImgY = useSpring(imgY, { stiffness: 80, damping: 25 });
-  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [4, 0, -2]);
-
-  return (
-    <motion.div
-      ref={cardRef}
-      style={{ y: smoothY, scale, rotateX, perspective: 1000 }}
-      className="group will-change-transform"
+const WhyCard: React.FC<{ image: string; title: string; desc: string; index: number }> = ({ image, title, desc, index }) => (
+  <motion.div
+    className="group"
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '-60px' }}
+    transition={{ delay: index * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+  >
+    <div
+      className="rounded-2xl border border-border bg-card overflow-hidden transition-shadow duration-300 group-hover:shadow-xl"
+      style={{ boxShadow: 'var(--shadow-card)' }}
     >
-      <div
-        className="rounded-2xl border border-border bg-card overflow-hidden transition-shadow duration-500 group-hover:shadow-2xl"
-        style={{ boxShadow: 'var(--shadow-card)' }}
-      >
-        <div className="relative h-52 sm:h-64 bg-muted/30 flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 0.5px, transparent 0)', backgroundSize: '16px 16px' }} />
-          <motion.div
-            className="absolute w-32 h-32 rounded-full blur-3xl opacity-20"
-            style={{ background: 'hsl(var(--primary))', y: smoothImgY }}
-          />
-          <motion.img
-            src={image}
-            alt={title}
-            className="h-40 sm:h-52 object-contain relative z-10 drop-shadow-2xl"
-            style={{ y: smoothImgY }}
-            whileHover={{ scale: 1.08, rotateY: 5 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </div>
-        <div className="p-6 sm:p-7">
-          <h3 className="font-semibold text-lg text-foreground mb-2 tracking-tight">{title}</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
-        </div>
+      <div className="relative h-52 sm:h-64 bg-muted/30 flex items-center justify-center overflow-hidden">
+        <div className="absolute w-32 h-32 rounded-full blur-3xl opacity-20" style={{ background: 'hsl(var(--primary))' }} />
+        <img
+          src={image}
+          alt={title}
+          loading="lazy"
+          className="h-40 sm:h-52 object-contain relative z-10 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"
+        />
       </div>
-    </motion.div>
-  );
-};
+      <div className="p-6 sm:p-7">
+        <h3 className="font-semibold text-lg text-foreground mb-2 tracking-tight">{title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+      </div>
+    </div>
+  </motion.div>
+);
 
 /* Animated Revenue Step — triggers sequentially as user scrolls */
 const revenueSteps = [
