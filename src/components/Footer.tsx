@@ -9,10 +9,9 @@ const XIcon = () => (
 );
 
 const Footer: React.FC = () => (
-  <footer className="border-t-2 border-foreground bg-background">
+  <footer className="border-t border-border bg-background">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        {/* Brand */}
         <div className="space-y-4">
           <span className="text-display text-3xl tracking-wider">
             <span className="font-normal">XTRA</span>
@@ -21,31 +20,15 @@ const Footer: React.FC = () => (
           <p className="text-sm text-muted-foreground leading-relaxed">
             Premium manhwa & manga from world-class creators. Discover, read, and publish stunning webtoons.
           </p>
-          <div className="flex gap-3 pt-2">
-            <a
-              href="https://instagram.com/XtraToon.global"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 border-2 border-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
-              style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}
-              aria-label="Follow us on Instagram"
-            >
+          <div className="flex gap-2 pt-2">
+            <a href="https://instagram.com/XtraToon.global" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300" aria-label="Follow us on Instagram">
               <Instagram className="w-5 h-5" />
             </a>
-            <a
-              href="https://x.com/Xtratoonglobal"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 border-2 border-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
-              style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}
-              aria-label="Follow us on X"
-            >
+            <a href="https://x.com/Xtratoonglobal" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300" aria-label="Follow us on X">
               <XIcon />
             </a>
           </div>
         </div>
-
-        {/* Navigation */}
         <div className="space-y-4">
           <h4 className="text-display text-lg tracking-wider">NAVIGATE</h4>
           <nav className="flex flex-col gap-2">
@@ -55,8 +38,6 @@ const Footer: React.FC = () => (
             <Link to="/library" className="text-sm text-muted-foreground hover:text-primary transition-colors">My Library</Link>
           </nav>
         </div>
-
-        {/* For Creators */}
         <div className="space-y-4">
           <h4 className="text-display text-lg tracking-wider">FOR CREATORS</h4>
           <nav className="flex flex-col gap-2">
@@ -65,8 +46,6 @@ const Footer: React.FC = () => (
             <span className="text-sm text-muted-foreground">Creator Guidelines</span>
           </nav>
         </div>
-
-        {/* Legal */}
         <div className="space-y-4">
           <h4 className="text-display text-lg tracking-wider">LEGAL</h4>
           <nav className="flex flex-col gap-2">
@@ -77,19 +56,12 @@ const Footer: React.FC = () => (
           </nav>
         </div>
       </div>
-
-      <div className="mt-12 pt-8 border-t border-foreground/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p className="text-xs text-muted-foreground">
-          © 2026 Xtratoon. All rights reserved. Created by Akane Sakuramori.
-        </p>
+      <div className="mt-12 pt-8 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p className="text-xs text-muted-foreground">© 2026 Xtratoon. All rights reserved. Created by Akane Sakuramori.</p>
         <div className="flex items-center gap-4">
-          <a href="https://instagram.com/XtraToon.global" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-            @XtraToon.global
-          </a>
+          <a href="https://instagram.com/XtraToon.global" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary transition-colors">@XtraToon.global</a>
           <span className="text-muted-foreground/30">·</span>
-          <a href="https://x.com/Xtratoonglobal" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-            @Xtratoonglobal
-          </a>
+          <a href="https://x.com/Xtratoonglobal" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary transition-colors">@Xtratoonglobal</a>
         </div>
       </div>
     </div>

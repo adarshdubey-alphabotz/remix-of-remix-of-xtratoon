@@ -18,14 +18,14 @@ const CarouselSection: React.FC<{ title: string; icon: React.ReactNode; items: t
       <section className="relative">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-display text-2xl sm:text-3xl flex items-center gap-3 tracking-wider">
-            <span className="w-10 h-10 border-2 border-foreground flex items-center justify-center" style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}>{icon}</span>
+            <span className="w-10 h-10 rounded-xl border border-border flex items-center justify-center bg-muted/30">{icon}</span>
             {title}
           </h2>
           <div className="flex gap-2">
-            <button onClick={() => scroll(-1)} className="p-2.5 border-2 border-foreground hover:bg-foreground hover:text-background transition-all active:scale-95" style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}>
+            <button onClick={() => scroll(-1)} className="p-2.5 rounded-xl border border-border hover:bg-foreground hover:text-background transition-all duration-300 active:scale-95 bg-muted/30">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button onClick={() => scroll(1)} className="p-2.5 border-2 border-foreground hover:bg-foreground hover:text-background transition-all active:scale-95" style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}>
+            <button onClick={() => scroll(1)} className="p-2.5 rounded-xl border border-border hover:bg-foreground hover:text-background transition-all duration-300 active:scale-95 bg-muted/30">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -37,7 +37,7 @@ const CarouselSection: React.FC<{ title: string; icon: React.ReactNode; items: t
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ delay: i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="snap-start"
             >
               <ManhwaCard manhwa={m} />
@@ -57,8 +57,8 @@ const FeaturedCard: React.FC<{ manhwa: typeof manhwaList[0]; index: number }> = 
     transition={{ delay: index * 0.1, duration: 0.5 }}
   >
     <Link to={`/manhwa/${manhwa.id}`} className="group block">
-      <div className={`aspect-[2/3] ${manhwa.coverGradient} relative border-2 border-foreground overflow-hidden`} style={{ boxShadow: '4px 4px 0 hsl(0 0% 8%)' }}>
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/10 to-transparent" />
+      <div className={`aspect-[2/3] ${manhwa.coverGradient} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <h3 className="font-display text-lg text-white tracking-wide leading-tight group-hover:text-primary transition-colors">{manhwa.title}</h3>
           <p className="text-xs text-white/70 mt-1">{manhwa.author}</p>
@@ -95,7 +95,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
       {/* Announcement ticker */}
-      <div className="fixed top-16 left-0 right-0 z-40 bg-foreground overflow-hidden border-b-2 border-foreground">
+      <div className="fixed top-16 left-0 right-0 z-40 bg-foreground overflow-hidden">
         <div className="animate-marquee whitespace-nowrap py-1.5 text-xs font-semibold text-background">
           <span className="mx-8">🔥 Solo Ascension Chapter 45 just dropped!</span>
           <span className="mx-8">⭐ The Moonlit Garden wins Best Romance 2025</span>
@@ -108,12 +108,10 @@ const HomePage: React.FC = () => {
 
       {/* Hero */}
       <section ref={heroRef} className="relative min-h-[100svh] flex items-center pt-28 sm:pt-24 overflow-hidden">
-        {/* Background grid texture */}
-        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0 0% 8%) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 8%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
 
-        {/* Big background text */}
         <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-          <motion.span 
+          <motion.span
             style={{ y: heroY }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[25vw] sm:text-[18vw] font-display text-foreground/[0.03] leading-none tracking-widest whitespace-nowrap"
           >
@@ -123,19 +121,18 @@ const HomePage: React.FC = () => {
 
         <motion.div style={{ y: heroY, opacity: heroOpacity, scale: heroScale }} className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
           <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center">
-            {/* Text */}
             <div className="lg:col-span-3 space-y-6 sm:space-y-8">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-foreground text-xs font-semibold mb-6" style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}>
+                <div className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-full text-xs font-semibold mb-6 bg-muted/30 backdrop-blur-sm">
                   <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                   Featured — {featured.title}
                 </div>
                 <h1 className="text-display text-[14vw] sm:text-7xl lg:text-8xl xl:text-[9rem] leading-[0.85] tracking-wider">
-                  <motion.span 
+                  <motion.span
                     className="block"
                     initial={{ opacity: 0, x: -40 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -143,7 +140,7 @@ const HomePage: React.FC = () => {
                   >
                     DISCOVER
                   </motion.span>
-                  <motion.span 
+                  <motion.span
                     className="block text-primary"
                     initial={{ opacity: 0, x: -40 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -151,7 +148,7 @@ const HomePage: React.FC = () => {
                   >
                     STORIES
                   </motion.span>
-                  <motion.span 
+                  <motion.span
                     className="block text-[5vw] sm:text-3xl lg:text-4xl text-muted-foreground font-display mt-2 tracking-[0.2em]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -162,7 +159,7 @@ const HomePage: React.FC = () => {
                 </h1>
               </motion.div>
 
-              <motion.p 
+              <motion.p
                 className="text-muted-foreground max-w-md text-sm sm:text-base leading-relaxed"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -171,22 +168,21 @@ const HomePage: React.FC = () => {
                 Premium manhwa & manga from world-class creators. Immerse yourself in stunning art and compelling narratives.
               </motion.p>
 
-              <motion.div 
-                className="flex flex-wrap gap-4"
+              <motion.div
+                className="flex flex-wrap gap-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.7 }}
               >
-                <MagneticButton className="btn-accent rounded-none text-sm">
+                <MagneticButton className="btn-accent text-sm">
                   <Play className="w-4 h-4 fill-current" /> Start Reading
                 </MagneticButton>
-                <MagneticButton className="btn-outline rounded-none text-sm">
+                <MagneticButton className="btn-outline text-sm">
                   Browse All <ArrowRight className="w-4 h-4" />
                 </MagneticButton>
               </motion.div>
 
-              {/* Quick stats */}
-              <motion.div 
+              <motion.div
                 className="flex gap-8 pt-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -205,8 +201,7 @@ const HomePage: React.FC = () => {
               </motion.div>
             </div>
 
-            {/* Featured covers grid */}
-            <motion.div 
+            <motion.div
               className="lg:col-span-2 hidden sm:grid grid-cols-2 gap-4"
               initial={{ opacity: 0, x: 60 }}
               animate={{ opacity: 1, x: 0 }}
@@ -217,16 +212,15 @@ const HomePage: React.FC = () => {
               ))}
             </motion.div>
 
-            {/* Mobile: single featured card */}
-            <motion.div 
+            <motion.div
               className="sm:hidden"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.7 }}
             >
               <Link to={`/manhwa/${featured.id}`} className="block">
-                <div className={`aspect-[16/9] ${featured.coverGradient} relative border-2 border-foreground overflow-hidden`} style={{ boxShadow: '4px 4px 0 hsl(0 0% 8%)' }}>
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent" />
+                <div className={`aspect-[16/9] ${featured.coverGradient} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="font-display text-xl text-white tracking-wide">{featured.title}</h3>
                     <p className="text-xs text-white/70 mt-1">{featured.author} · {formatViews(featured.views)} views</p>
@@ -237,14 +231,13 @@ const HomePage: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div 
+        <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:block"
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <div className="w-6 h-10 border-2 border-foreground/30 rounded-full flex items-start justify-center p-1.5">
-            <motion.div 
+          <div className="w-6 h-10 border border-foreground/20 rounded-full flex items-start justify-center p-1.5">
+            <motion.div
               className="w-1.5 h-1.5 bg-primary rounded-full"
               animate={{ y: [0, 12, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -255,11 +248,10 @@ const HomePage: React.FC = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-20 sm:space-y-28">
-        {/* Genre pills */}
         <ScrollReveal>
           <section>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-1.5 h-10 bg-primary" />
+              <div className="w-1 h-8 bg-primary rounded-full" />
               <h2 className="text-display text-2xl sm:text-3xl tracking-wider">BROWSE BY GENRE</h2>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -267,12 +259,11 @@ const HomePage: React.FC = () => {
                 <motion.button
                   key={g}
                   onClick={() => setActiveGenre(activeGenre === g ? null : g)}
-                  className={`px-4 py-2 text-sm font-semibold transition-all border-2 ${
+                  className={`px-4 py-2 text-sm font-semibold transition-all rounded-xl border ${
                     activeGenre === g
-                      ? 'bg-primary text-primary-foreground border-foreground'
-                      : 'border-foreground/20 hover:border-foreground hover:bg-foreground hover:text-background'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
+                      : 'border-border/40 hover:border-border hover:bg-muted/50'
                   }`}
-                  style={activeGenre === g ? { boxShadow: '2px 2px 0 hsl(0 0% 8%)' } : {}}
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
@@ -284,8 +275,8 @@ const HomePage: React.FC = () => {
               ))}
             </div>
             {filteredByGenre && (
-              <motion.div 
-                className="flex gap-5 overflow-x-auto pb-4 mt-6 snap-x snap-mandatory" 
+              <motion.div
+                className="flex gap-5 overflow-x-auto pb-4 mt-6 snap-x snap-mandatory"
                 style={{ scrollbarWidth: 'none' }}
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
@@ -306,15 +297,14 @@ const HomePage: React.FC = () => {
         <CarouselSection title="NEW RELEASES" icon={<Sparkles className="w-5 h-5 text-foreground" />} items={newReleases} delay={0.1} />
         <CarouselSection title="EDITOR'S PICKS" icon={<Award className="w-5 h-5 text-foreground" />} items={editorPicks} delay={0.15} />
 
-        {/* CTA Section */}
         <ScrollReveal>
-          <section className="border-2 border-foreground p-8 sm:p-12 text-center relative overflow-hidden" style={{ boxShadow: '6px 6px 0 hsl(0 0% 8%)' }}>
+          <section className="rounded-3xl border border-border p-8 sm:p-12 text-center relative overflow-hidden bg-muted/20" style={{ boxShadow: 'var(--shadow-card)' }}>
             <div className="relative z-10">
               <h2 className="text-display text-4xl sm:text-6xl mb-4 tracking-wider">READY TO <span className="text-primary">PUBLISH?</span></h2>
               <p className="text-muted-foreground max-w-lg mx-auto mb-8">
                 Join hundreds of creators sharing their stories with millions of readers on Xtratoon.
               </p>
-              <MagneticButton className="btn-accent rounded-none text-base px-8 py-4">
+              <MagneticButton className="btn-accent text-base px-8 py-4">
                 Start Publishing <ArrowRight className="w-5 h-5" />
               </MagneticButton>
             </div>
@@ -322,7 +312,6 @@ const HomePage: React.FC = () => {
         </ScrollReveal>
       </div>
 
-      {/* Marquee CSS */}
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
