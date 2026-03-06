@@ -1,9 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, TrendingUp, Star, Sparkles, Play, ArrowRight, Instagram, Globe, MessageCircle } from 'lucide-react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { manhwaList, allGenres, formatViews } from '@/data/mockData';
-import ManhwaCard from '@/components/ManhwaCard';
+import { Star, Play, ArrowRight, Instagram, Globe, X } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { manhwaList, formatViews } from '@/data/mockData';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal from '@/components/ScrollReveal';
 
@@ -16,55 +15,6 @@ const XIcon = () => (
     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
   </svg>
 );
-
-const CarouselSection: React.FC<{ title: string; icon: React.ReactNode; items: typeof manhwaList; delay?: number; viewAllLink?: string }> = ({ title, icon, items, delay = 0, viewAllLink }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' });
-  };
-
-  return (
-    <ScrollReveal delay={delay}>
-      <section className="relative">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-display text-2xl sm:text-3xl flex items-center gap-3 tracking-wider">
-            <span className="w-10 h-10 rounded-xl border border-border flex items-center justify-center bg-muted/30">{icon}</span>
-            {title}
-          </h2>
-          <div className="flex items-center gap-3">
-            {viewAllLink && (
-              <Link to={viewAllLink} className="text-xs font-semibold text-primary hover:underline underline-offset-4 transition-colors hidden sm:block">
-                View All →
-              </Link>
-            )}
-            <div className="flex gap-2">
-              <button onClick={() => scroll(-1)} className="p-2.5 rounded-xl border border-border hover:bg-foreground hover:text-background transition-all duration-300 active:scale-95 bg-muted/30">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button onClick={() => scroll(1)} className="p-2.5 rounded-xl border border-border hover:bg-foreground hover:text-background transition-all duration-300 active:scale-95 bg-muted/30">
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div ref={scrollRef} className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-          {items.map((m, i) => (
-            <motion.div
-              key={m.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="snap-start"
-            >
-              <ManhwaCard manhwa={m} />
-            </motion.div>
-          ))}
-        </div>
-      </section>
-    </ScrollReveal>
-  );
-};
 
 const FeaturedCard: React.FC<{ manhwa: typeof manhwaList[0]; index: number }> = ({ manhwa, index }) => (
   <motion.div
@@ -90,7 +40,6 @@ const FeaturedCard: React.FC<{ manhwa: typeof manhwaList[0]; index: number }> = 
   </motion.div>
 );
 
-/* Premium "Why Xtratoon" card — image-first like reference */
 const WhyCard: React.FC<{ image: string; title: string; desc: string; index: number }> = ({ image, title, desc, index }) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
@@ -100,19 +49,17 @@ const WhyCard: React.FC<{ image: string; title: string; desc: string; index: num
     className="group"
   >
     <div className="rounded-2xl border border-border bg-card overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-1" style={{ boxShadow: 'var(--shadow-card)' }}>
-      {/* Image area with subtle grid pattern background */}
-      <div className="relative h-48 sm:h-56 bg-muted/40 flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 0.5px, transparent 0)', backgroundSize: '16px 16px' }} />
+      <div className="relative h-52 sm:h-60 bg-muted/30 flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 0.5px, transparent 0)', backgroundSize: '16px 16px' }} />
         <motion.img
           src={image}
           alt={title}
-          className="h-36 sm:h-44 object-contain relative z-10 drop-shadow-lg"
-          whileHover={{ scale: 1.05, y: -4 }}
+          className="h-40 sm:h-48 object-contain relative z-10 drop-shadow-xl"
+          whileHover={{ scale: 1.05, y: -6 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         />
       </div>
-      {/* Text */}
-      <div className="p-6">
+      <div className="p-6 sm:p-7">
         <h3 className="font-semibold text-lg text-foreground mb-2 tracking-tight">{title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
       </div>
@@ -120,8 +67,109 @@ const WhyCard: React.FC<{ image: string; title: string; desc: string; index: num
   </motion.div>
 );
 
+/* Floating glassmorphic social pill */
+const SocialPill: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
+
+  const socials = [
+    { icon: <Instagram className="w-5 h-5" />, label: 'Instagram', href: 'https://instagram.com/XtraToon.global', handle: '@XtraToon.global' },
+    { icon: <XIcon />, label: 'X (Twitter)', href: 'https://x.com/Xtratoonglobal', handle: '@Xtratoonglobal' },
+    { icon: <Globe className="w-5 h-5" />, label: 'Website', href: '#', handle: 'xtratoon.com' },
+  ];
+
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-64 rounded-2xl border border-border/50 p-3 space-y-1"
+            style={{
+              background: 'hsla(var(--glass-bg))',
+              backdropFilter: 'blur(60px) saturate(1.8)',
+              WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
+              boxShadow: '0 16px 70px -12px hsla(0, 0%, 0%, 0.25)',
+            }}
+          >
+            {socials.map((s, i) => (
+              <motion.a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/60 transition-all duration-200 group"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.06, duration: 0.3 }}
+              >
+                <span className="text-muted-foreground group-hover:text-primary transition-colors">{s.icon}</span>
+                <div>
+                  <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{s.label}</p>
+                  <p className="text-[11px] text-muted-foreground">{s.handle}</p>
+                </div>
+              </motion.a>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        className="flex items-center gap-1 rounded-full border border-border/40 p-1.5"
+        style={{
+          background: 'hsla(var(--glass-bg))',
+          backdropFilter: 'blur(60px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
+          boxShadow: '0 8px 40px -8px hsla(0, 0%, 0%, 0.2), inset 0 1px 0 0 hsla(0, 0%, 100%, 0.1)',
+        }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {/* Follow Us toggle */}
+        <motion.button
+          onClick={() => { setOpen(!open); setActiveIdx(null); }}
+          className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${
+            open
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted/60 text-foreground hover:bg-muted'
+          }`}
+          whileTap={{ scale: 0.95 }}
+        >
+          <motion.span
+            animate={{ rotate: open ? 45 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="text-base leading-none"
+          >
+            {open ? '✕' : '♥'}
+          </motion.span>
+          Follow Us
+        </motion.button>
+
+        {/* Quick social icons */}
+        {socials.slice(0, 2).map((s, i) => (
+          <motion.a
+            key={s.label}
+            href={s.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-3 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/60 transition-all duration-200"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label={s.label}
+          >
+            {s.icon}
+          </motion.a>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
 const HomePage: React.FC = () => {
-  const [activeGenre, setActiveGenre] = useState<string | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
@@ -129,14 +177,7 @@ const HomePage: React.FC = () => {
   const heroScale = useTransform(scrollYProgress, [0, 0.7], [1, 0.96]);
 
   const featured = manhwaList[0];
-  const trending = [...manhwaList].sort((a, b) => b.views - a.views);
-  const topRated = [...manhwaList].sort((a, b) => b.rating - a.rating);
-  const newReleases = [...manhwaList].reverse();
   const featuredSpotlight = manhwaList.slice(0, 4);
-
-  const filteredByGenre = activeGenre
-    ? manhwaList.filter(m => m.genres.includes(activeGenre))
-    : null;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
@@ -285,7 +326,7 @@ const HomePage: React.FC = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-32">
 
-        {/* Why Choose Xtratoon — Figma-quality image cards */}
+        {/* Why Choose Xtratoon */}
         <section>
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -329,137 +370,6 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Browse by genre */}
-        <ScrollReveal>
-          <section>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1 h-8 bg-primary rounded-full" />
-              <h2 className="text-display text-2xl sm:text-3xl tracking-wider">BROWSE BY GENRE</h2>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {allGenres.map((g, i) => (
-                <motion.button
-                  key={g}
-                  onClick={() => setActiveGenre(activeGenre === g ? null : g)}
-                  className={`px-4 py-2 text-sm font-semibold transition-all rounded-xl border ${
-                    activeGenre === g
-                      ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
-                      : 'border-border/40 hover:border-border hover:bg-muted/50'
-                  }`}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.03, duration: 0.3 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {g}
-                </motion.button>
-              ))}
-            </div>
-            {filteredByGenre && (
-              <motion.div
-                className="flex gap-5 overflow-x-auto pb-4 mt-6 snap-x snap-mandatory"
-                style={{ scrollbarWidth: 'none' }}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                transition={{ duration: 0.4 }}
-              >
-                {filteredByGenre.map(m => (
-                  <div key={m.id} className="snap-start">
-                    <ManhwaCard manhwa={m} />
-                  </div>
-                ))}
-              </motion.div>
-            )}
-          </section>
-        </ScrollReveal>
-
-        <CarouselSection title="TRENDING NOW" icon={<TrendingUp className="w-5 h-5 text-primary" />} items={trending} viewAllLink="/browse?sort=trending" />
-        <CarouselSection title="TOP RATED" icon={<Star className="w-5 h-5 text-gold" />} items={topRated} delay={0.05} viewAllLink="/charts" />
-        <CarouselSection title="NEW RELEASES" icon={<Sparkles className="w-5 h-5 text-foreground" />} items={newReleases} delay={0.1} viewAllLink="/browse?sort=new" />
-
-        {/* Connect with us — Social section */}
-        <ScrollReveal>
-          <section className="relative rounded-3xl border border-border overflow-hidden bg-card" style={{ boxShadow: 'var(--shadow-card)' }}>
-            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 0.5px, transparent 0)', backgroundSize: '20px 20px' }} />
-            <div className="relative z-10 p-8 sm:p-14 text-center">
-              <motion.p
-                className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-3"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-              >
-                Stay connected
-              </motion.p>
-              <h2 className="text-display text-4xl sm:text-6xl tracking-wider mb-4">
-                JOIN THE <span className="text-primary">COMMUNITY</span>
-              </h2>
-              <p className="text-muted-foreground max-w-lg mx-auto text-sm sm:text-base leading-relaxed mb-10">
-                Follow us for exclusive previews, creator spotlights, chapter drop announcements, and behind-the-scenes content.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
-                <motion.a
-                  href="https://instagram.com/XtraToon.global"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-5 rounded-2xl border border-border bg-background hover:border-primary/40 hover:-translate-y-1 transition-all duration-400 group"
-                  style={{ boxShadow: 'var(--shadow-sm)' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0, duration: 0.5 }}
-                >
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center text-white flex-shrink-0">
-                    <Instagram className="w-5 h-5" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">Instagram</p>
-                    <p className="text-xs text-muted-foreground">@XtraToon.global</p>
-                  </div>
-                </motion.a>
-
-                <motion.a
-                  href="https://x.com/Xtratoonglobal"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-5 rounded-2xl border border-border bg-background hover:border-primary/40 hover:-translate-y-1 transition-all duration-400 group"
-                  style={{ boxShadow: 'var(--shadow-sm)' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1, duration: 0.5 }}
-                >
-                  <div className="w-11 h-11 rounded-xl bg-foreground flex items-center justify-center text-background flex-shrink-0">
-                    <XIcon />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">X (Twitter)</p>
-                    <p className="text-xs text-muted-foreground">@Xtratoonglobal</p>
-                  </div>
-                </motion.a>
-
-                <motion.div
-                  className="flex items-center gap-3 p-5 rounded-2xl border border-border bg-background hover:border-primary/40 hover:-translate-y-1 transition-all duration-400 group cursor-default"
-                  style={{ boxShadow: 'var(--shadow-sm)' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                >
-                  <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
-                    <Globe className="w-5 h-5" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold text-sm text-foreground">Website</p>
-                    <p className="text-xs text-muted-foreground">xtratoon.com</p>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </section>
-        </ScrollReveal>
-
         {/* Publish CTA */}
         <ScrollReveal>
           <section className="rounded-3xl border border-border p-8 sm:p-12 text-center relative overflow-hidden bg-muted/20" style={{ boxShadow: 'var(--shadow-card)' }}>
@@ -477,6 +387,9 @@ const HomePage: React.FC = () => {
           </section>
         </ScrollReveal>
       </div>
+
+      {/* Floating social pill */}
+      <SocialPill />
 
       <style>{`
         @keyframes marquee {
