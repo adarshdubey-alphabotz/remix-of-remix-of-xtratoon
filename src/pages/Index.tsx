@@ -199,13 +199,6 @@ const HomePage: React.FC = () => {
   const featured = manhwaList[0];
   const featuredSpotlight = manhwaList.slice(0, 4);
 
-  const whyRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: whyProgress } = useScroll({
-    target: whyRef,
-    offset: ['start end', 'end start'],
-  });
-  const whyTitleY = useTransform(whyProgress, [0, 0.3], [40, 0]);
-  const whyTitleOpacity = useTransform(whyProgress, [0, 0.2], [0, 1]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
