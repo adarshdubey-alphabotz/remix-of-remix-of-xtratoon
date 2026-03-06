@@ -16,28 +16,23 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, rank, rankColor }) => {
       to={`/manhwa/${manhwa.id}`}
       className="group relative flex-shrink-0 w-40 sm:w-48"
     >
-      {/* Rank badge */}
       {rank && (
         <div
           className="absolute -top-2 -left-2 z-20 w-9 h-9 flex items-center justify-center text-xs font-bold rounded-xl border border-border"
           style={{
             backgroundColor: rankColor || 'hsl(var(--muted))',
             color: rank <= 3 ? '#000' : 'hsl(var(--foreground))',
-            boxShadow: 'var(--shadow-sm)',
           }}
         >
           #{rank}
         </div>
       )}
 
-      {/* Cover */}
       <motion.div
-        className={`relative aspect-[3/4] overflow-hidden ${manhwa.coverGradient} mb-3 rounded-2xl border border-border`}
-        style={{ boxShadow: 'var(--shadow-card)' }}
-        whileHover={{ y: -4, boxShadow: '0 12px 40px -8px hsla(0, 0%, 0%, 0.15)' }}
+        className={`relative aspect-[3/4] overflow-hidden ${manhwa.coverGradient} mb-3 rounded-2xl`}
+        whileHover={{ y: -4 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        {/* Glass overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-400 p-3 flex flex-col justify-end backdrop-blur-sm rounded-2xl">
           <p className="text-xs text-foreground/90 line-clamp-3 leading-relaxed">{manhwa.description}</p>
           <div className="mt-2 inline-flex items-center gap-1 text-primary text-xs font-bold">
@@ -45,7 +40,6 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, rank, rankColor }) => {
           </div>
         </div>
 
-        {/* Status badge */}
         <div className="absolute top-2.5 right-2.5 z-10">
           <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg backdrop-blur-md ${
             manhwa.status === 'Ongoing' ? 'bg-background/70 text-foreground border border-border/50' :
@@ -56,7 +50,6 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, rank, rankColor }) => {
           </span>
         </div>
 
-        {/* Bookmark */}
         <button
           onClick={e => { e.preventDefault(); }}
           className="absolute top-2.5 left-2.5 z-10 p-1.5 glass rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95"
@@ -65,7 +58,6 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, rank, rankColor }) => {
         </button>
       </motion.div>
 
-      {/* Info */}
       <div className="space-y-1 px-0.5">
         <h3 className="font-display text-base tracking-wide leading-tight line-clamp-1 group-hover:text-primary transition-colors">
           {manhwa.title}
