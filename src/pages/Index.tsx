@@ -398,6 +398,169 @@ const HomePage: React.FC = () => {
           </section>
         </ScrollReveal>
 
+        {/* How Creators Earn — Stepper glassmorphic section */}
+        <ScrollReveal>
+          <section className="relative rounded-3xl overflow-hidden" style={{ boxShadow: '0 16px 70px -12px hsla(0,0%,0%,0.25)' }}>
+            {/* Deep dark glass background */}
+            <div className="absolute inset-0" style={{
+              background: 'linear-gradient(135deg, hsla(220,30%,8%,0.95), hsla(260,20%,12%,0.92), hsla(220,30%,8%,0.95))',
+            }} />
+            {/* Animated light rays */}
+            <div className="absolute inset-0 overflow-hidden">
+              <motion.div
+                className="absolute -top-20 left-1/3 w-[500px] h-[500px] opacity-20"
+                style={{ background: 'conic-gradient(from 180deg, transparent, hsl(var(--primary)), transparent 40%)' }}
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              />
+              <motion.div
+                className="absolute -bottom-32 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-10"
+                style={{ background: 'hsl(var(--primary))' }}
+                animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.2, 0.1] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+              />
+            </div>
+            {/* Glass border */}
+            <div className="absolute inset-0 rounded-3xl border border-white/[0.08]" style={{ boxShadow: 'inset 0 1px 0 0 hsla(0,0%,100%,0.1)' }} />
+
+            <div className="relative z-10 p-8 sm:p-14">
+              <motion.div
+                className="text-center mb-14"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <p className="text-sm font-medium uppercase tracking-[0.25em] mb-3" style={{ color: 'hsl(var(--primary))' }}>
+                  Revenue Model
+                </p>
+                <h2 className="font-display text-4xl sm:text-6xl lg:text-7xl tracking-wider text-white mb-4">
+                  <span style={{ color: 'hsl(var(--primary))' }}>100%</span> REVENUE
+                  <br />TO AUTHORS
+                </h2>
+                <p className="text-white/50 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+                  Zero charges. Zero hidden fees. Every penny earned goes directly to you.
+                </p>
+              </motion.div>
+
+              {/* Stepper */}
+              <div className="max-w-lg mx-auto space-y-0 relative">
+                {/* Vertical connector line */}
+                <div className="absolute left-6 sm:left-8 top-8 bottom-8 w-px" style={{ background: 'linear-gradient(to bottom, hsl(var(--primary)), hsla(var(--primary)/0.2), transparent)' }} />
+
+                {[
+                  { step: 1, icon: Eye, title: 'Readers Visit Your Content', desc: 'Your manhwa gets discovered by millions of readers worldwide.', done: true },
+                  { step: 2, icon: Play, title: 'Ad-Powered Unlock', desc: 'Readers watch a short ad to unlock premium chapters — completely free for them.', done: true },
+                  { step: 3, icon: Banknote, title: 'Ad Revenue Generated', desc: 'Every ad view generates real revenue — and it\'s all yours.', active: true },
+                  { step: 4, icon: Wallet, title: 'Monthly Payout', desc: 'At the end of each month, earnings are sent directly to your preferred payment method.', done: false },
+                  { step: 5, icon: ShieldCheck, title: 'No Platform Cuts', desc: 'We don\'t take a single penny. 100% of ad earnings belong to the creator.', done: false },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.step}
+                    className="relative flex items-start gap-4 sm:gap-6 py-3"
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    {/* Step circle */}
+                    <div className={`relative z-10 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center flex-shrink-0 border ${
+                      item.active
+                        ? 'border-primary bg-primary/20 shadow-[0_0_30px_hsla(var(--primary)/0.4)]'
+                        : item.done
+                          ? 'border-primary/60 bg-primary/10'
+                          : 'border-white/10 bg-white/5'
+                    }`}>
+                      {item.done ? (
+                        <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: 'hsl(var(--primary))' }} />
+                      ) : (
+                        <span className={`font-display text-lg sm:text-xl tracking-wider ${item.active ? 'text-white' : 'text-white/40'}`}>
+                          {item.step}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Card */}
+                    <motion.div
+                      className={`flex-1 rounded-2xl border px-5 py-4 sm:px-6 sm:py-5 ${
+                        item.active
+                          ? 'border-primary/40 bg-white/[0.06]'
+                          : 'border-white/[0.06] bg-white/[0.03]'
+                      }`}
+                      style={{
+                        backdropFilter: 'blur(20px)',
+                        boxShadow: item.active ? '0 0 40px -10px hsla(var(--primary)/0.2), inset 0 1px 0 0 hsla(0,0%,100%,0.08)' : 'inset 0 1px 0 0 hsla(0,0%,100%,0.04)',
+                      }}
+                      whileHover={{ scale: 1.02, x: 4 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="flex items-center gap-3 mb-1">
+                        <item.icon className={`w-4 h-4 ${item.active ? 'text-primary' : 'text-white/40'}`} />
+                        <h4 className={`font-semibold text-sm sm:text-base ${item.active ? 'text-white' : item.done ? 'text-white/80' : 'text-white/50'}`}>
+                          {item.step}: {item.title}
+                        </h4>
+                      </div>
+                      <p className="text-xs sm:text-sm text-white/40 leading-relaxed pl-7">{item.desc}</p>
+                    </motion.div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Payment Methods */}
+              <motion.div
+                className="mt-14 max-w-md mx-auto rounded-2xl border border-white/[0.08] p-6 sm:p-8"
+                style={{
+                  background: 'hsla(0,0%,100%,0.04)',
+                  backdropFilter: 'blur(30px)',
+                  boxShadow: '0 0 50px -15px hsla(var(--primary)/0.15), inset 0 1px 0 0 hsla(0,0%,100%,0.08)',
+                }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+              >
+                <h4 className="font-semibold text-white text-center mb-5">Supported Payment Methods</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { name: 'UPI', tag: 'India' },
+                    { name: 'bKash', tag: 'Bangladesh' },
+                    { name: 'PayPal', tag: 'Global' },
+                    { name: 'Crypto', tag: 'Binance' },
+                  ].map((pm, i) => (
+                    <motion.div
+                      key={pm.name}
+                      className="flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.03]"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.4 + i * 0.08 }}
+                      whileHover={{ scale: 1.04, borderColor: 'hsla(var(--primary)/0.4)' }}
+                    >
+                      <span className="text-sm font-medium text-white/80">{pm.name}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-white/30">{pm.tag}</span>
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="mt-5 text-center">
+                  <Link to="/dashboard">
+                    <motion.button
+                      className="px-8 py-3 rounded-xl font-semibold text-sm text-primary-foreground"
+                      style={{
+                        background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))',
+                        boxShadow: '0 8px 30px -6px hsla(var(--primary)/0.5)',
+                      }}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      Start Earning
+                    </motion.button>
+                  </Link>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+        </ScrollReveal>
+
         {/* Publish CTA */}
         <ScrollReveal>
           <section className="rounded-3xl border border-border p-8 sm:p-12 text-center relative overflow-hidden bg-muted/20" style={{ boxShadow: 'var(--shadow-card)' }}>
