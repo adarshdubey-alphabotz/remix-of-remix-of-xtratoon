@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Play, ArrowRight, Instagram, Globe } from 'lucide-react';
+import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, Wallet, ShieldCheck } from 'lucide-react';
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from 'framer-motion';
 import { manhwaList, formatViews } from '@/data/mockData';
 import MagneticButton from '@/components/MagneticButton';
