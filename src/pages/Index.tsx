@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Play, ArrowRight, Instagram, Globe, X } from 'lucide-react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { Star, Play, ArrowRight, Instagram, Globe } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from 'framer-motion';
 import { manhwaList, formatViews } from '@/data/mockData';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal from '@/components/ScrollReveal';
@@ -40,132 +40,58 @@ const FeaturedCard: React.FC<{ manhwa: typeof manhwaList[0]; index: number }> = 
   </motion.div>
 );
 
-const WhyCard: React.FC<{ image: string; title: string; desc: string; index: number }> = ({ image, title, desc, index }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay: index * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-    className="group"
-  >
-    <div className="rounded-2xl border border-border bg-card overflow-hidden hover:shadow-xl transition-all duration-500 hover:-translate-y-1" style={{ boxShadow: 'var(--shadow-card)' }}>
-      <div className="relative h-52 sm:h-60 bg-muted/30 flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 0.5px, transparent 0)', backgroundSize: '16px 16px' }} />
-        <motion.img
-          src={image}
-          alt={title}
-          className="h-40 sm:h-48 object-contain relative z-10 drop-shadow-xl"
-          whileHover={{ scale: 1.05, y: -6 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        />
-      </div>
-      <div className="p-6 sm:p-7">
-        <h3 className="font-semibold text-lg text-foreground mb-2 tracking-tight">{title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
-      </div>
-    </div>
-  </motion.div>
-);
+/* Scroll-linked parallax Why card with stagger + 3D tilt */
+const WhyCard: React.FC<{ image: string; title: string; desc: string; index: number }> = ({ image, title, desc, index }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ['start end', 'end start'],
+  });
 
-/* Floating glassmorphic social pill */
-const SocialPill: React.FC = () => {
-  const [open, setOpen] = useState(false);
-  const [activeIdx, setActiveIdx] = useState<number | null>(null);
-
-  const socials = [
-    { icon: <Instagram className="w-5 h-5" />, label: 'Instagram', href: 'https://instagram.com/XtraToon.global', handle: '@XtraToon.global' },
-    { icon: <XIcon />, label: 'X (Twitter)', href: 'https://x.com/Xtratoonglobal', handle: '@Xtratoonglobal' },
-    { icon: <Globe className="w-5 h-5" />, label: 'Website', href: '#', handle: 'xtratoon.com' },
-  ];
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [60, 0, -30]);
+  const smoothY = useSpring(y, { stiffness: 100, damping: 30 });
+  const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.92, 1, 1, 0.96]);
+  const imgY = useTransform(scrollYProgress, [0, 0.5, 1], [20, -10, -30]);
+  const smoothImgY = useSpring(imgY, { stiffness: 80, damping: 25 });
+  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [4, 0, -2]);
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-64 rounded-2xl border border-border/50 p-3 space-y-1"
-            style={{
-              background: 'hsla(var(--glass-bg))',
-              backdropFilter: 'blur(60px) saturate(1.8)',
-              WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
-              boxShadow: '0 16px 70px -12px hsla(0, 0%, 0%, 0.25)',
-            }}
-          >
-            {socials.map((s, i) => (
-              <motion.a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/60 transition-all duration-200 group"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.3 }}
-              >
-                <span className="text-muted-foreground group-hover:text-primary transition-colors">{s.icon}</span>
-                <div>
-                  <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{s.label}</p>
-                  <p className="text-[11px] text-muted-foreground">{s.handle}</p>
-                </div>
-              </motion.a>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div
-        className="flex items-center gap-1 rounded-full border border-border/40 p-1.5"
-        style={{
-          background: 'hsla(var(--glass-bg))',
-          backdropFilter: 'blur(60px) saturate(1.8)',
-          WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
-          boxShadow: '0 8px 40px -8px hsla(0, 0%, 0%, 0.2), inset 0 1px 0 0 hsla(0, 0%, 100%, 0.1)',
-        }}
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    <motion.div
+      ref={cardRef}
+      style={{ y: smoothY, scale, rotateX, perspective: 1000 }}
+      className="group will-change-transform"
+    >
+      <div
+        className="rounded-2xl border border-border bg-card overflow-hidden transition-shadow duration-500 group-hover:shadow-2xl"
+        style={{ boxShadow: 'var(--shadow-card)' }}
       >
-        {/* Follow Us toggle */}
-        <motion.button
-          onClick={() => { setOpen(!open); setActiveIdx(null); }}
-          className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${
-            open
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted/60 text-foreground hover:bg-muted'
-          }`}
-          whileTap={{ scale: 0.95 }}
-        >
-          <motion.span
-            animate={{ rotate: open ? 45 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="text-base leading-none"
-          >
-            {open ? '✕' : '♥'}
-          </motion.span>
-          Follow Us
-        </motion.button>
-
-        {/* Quick social icons */}
-        {socials.slice(0, 2).map((s, i) => (
-          <motion.a
-            key={s.label}
-            href={s.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/60 transition-all duration-200"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            aria-label={s.label}
-          >
-            {s.icon}
-          </motion.a>
-        ))}
-      </motion.div>
-    </div>
+        {/* Image area */}
+        <div className="relative h-52 sm:h-64 bg-muted/30 flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 0.5px, transparent 0)', backgroundSize: '16px 16px' }} />
+          {/* Floating glow behind image */}
+          <motion.div
+            className="absolute w-32 h-32 rounded-full blur-3xl opacity-20"
+            style={{
+              background: 'hsl(var(--primary))',
+              y: smoothImgY,
+            }}
+          />
+          <motion.img
+            src={image}
+            alt={title}
+            className="h-40 sm:h-52 object-contain relative z-10 drop-shadow-2xl"
+            style={{ y: smoothImgY }}
+            whileHover={{ scale: 1.08, rotateY: 5 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </div>
+        {/* Text */}
+        <div className="p-6 sm:p-7">
+          <h3 className="font-semibold text-lg text-foreground mb-2 tracking-tight">{title}</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
@@ -179,22 +105,18 @@ const HomePage: React.FC = () => {
   const featured = manhwaList[0];
   const featuredSpotlight = manhwaList.slice(0, 4);
 
+  const whyRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: whyProgress } = useScroll({
+    target: whyRef,
+    offset: ['start end', 'end start'],
+  });
+  const whyTitleY = useTransform(whyProgress, [0, 0.3], [40, 0]);
+  const whyTitleOpacity = useTransform(whyProgress, [0, 0.2], [0, 1]);
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
-      {/* Announcement ticker */}
-      <div className="fixed top-16 left-0 right-0 z-40 bg-foreground overflow-hidden">
-        <div className="animate-marquee whitespace-nowrap py-1.5 text-xs font-semibold text-background">
-          <span className="mx-8">🔥 Solo Ascension Chapter 45 just dropped!</span>
-          <span className="mx-8">⭐ The Moonlit Garden wins Best Romance 2025</span>
-          <span className="mx-8">🆕 New publisher applications now open</span>
-          <span className="mx-8">🎉 Xtratoon reaches 10M readers worldwide</span>
-          <span className="mx-8">🔥 Solo Ascension Chapter 45 just dropped!</span>
-          <span className="mx-8">⭐ The Moonlit Garden wins Best Romance 2025</span>
-        </div>
-      </div>
-
       {/* Hero */}
-      <section ref={heroRef} className="relative min-h-[100svh] flex items-center pt-28 sm:pt-24 overflow-hidden">
+      <section ref={heroRef} className="relative min-h-[100svh] flex items-center pt-20 sm:pt-16 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
 
         <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
@@ -324,31 +246,24 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
 
-        {/* Why Choose Xtratoon */}
-        <section>
-          <ScrollReveal>
-            <div className="text-center mb-14">
-              <motion.p
-                className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-4"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-              >
-                Why readers love us
-              </motion.p>
-              <h2 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-wider mb-4">
-                Why Choose{' '}
-                <span className="text-primary">Xtratoon</span>.
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-                We create meaningful connections between creators and readers, delivering tailored, immersive experiences with a reader-first approach.
-              </p>
-            </div>
-          </ScrollReveal>
+        {/* Why Choose Xtratoon — scroll-linked parallax cards */}
+        <section ref={whyRef}>
+          <motion.div className="text-center mb-16" style={{ y: whyTitleY, opacity: whyTitleOpacity }}>
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-4">
+              Why readers love us
+            </p>
+            <h2 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-wider mb-4">
+              Why Choose{' '}
+              <span className="text-primary">Xtratoon</span>.
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+              We create meaningful connections between creators and readers, delivering tailored, immersive experiences with a reader-first approach.
+            </p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <WhyCard
               image={featureLibrary}
               title="Endless Library"
@@ -370,6 +285,119 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
+        {/* Social section — liquid glass */}
+        <ScrollReveal>
+          <section className="relative rounded-3xl overflow-hidden" style={{ boxShadow: '0 16px 70px -12px hsla(0, 0%, 0%, 0.2)' }}>
+            {/* Liquid glass background */}
+            <div className="absolute inset-0" style={{
+              background: 'hsla(var(--glass-bg))',
+              backdropFilter: 'blur(80px) saturate(2)',
+              WebkitBackdropFilter: 'blur(80px) saturate(2)',
+            }} />
+            {/* Animated gradient blobs */}
+            <div className="absolute inset-0 overflow-hidden">
+              <motion.div
+                className="absolute w-72 h-72 rounded-full blur-3xl opacity-15"
+                style={{ background: 'hsl(var(--primary))' }}
+                animate={{ x: [0, 80, -40, 0], y: [0, -60, 40, 0], scale: [1, 1.2, 0.9, 1] }}
+                transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <motion.div
+                className="absolute right-0 bottom-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+                style={{ background: 'hsl(var(--accent))' }}
+                animate={{ x: [0, -60, 30, 0], y: [0, 40, -50, 0], scale: [1, 0.9, 1.15, 1] }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <motion.div
+                className="absolute left-1/2 top-0 w-48 h-48 rounded-full blur-3xl opacity-8"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(200, 80%, 60%))' }}
+                animate={{ x: [-20, 40, -30, -20], y: [0, 30, -20, 0] }}
+                transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+              />
+            </div>
+            {/* Inner glass border highlight */}
+            <div className="absolute inset-0 rounded-3xl border border-border/30" style={{ boxShadow: 'inset 0 1px 0 0 hsla(0, 0%, 100%, 0.15)' }} />
+
+            <div className="relative z-10 p-8 sm:p-14 text-center">
+              <motion.p
+                className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-3"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                Stay connected
+              </motion.p>
+              <h2 className="text-display text-4xl sm:text-6xl tracking-wider mb-4">
+                JOIN THE <span className="text-primary">COMMUNITY</span>
+              </h2>
+              <p className="text-muted-foreground max-w-lg mx-auto text-sm sm:text-base leading-relaxed mb-10">
+                Follow us for exclusive previews, creator spotlights, chapter drop announcements, and behind-the-scenes content.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <motion.a
+                  href="https://instagram.com/XtraToon.global"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-border/40 bg-background/50 hover:bg-background/80 hover:-translate-y-1 transition-all duration-400 group w-full sm:w-auto"
+                  style={{ backdropFilter: 'blur(20px)', boxShadow: 'var(--shadow-sm)' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0, duration: 0.5 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center text-white flex-shrink-0">
+                    <Instagram className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors">Instagram</p>
+                    <p className="text-xs text-muted-foreground">@XtraToon.global</p>
+                  </div>
+                </motion.a>
+
+                <motion.a
+                  href="https://x.com/Xtratoonglobal"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-border/40 bg-background/50 hover:bg-background/80 hover:-translate-y-1 transition-all duration-400 group w-full sm:w-auto"
+                  style={{ backdropFilter: 'blur(20px)', boxShadow: 'var(--shadow-sm)' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1, duration: 0.5 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center text-background flex-shrink-0">
+                    <XIcon />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors">X (Twitter)</p>
+                    <p className="text-xs text-muted-foreground">@Xtratoonglobal</p>
+                  </div>
+                </motion.a>
+
+                <motion.div
+                  className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-border/40 bg-background/50 w-full sm:w-auto"
+                  style={{ backdropFilter: 'blur(20px)', boxShadow: 'var(--shadow-sm)' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground flex-shrink-0">
+                    <Globe className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-foreground">Website</p>
+                    <p className="text-xs text-muted-foreground">xtratoon.com</p>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
         {/* Publish CTA */}
         <ScrollReveal>
           <section className="rounded-3xl border border-border p-8 sm:p-12 text-center relative overflow-hidden bg-muted/20" style={{ boxShadow: 'var(--shadow-card)' }}>
@@ -387,21 +415,6 @@ const HomePage: React.FC = () => {
           </section>
         </ScrollReveal>
       </div>
-
-      {/* Floating social pill */}
-      <SocialPill />
-
-      <style>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          animation: marquee 30s linear infinite;
-          display: inline-block;
-        }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-      `}</style>
     </div>
   );
 };
