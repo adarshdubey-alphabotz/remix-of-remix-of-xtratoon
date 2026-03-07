@@ -122,28 +122,20 @@ const PublisherDashboard: React.FC = () => {
   const handleCreateManga = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !uploadTitle || !copyrightChecked) return;
+    if (ch1Files.length === 0) {
+      toast.error('Chapter 1 is required! Upload at least one page.');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const slug = slugify(uploadTitle) + '-' + Date.now().toString(36);
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) throw new Error('Not authenticated');
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
-      let coverUrl: string | null = null;
-
-      // Upload cover to Telegram if provided
-      if (coverFile) {
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
-        if (!token) throw new Error('Not authenticated');
-
-        // We'll store cover as a special "cover" chapter page via telegram
-        const tgForm = new FormData();
-        tgForm.append('chat_id', ''); // will be set by edge function
-        tgForm.append('document', coverFile);
-
-        // For cover, we'll just use a placeholder URL and upload via telegram-upload later
-        // For now, store without cover - we can add cover upload separately
-      }
-
+      // 1. Create manga record
       const { data: manga, error } = await supabase
         .from('manga')
         .insert({
@@ -153,28 +145,63 @@ const PublisherDashboard: React.FC = () => {
           description: uploadDesc,
           genres: uploadGenres,
           status: uploadStatus,
-          cover_url: coverUrl,
           approval_status: 'PENDING',
         })
         .select()
         .single();
 
       if (error) {
-        if (error.code === '23505') {
-          toast.error('A manhwa with this title already exists');
-        } else {
-          toast.error(error.message);
-        }
+        if (error.code === '23505') toast.error('A manhwa with this title already exists');
+        else toast.error(error.message);
         return;
       }
 
-      toast.success('Manhwa submitted for review! Admin will approve it within 48 hours.');
-      setUploadTitle('');
-      setUploadDesc('');
-      setUploadGenres([]);
-      setCopyrightChecked(false);
-      setCoverFile(null);
-      setCoverPreview(null);
+      // 2. Upload cover to Telegram if provided
+      if (coverFile) {
+        const coverForm = new FormData();
+        coverForm.append('type', 'cover');
+        coverForm.append('manga_id', manga.id);
+        coverForm.append('cover', coverFile);
+        const coverRes = await fetch(`https://${projectId}.supabase.co/functions/v1/telegram-upload`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: coverForm,
+        });
+        const coverResult = await coverRes.json();
+        if (!coverResult.success) console.error('Cover upload failed:', coverResult.error);
+      }
+
+      // 3. Create chapter 1 and upload pages
+      const { data: chapter, error: chapterError } = await supabase
+        .from('chapters')
+        .insert({ manga_id: manga.id, chapter_number: 1, title: ch1Title || null })
+        .select()
+        .single();
+
+      if (chapterError) {
+        toast.error('Failed to create chapter 1: ' + chapterError.message);
+        return;
+      }
+
+      const pageForm = new FormData();
+      pageForm.append('manga_id', manga.id);
+      pageForm.append('chapter_id', chapter.id);
+      ch1Files.forEach(file => pageForm.append('pages', file));
+
+      const pageRes = await fetch(`https://${projectId}.supabase.co/functions/v1/telegram-upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: pageForm,
+      });
+      const pageResult = await pageRes.json();
+      if (!pageResult.success) {
+        toast.error('Chapter upload failed: ' + pageResult.error);
+        return;
+      }
+
+      toast.success(`Manhwa submitted with Chapter 1 (${pageResult.pages_uploaded} pages)! Admin will review within 48 hours.`);
+      setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false);
+      setCoverFile(null); setCoverPreview(null); setCh1Files([]); setCh1Title('');
       queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
       setActiveTab('works');
     } catch (err: any) {
