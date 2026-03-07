@@ -162,14 +162,47 @@ export type Database = {
         }
         Relationships: []
       }
+      manga_likes: {
+        Row: {
+          created_at: string
+          id: string
+          manga_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manga_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manga_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manga_likes_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
+          continent: string | null
+          country: string | null
           created_at: string
+          currency: string | null
           display_name: string | null
           id: string
           role_type: string
+          timezone: string | null
           updated_at: string
           user_id: string
           username: string | null
@@ -177,10 +210,14 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          continent?: string | null
+          country?: string | null
           created_at?: string
+          currency?: string | null
           display_name?: string | null
           id?: string
           role_type?: string
+          timezone?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -188,10 +225,14 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          continent?: string | null
+          country?: string | null
           created_at?: string
+          currency?: string | null
           display_name?: string | null
           id?: string
           role_type?: string
+          timezone?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -310,10 +351,14 @@ export type Database = {
         Returns: {
           avatar_url: string | null
           bio: string | null
+          continent: string | null
+          country: string | null
           created_at: string
+          currency: string | null
           display_name: string | null
           id: string
           role_type: string
+          timezone: string | null
           updated_at: string
           user_id: string
           username: string | null
