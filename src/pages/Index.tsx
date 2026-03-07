@@ -382,38 +382,19 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Zoom Parallax Showcase */}
-      <section className="relative z-10">
-        <ZoomParallax
-          images={[
-            { src: parallax1, alt: 'Dark fantasy warrior' },
-            { src: parallax2, alt: 'Cherry blossom romance' },
-            { src: parallax3, alt: 'Epic battle scene' },
-            { src: parallax4, alt: 'Gothic castle at night' },
-            { src: parallax5, alt: 'Cyberpunk cityscape' },
-            { src: parallax6, alt: 'Underwater fantasy' },
-            { src: parallax7, alt: 'Dragon in the clouds' },
-          ]}
-        />
-      </section>
-
-      {/* Post-Parallax Bold Statement */}
-      <section className="relative z-10 bg-background py-24 sm:py-36">
-        <motion.div
-          className="max-w-5xl mx-auto px-4 sm:px-6 text-center"
-          initial={{ opacity: 0, y: 60 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <h2 className="text-display text-5xl sm:text-7xl lg:text-9xl tracking-wider text-foreground leading-[0.9]">
-            EXPLORE EVERY<br />
-            <span className="text-primary">GENRE</span> WITH US
-          </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed mt-6">
-            From action-packed adventures to heartfelt romances — dive into a universe of stories crafted by world-class creators.
-          </p>
-        </motion.div>
-      </section>
+      <ZoomParallax
+        images={[
+          { src: parallax1, alt: 'Dark fantasy warrior' },
+          { src: parallax2, alt: 'Cherry blossom romance' },
+          { src: parallax3, alt: 'Epic battle scene' },
+          { src: parallax4, alt: 'Gothic castle at night' },
+          { src: parallax5, alt: 'Cyberpunk cityscape' },
+          { src: parallax6, alt: 'Underwater fantasy' },
+          { src: parallax7, alt: 'Dragon in the clouds' },
+        ]}
+        caption="EXPLORE EVERY GENRE WITH US"
+        captionHighlight="GENRE"
+      />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
