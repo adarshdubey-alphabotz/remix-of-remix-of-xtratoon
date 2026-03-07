@@ -20,7 +20,7 @@ import PublisherDashboard from "./pages/PublisherDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import MyLibrary from "./pages/MyLibrary";
 import ExplorePage from "./pages/ExplorePage";
-import ProfileSettings from "./pages/ProfileSettings";
+import ProfilePage from "./pages/ProfilePage";
 import SearchCreators from "./pages/SearchCreators";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
