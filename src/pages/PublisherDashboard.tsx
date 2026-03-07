@@ -1,58 +1,283 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCreatorManga, useCreatorStats } from '@/hooks/useApi';
-import { formatViews } from '@/lib/api';
-import { BookOpen, Upload, BarChart3, Settings, Eye, Users, Star, Trash2, Edit } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
   'Mystery', 'Horror', 'Slice of Life', 'Adventure', 'Historical', 'School',
 ];
 
+const slugify = (text: string) =>
+  text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 const PublisherDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('works');
-  const [showUploadSuccess, setShowUploadSuccess] = useState(false);
-  const [copyrightChecked, setCopyrightChecked] = useState(false);
+
+  // Upload manga state
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadDesc, setUploadDesc] = useState('');
   const [uploadGenres, setUploadGenres] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState('ONGOING');
-  const [uploadLang, setUploadLang] = useState('Korean');
+  const [copyrightChecked, setCopyrightChecked] = useState(false);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const { data: creatorData } = useCreatorManga();
-  const { data: stats } = useCreatorStats();
-  const myWorks = creatorData?.manga || [];
+  // Chapter upload state
+  const [selectedMangaId, setSelectedMangaId] = useState<string | null>(null);
+  const [chapterNumber, setChapterNumber] = useState(1);
+  const [chapterTitle, setChapterTitle] = useState('');
+  const [pageFiles, setPageFiles] = useState<File[]>([]);
+  const [uploadingChapter, setUploadingChapter] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const pageInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch creator's manga
+  const { data: myManga, isLoading: loadingManga } = useQuery({
+    queryKey: ['creator-manga', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('manga')
+        .select('*')
+        .eq('creator_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch chapters for selected manga
+  const { data: chapters } = useQuery({
+    queryKey: ['creator-chapters', selectedMangaId],
+    queryFn: async () => {
+      if (!selectedMangaId) return [];
+      const { data, error } = await supabase
+        .from('chapters')
+        .select('*, chapter_pages(count)')
+        .eq('manga_id', selectedMangaId)
+        .order('chapter_number', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!selectedMangaId,
+  });
+
+  // Stats
+  const totalManga = myManga?.length || 0;
+  const totalChapters = chapters?.length || 0;
 
   const tabs = [
     { id: 'works', label: 'My Works', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'upload', label: 'Upload New', icon: <Upload className="w-4 h-4" /> },
+    { id: 'create', label: 'New Manhwa', icon: <Plus className="w-4 h-4" /> },
+    { id: 'chapters', label: 'Chapters', icon: <FileText className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!copyrightChecked || !uploadTitle) return;
-    setShowUploadSuccess(true);
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCoverFile(file);
+      setCoverPreview(URL.createObjectURL(file));
+    }
   };
+
+  const handleCreateManga = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !uploadTitle || !copyrightChecked) return;
+
+    setSubmitting(true);
+    try {
+      const slug = slugify(uploadTitle) + '-' + Date.now().toString(36);
+
+      let coverUrl: string | null = null;
+
+      // Upload cover to Telegram if provided
+      if (coverFile) {
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+        if (!token) throw new Error('Not authenticated');
+
+        // We'll store cover as a special "cover" chapter page via telegram
+        const tgForm = new FormData();
+        tgForm.append('chat_id', ''); // will be set by edge function
+        tgForm.append('document', coverFile);
+
+        // For cover, we'll just use a placeholder URL and upload via telegram-upload later
+        // For now, store without cover - we can add cover upload separately
+      }
+
+      const { data: manga, error } = await supabase
+        .from('manga')
+        .insert({
+          creator_id: user.id,
+          title: uploadTitle,
+          slug,
+          description: uploadDesc,
+          genres: uploadGenres,
+          status: uploadStatus,
+          cover_url: coverUrl,
+          approval_status: 'PENDING',
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('A manhwa with this title already exists');
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+
+      toast.success('Manhwa submitted for review! Admin will approve it within 48 hours.');
+      setUploadTitle('');
+      setUploadDesc('');
+      setUploadGenres([]);
+      setCopyrightChecked(false);
+      setCoverFile(null);
+      setCoverPreview(null);
+      queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
+      setActiveTab('works');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create manhwa');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handlePageFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    // Sort files by name to maintain order
+    files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    setPageFiles(prev => [...prev, ...files]);
+  };
+
+  const removePageFile = (index: number) => {
+    setPageFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUploadChapter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !selectedMangaId || pageFiles.length === 0) return;
+
+    setUploadingChapter(true);
+    setUploadProgress(0);
+
+    try {
+      // Create chapter record first
+      const { data: chapter, error: chapterError } = await supabase
+        .from('chapters')
+        .insert({
+          manga_id: selectedMangaId,
+          chapter_number: chapterNumber,
+          title: chapterTitle || null,
+        })
+        .select()
+        .single();
+
+      if (chapterError) {
+        if (chapterError.code === '23505') {
+          toast.error(`Chapter ${chapterNumber} already exists`);
+        } else {
+          toast.error(chapterError.message);
+        }
+        return;
+      }
+
+      // Upload pages to Telegram via edge function
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) throw new Error('Not authenticated');
+
+      const formData = new FormData();
+      formData.append('manga_id', selectedMangaId);
+      formData.append('chapter_id', chapter.id);
+      pageFiles.forEach((file) => {
+        formData.append('pages', file);
+      });
+
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/telegram-upload`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const result = await res.json();
+      if (!result.success) {
+        // Clean up chapter if upload failed
+        await supabase.from('chapters').delete().eq('id', chapter.id);
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      toast.success(`Chapter ${chapterNumber} uploaded! (${result.pages_uploaded} pages)`);
+      setPageFiles([]);
+      setChapterTitle('');
+      setChapterNumber(prev => prev + 1);
+      queryClient.invalidateQueries({ queryKey: ['creator-chapters'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to upload chapter');
+    } finally {
+      setUploadingChapter(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const deleteManga = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('manga').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Manhwa deleted');
+      queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   const toggleGenre = (g: string) => {
     setUploadGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
   };
 
+  const statusBadge = (status: string) => {
+    const colors: Record<string, string> = {
+      PENDING: 'border-yellow-500/50 bg-yellow-500/10 text-yellow-600',
+      APPROVED: 'border-green-500/50 bg-green-500/10 text-green-600',
+      REJECTED: 'border-destructive/50 bg-destructive/10 text-destructive',
+    };
+    return colors[status] || 'border-foreground/30';
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-12 bg-background">
       <div className="max-w-7xl mx-auto px-4 flex flex-col lg:flex-row gap-6">
+        {/* Sidebar */}
         <aside className="lg:w-56 flex-shrink-0">
           <div className="brutal-card p-4 space-y-1 sticky top-24">
             <div className="flex items-center gap-3 mb-4 pb-4 border-b-2 border-foreground">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold border border-foreground">
-                {user?.email?.[0]?.toUpperCase() || 'P'}
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold border border-foreground overflow-hidden">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  profile?.display_name?.[0]?.toUpperCase() || 'C'
+                )}
               </div>
               <div>
-                <p className="text-sm font-bold">{'Creator'}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Creator</p>
+                <p className="text-sm font-bold truncate">{profile?.display_name || 'Creator'}</p>
+                <p className="text-[10px] text-primary uppercase tracking-wider font-bold">Creator Studio</p>
               </div>
             </div>
             {tabs.map(t => (
@@ -64,121 +289,243 @@ const PublisherDashboard: React.FC = () => {
         </aside>
 
         <div className="flex-1 min-w-0">
+          {/* MY WORKS TAB */}
           {activeTab === 'works' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">MY WORKS</h2>
-              <div className="brutal-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                        <th className="px-4 py-3">Cover</th>
-                        <th className="px-4 py-3">Title</th>
-                        <th className="px-4 py-3">Status</th>
-                        <th className="px-4 py-3">Views</th>
-                        <th className="px-4 py-3">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {myWorks.map(m => (
-                        <tr key={m._id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
-                          <td className="px-4 py-3">{m.cover ? <img src={m.cover} alt="" className="w-10 h-14 object-cover border border-foreground/20" /> : <div className="w-10 h-14 bg-muted border border-foreground/20" />}</td>
-                          <td className="px-4 py-3 font-semibold">{m.title}</td>
-                          <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30">{m.status}</span></td>
-                          <td className="px-4 py-3 text-muted-foreground">{formatViews(m.views)}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex gap-1">
-                              <button className="p-1.5 hover:text-primary transition-colors"><Edit className="w-3.5 h-3.5" /></button>
-                              <button className="p-1.5 hover:text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {myWorks.length === 0 && (
-                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No works yet. Upload your first manga!</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'upload' && (
-            <div>
-              <h2 className="text-display text-3xl mb-4 tracking-wider">UPLOAD NEW WORK</h2>
-              {showUploadSuccess ? (
-                <div className="brutal-card p-8 text-center space-y-4">
-                  <div className="text-5xl">✅</div>
-                  <h3 className="text-display text-2xl tracking-wider">SUBMITTED FOR REVIEW!</h3>
-                  <p className="text-muted-foreground text-sm">Admin will review your submission within 48 hours.</p>
-                  <button onClick={() => { setShowUploadSuccess(false); setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false); }} className="btn-outline rounded-none text-xs py-2 px-4">Submit Another</button>
-                </div>
+              {loadingManga ? (
+                <div className="brutal-card p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" /></div>
               ) : (
-                <form onSubmit={handleSubmit} className="brutal-card p-6 space-y-5">
-                  <div>
-                    <label className="text-sm font-semibold block mb-2">Cover Image</label>
-                    <div className="border-2 border-dashed border-foreground p-8 text-center hover:border-primary transition-colors cursor-pointer">
-                      <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">Drag & drop or click to upload</p>
-                    </div>
+                <div className="brutal-card overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
+                          <th className="px-4 py-3">Title</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3">Approval</th>
+                          <th className="px-4 py-3">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(myManga || []).map(m => (
+                          <tr key={m.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                            <td className="px-4 py-3 font-semibold">{m.title}</td>
+                            <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30">{m.status}</span></td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-0.5 text-xs font-bold border ${statusBadge(m.approval_status)}`}>
+                                {m.approval_status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-1">
+                                <button onClick={() => { setSelectedMangaId(m.id); setActiveTab('chapters'); }} className="p-1.5 hover:text-primary transition-colors" title="Manage chapters">
+                                  <FileText className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => { if (confirm('Delete this manhwa?')) deleteManga.mutate(m.id); }} className="p-1.5 hover:text-destructive transition-colors" title="Delete">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {(!myManga || myManga.length === 0) && (
+                          <tr>
+                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                              No works yet.{' '}
+                              <button onClick={() => setActiveTab('create')} className="text-primary font-semibold hover:underline">
+                                Create your first manhwa!
+                              </button>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
-                  <div>
-                    <label className="text-sm font-semibold block mb-1.5">Title *</label>
-                    <input value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" required />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold block mb-1.5">Description</label>
-                    <textarea value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} rows={4} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors resize-none" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold block mb-2">Genres</label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {allGenres.map(g => (
-                        <button key={g} type="button" onClick={() => toggleGenre(g)} className={`px-2.5 py-1 text-xs border transition-all font-medium ${uploadGenres.includes(g) ? 'border-primary bg-primary/10 text-primary' : 'border-foreground/20 hover:border-foreground'}`}>{g}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="p-4 border-2 border-destructive/30 bg-destructive/5">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input type="checkbox" checked={copyrightChecked} onChange={e => setCopyrightChecked(e.target.checked)} className="mt-0.5 accent-primary" />
-                      <span className="text-xs text-muted-foreground leading-relaxed">
-                        I confirm this content is entirely my original creation. I accept full responsibility for copyright claims.
-                      </span>
-                    </label>
-                  </div>
-                  <button type="submit" disabled={!copyrightChecked || !uploadTitle} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed">Submit for Review</button>
-                </form>
+                </div>
               )}
             </div>
           )}
 
+          {/* CREATE MANHWA TAB */}
+          {activeTab === 'create' && (
+            <div>
+              <h2 className="text-display text-3xl mb-4 tracking-wider">NEW MANHWA</h2>
+              <form onSubmit={handleCreateManga} className="brutal-card p-6 space-y-5">
+                <div>
+                  <label className="text-sm font-semibold block mb-2">Cover Image</label>
+                  <label className="border-2 border-dashed border-foreground p-6 text-center hover:border-primary transition-colors cursor-pointer block">
+                    {coverPreview ? (
+                      <img src={coverPreview} alt="Cover preview" className="w-24 h-36 object-cover mx-auto border border-foreground/20" />
+                    ) : (
+                      <>
+                        <Image className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Click to upload cover</p>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" onChange={handleCoverChange} className="hidden" />
+                  </label>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold block mb-1.5">Title *</label>
+                  <input value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" required />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold block mb-1.5">Description</label>
+                  <textarea value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} rows={4} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors resize-none" />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold block mb-1.5">Status</label>
+                  <select value={uploadStatus} onChange={e => setUploadStatus(e.target.value)} className="px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary">
+                    <option value="ONGOING">Ongoing</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="HIATUS">Hiatus</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold block mb-2">Genres</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allGenres.map(g => (
+                      <button key={g} type="button" onClick={() => toggleGenre(g)} className={`px-2.5 py-1 text-xs border transition-all font-medium ${uploadGenres.includes(g) ? 'border-primary bg-primary/10 text-primary' : 'border-foreground/20 hover:border-foreground'}`}>{g}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 border-2 border-destructive/30 bg-destructive/5">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" checked={copyrightChecked} onChange={e => setCopyrightChecked(e.target.checked)} className="mt-0.5 accent-primary" />
+                    <span className="text-xs text-muted-foreground leading-relaxed">
+                      I confirm this content is entirely my original creation. I accept full responsibility for copyright claims. Pirated content will result in permanent ban.
+                    </span>
+                  </label>
+                </div>
+
+                <button type="submit" disabled={!copyrightChecked || !uploadTitle || submitting} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {submitting ? 'Submitting...' : 'Submit for Admin Review'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* CHAPTERS TAB */}
+          {activeTab === 'chapters' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-display text-3xl mb-4 tracking-wider">UPLOAD CHAPTER</h2>
+                {!selectedMangaId ? (
+                  <div className="brutal-card p-6">
+                    <p className="text-sm font-semibold mb-3">Select a manhwa to manage chapters:</p>
+                    <div className="space-y-2">
+                      {(myManga || []).map(m => (
+                        <button key={m.id} onClick={() => setSelectedMangaId(m.id)} className="w-full text-left px-4 py-3 border-2 border-foreground/20 hover:border-primary transition-colors flex items-center justify-between group">
+                          <span className="font-semibold text-sm">{m.title}</span>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                        </button>
+                      ))}
+                      {(!myManga || myManga.length === 0) && (
+                        <p className="text-muted-foreground text-sm">No manhwa yet. Create one first!</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <button onClick={() => setSelectedMangaId(null)} className="text-sm text-muted-foreground hover:text-foreground">&larr; Back</button>
+                      <span className="font-bold text-sm">{myManga?.find(m => m.id === selectedMangaId)?.title}</span>
+                    </div>
+
+                    <form onSubmit={handleUploadChapter} className="brutal-card p-6 space-y-5">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-semibold block mb-1.5">Chapter Number *</label>
+                          <input type="number" min={1} value={chapterNumber} onChange={e => setChapterNumber(parseInt(e.target.value) || 1)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" />
+                        </div>
+                        <div>
+                          <label className="text-sm font-semibold block mb-1.5">Title (optional)</label>
+                          <input value={chapterTitle} onChange={e => setChapterTitle(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" placeholder="e.g. The Beginning" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-semibold block mb-2">Chapter Pages * ({pageFiles.length} selected)</label>
+                        <div
+                          className="border-2 border-dashed border-foreground p-6 text-center hover:border-primary transition-colors cursor-pointer"
+                          onClick={() => pageInputRef.current?.click()}
+                        >
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">Click to add page images (JPG, PNG, WEBP)</p>
+                          <p className="text-xs text-muted-foreground mt-1">Files will be sorted by name. Upload in order!</p>
+                        </div>
+                        <input ref={pageInputRef} type="file" accept="image/*" multiple onChange={handlePageFilesChange} className="hidden" />
+
+                        {pageFiles.length > 0 && (
+                          <div className="mt-3 space-y-1 max-h-48 overflow-y-auto">
+                            {pageFiles.map((f, i) => (
+                              <div key={i} className="flex items-center justify-between px-3 py-2 border border-foreground/10 text-xs">
+                                <span className="flex items-center gap-2">
+                                  <span className="text-muted-foreground font-mono w-6">#{i + 1}</span>
+                                  <span className="truncate max-w-[200px]">{f.name}</span>
+                                  <span className="text-muted-foreground">({(f.size / 1024).toFixed(0)}KB)</span>
+                                </span>
+                                <button type="button" onClick={() => removePageFile(i)} className="text-destructive hover:text-destructive/80">
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <button type="submit" disabled={pageFiles.length === 0 || uploadingChapter} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        {uploadingChapter && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {uploadingChapter ? `Uploading ${pageFiles.length} pages...` : `Upload Chapter ${chapterNumber}`}
+                      </button>
+                    </form>
+
+                    {/* Existing chapters */}
+                    {chapters && chapters.length > 0 && (
+                      <div className="brutal-card overflow-hidden mt-6">
+                        <div className="px-4 py-3 border-b-2 border-foreground">
+                          <h3 className="font-bold text-sm">Existing Chapters ({chapters.length})</h3>
+                        </div>
+                        {chapters.map(ch => (
+                          <div key={ch.id} className="flex items-center justify-between px-4 py-3 border-b border-foreground/10 text-sm">
+                            <div>
+                              <span className="font-mono text-muted-foreground mr-2">#{ch.chapter_number}</span>
+                              <span className="font-semibold">{ch.title || `Chapter ${ch.chapter_number}`}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {(ch as any).chapter_pages?.[0]?.count || 0} pages
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ANALYTICS TAB */}
           {activeTab === 'analytics' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">ANALYTICS</h2>
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 {[
-                  { label: 'Total Manga', value: stats?.totalManga?.toString() ?? '0', icon: <BookOpen className="w-5 h-5" /> },
-                  { label: 'Total Chapters', value: stats?.totalChapters?.toString() ?? '0', icon: <Star className="w-5 h-5 text-gold" /> },
+                  { label: 'Total Manhwa', value: totalManga, icon: <BookOpen className="w-5 h-5" /> },
+                  { label: 'Total Chapters', value: totalChapters, icon: <FileText className="w-5 h-5" /> },
                 ].map(s => (
                   <div key={s.label} className="brutal-card p-4 space-y-2">
                     <div className="flex items-center gap-2 text-muted-foreground">{s.icon}<span className="text-xs uppercase tracking-wider">{s.label}</span></div>
                     <div className="text-2xl font-display tracking-wider">{s.value}</div>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'settings' && (
-            <div>
-              <h2 className="text-display text-3xl mb-4 tracking-wider">SETTINGS</h2>
-              <div className="brutal-card p-6 space-y-4">
-                <div>
-                  <label className="text-sm font-semibold block mb-1.5">Username</label>
-                  <input defaultValue={user?.email || ''} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" />
-                </div>
-                <button className="btn-accent rounded-none text-sm py-2 px-6">Save Changes</button>
               </div>
             </div>
           )}
