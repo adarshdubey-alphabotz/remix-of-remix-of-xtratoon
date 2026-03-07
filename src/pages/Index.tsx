@@ -4,9 +4,9 @@ import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, 
 import { motion, useScroll, useTransform, useMotionValueEvent, useInView, AnimatePresence } from 'framer-motion';
 import { formatViews, getCoverGradient, type ApiManga } from '@/lib/api';
 import { useFeaturedManga, useLatestManga } from '@/hooks/useApi';
-import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal from '@/components/ScrollReveal';
 import { AvatarCircles } from '@/components/ui/avatar-circles';
+import { LiquidButton } from '@/components/ui/liquid-glass-button';
 
 import featureLibrary from '@/assets/feature-library.png';
 import featureUpdates from '@/assets/feature-updates.png';
@@ -142,13 +142,9 @@ const WhyGlassCard: React.FC<{
         <div className="relative z-10">
           <h3 className="font-display text-2xl sm:text-3xl tracking-wider text-foreground mb-2">{card.title}</h3>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">{card.desc}</p>
-          <motion.div
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border border-border/40 text-foreground/80 bg-background/20 backdrop-blur-sm"
-            whileHover={{ scale: 1.05, backgroundColor: 'hsla(var(--primary) / 0.15)' }}
-            whileTap={{ scale: 0.97 }}
-          >
+          <LiquidButton size="sm" className="mt-4">
             + Learn More
-          </motion.div>
+          </LiquidButton>
         </div>
       </div>
     </motion.div>
@@ -327,10 +323,10 @@ const HomePage: React.FC = () => {
 
               <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7, duration: 0.7 }}>
                 <Link to="/explore">
-                  <MagneticButton className="btn-accent text-sm"><Play className="w-4 h-4 fill-current" /> Start Reading</MagneticButton>
+                  <LiquidButton size="xl"><Play className="w-4 h-4 fill-current" /> Start Reading</LiquidButton>
                 </Link>
                 <Link to="/browse">
-                  <MagneticButton className="btn-outline text-sm">Browse All <ArrowRight className="w-4 h-4" /></MagneticButton>
+                  <LiquidButton variant="outline" size="xl">Browse All <ArrowRight className="w-4 h-4" /></LiquidButton>
                 </Link>
               </motion.div>
 
