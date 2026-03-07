@@ -20,29 +20,51 @@ Deno.serve(async (req) => {
     if (!TELEGRAM_BOT_TOKEN) throw new Error("TELEGRAM_BOT_TOKEN not configured");
     if (!TELEGRAM_CHANNEL_ID) throw new Error("TELEGRAM_CHANNEL_ID not configured");
 
-    // Auth check
     const authHeader = req.headers.get("authorization");
     if (!authHeader) throw new Error("No authorization header");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const anonClient = createClient(
-      SUPABASE_URL,
-      Deno.env.get("SUPABASE_ANON_KEY")!
-    );
+    const anonClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!);
 
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
     if (authError || !user) throw new Error("Unauthorized");
 
-    // Check publisher role
-    const { data: hasPublisher } = await supabase.rpc("has_role", {
-      _user_id: user.id,
-      _role: "publisher",
-    });
+    const { data: hasPublisher } = await supabase.rpc("has_role", { _user_id: user.id, _role: "publisher" });
     if (!hasPublisher) throw new Error("Only publishers can upload");
 
     const formData = await req.formData();
+    const uploadType = formData.get("type") as string || "chapter"; // "chapter" or "cover"
     const mangaId = formData.get("manga_id") as string;
+
+    if (uploadType === "cover") {
+      // Cover image upload
+      const coverFile = formData.get("cover") as File;
+      if (!mangaId || !coverFile) throw new Error("manga_id and cover file required");
+
+      // Verify ownership
+      const { data: manga } = await supabase.from("manga").select("id, creator_id, title").eq("id", mangaId).single();
+      if (!manga || manga.creator_id !== user.id) throw new Error("Not your manga");
+
+      const shortId = mangaId.slice(0, 8).toUpperCase();
+      const tgForm = new FormData();
+      tgForm.append("chat_id", TELEGRAM_CHANNEL_ID);
+      tgForm.append("document", coverFile, `cover_${shortId}.${coverFile.name.split('.').pop() || 'jpg'}`);
+      tgForm.append("caption", `🖼️ COVER | ID: ${shortId} | ${manga.title}`);
+
+      const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, { method: "POST", body: tgForm });
+      const tgData = await tgRes.json();
+      if (!tgData.ok) throw new Error(`Telegram cover upload failed: ${tgData.description}`);
+
+      const fileId = tgData.result.document.file_id;
+
+      // Update manga cover_url with telegram file_id
+      await supabase.from("manga").update({ cover_url: fileId }).eq("id", mangaId);
+
+      return new Response(JSON.stringify({ success: true, cover_file_id: fileId }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Chapter pages upload
     const chapterId = formData.get("chapter_id") as string;
     const files = formData.getAll("pages") as File[];
 
@@ -50,17 +72,11 @@ Deno.serve(async (req) => {
       throw new Error("manga_id, chapter_id, and pages are required");
     }
 
-    // Verify manga ownership
-    const { data: manga, error: mangaError } = await supabase
-      .from("manga")
-      .select("id, creator_id")
-      .eq("id", mangaId)
-      .single();
-
+    const { data: manga, error: mangaError } = await supabase.from("manga").select("id, creator_id, title").eq("id", mangaId).single();
     if (mangaError || !manga) throw new Error("Manga not found");
     if (manga.creator_id !== user.id) throw new Error("Not your manga");
 
-    // Upload each page to Telegram channel
+    const shortId = mangaId.slice(0, 8).toUpperCase();
     const uploadedPages: { page_number: number; telegram_file_id: string; file_size: number }[] = [];
 
     for (let i = 0; i < files.length; i++) {
@@ -68,29 +84,19 @@ Deno.serve(async (req) => {
       const tgForm = new FormData();
       tgForm.append("chat_id", TELEGRAM_CHANNEL_ID);
       tgForm.append("document", file, `page_${i + 1}.${file.name.split('.').pop() || 'jpg'}`);
-      tgForm.append("caption", `📄 ${mangaId} | Ch: ${chapterId} | Page ${i + 1}`);
+      tgForm.append("caption", `📄 ID: ${shortId} | ${manga.title} | Ch: ${chapterId.slice(0, 8)} | Page ${i + 1}`);
 
-      const tgRes = await fetch(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`,
-        { method: "POST", body: tgForm }
-      );
-
+      const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, { method: "POST", body: tgForm });
       const tgData = await tgRes.json();
+      if (!tgData.ok) throw new Error(`Telegram upload failed for page ${i + 1}: ${tgData.description}`);
 
-      if (!tgData.ok) {
-        console.error("Telegram upload failed:", tgData);
-        throw new Error(`Telegram upload failed for page ${i + 1}: ${tgData.description}`);
-      }
-
-      const doc = tgData.result.document;
       uploadedPages.push({
         page_number: i + 1,
-        telegram_file_id: doc.file_id,
-        file_size: doc.file_size || 0,
+        telegram_file_id: tgData.result.document.file_id,
+        file_size: tgData.result.document.file_size || 0,
       });
     }
 
-    // Store page records in DB
     const pageRecords = uploadedPages.map((p) => ({
       chapter_id: chapterId,
       page_number: p.page_number,
@@ -98,17 +104,11 @@ Deno.serve(async (req) => {
       file_size: p.file_size,
     }));
 
-    const { error: insertError } = await supabase
-      .from("chapter_pages")
-      .insert(pageRecords);
-
+    const { error: insertError } = await supabase.from("chapter_pages").insert(pageRecords);
     if (insertError) throw new Error(`DB insert failed: ${insertError.message}`);
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        pages_uploaded: uploadedPages.length,
-      }),
+      JSON.stringify({ success: true, pages_uploaded: uploadedPages.length, manga_short_id: shortId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {

@@ -6,6 +6,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import ScrollReveal from '@/components/ScrollReveal';
 
+const pId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+const resolveCover = (url: string | null) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `https://${pId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(url)}`;
+};
+
 const formatViews = (n: number) => {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
   if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K';
@@ -79,7 +86,7 @@ const TopChartsPage: React.FC = () => {
                   <Link to={`/manhwa/${m.slug}`} className={`flex items-center gap-4 p-4 border-2 ${style.border} hover:bg-primary/5 transition-all group`} style={{ boxShadow: rank <= 3 ? (style.shadow || '3px 3px 0 hsl(0 0% 8%)') : '3px 3px 0 hsl(0 0% 8%)' }}>
                     <div className={`w-10 h-10 flex items-center justify-center font-display text-2xl ${style.bg} ${style.text} flex-shrink-0 tracking-wider`}>{rank}</div>
                     {m.cover_url ? (
-                      <img src={m.cover_url} alt="" className="w-12 h-16 object-cover flex-shrink-0 border border-foreground/20" />
+                      <img src={resolveCover(m.cover_url)!} alt="" className="w-12 h-16 object-cover flex-shrink-0 border border-foreground/20" />
                     ) : (
                       <div className="w-12 h-16 bg-muted flex-shrink-0 border border-foreground/20" />
                     )}

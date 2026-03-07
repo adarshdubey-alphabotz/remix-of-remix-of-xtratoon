@@ -28,6 +28,11 @@ const PublisherDashboard: React.FC = () => {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Chapter 1 files for initial submission
+  const [ch1Files, setCh1Files] = useState<File[]>([]);
+  const [ch1Title, setCh1Title] = useState('');
+  const ch1InputRef = useRef<HTMLInputElement>(null);
+
   // Chapter upload state
   const [selectedMangaId, setSelectedMangaId] = useState<string | null>(null);
   const [chapterNumber, setChapterNumber] = useState(1);
@@ -117,28 +122,20 @@ const PublisherDashboard: React.FC = () => {
   const handleCreateManga = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !uploadTitle || !copyrightChecked) return;
+    if (ch1Files.length === 0) {
+      toast.error('Chapter 1 is required! Upload at least one page.');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const slug = slugify(uploadTitle) + '-' + Date.now().toString(36);
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) throw new Error('Not authenticated');
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
-      let coverUrl: string | null = null;
-
-      // Upload cover to Telegram if provided
-      if (coverFile) {
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
-        if (!token) throw new Error('Not authenticated');
-
-        // We'll store cover as a special "cover" chapter page via telegram
-        const tgForm = new FormData();
-        tgForm.append('chat_id', ''); // will be set by edge function
-        tgForm.append('document', coverFile);
-
-        // For cover, we'll just use a placeholder URL and upload via telegram-upload later
-        // For now, store without cover - we can add cover upload separately
-      }
-
+      // 1. Create manga record
       const { data: manga, error } = await supabase
         .from('manga')
         .insert({
@@ -148,28 +145,63 @@ const PublisherDashboard: React.FC = () => {
           description: uploadDesc,
           genres: uploadGenres,
           status: uploadStatus,
-          cover_url: coverUrl,
           approval_status: 'PENDING',
         })
         .select()
         .single();
 
       if (error) {
-        if (error.code === '23505') {
-          toast.error('A manhwa with this title already exists');
-        } else {
-          toast.error(error.message);
-        }
+        if (error.code === '23505') toast.error('A manhwa with this title already exists');
+        else toast.error(error.message);
         return;
       }
 
-      toast.success('Manhwa submitted for review! Admin will approve it within 48 hours.');
-      setUploadTitle('');
-      setUploadDesc('');
-      setUploadGenres([]);
-      setCopyrightChecked(false);
-      setCoverFile(null);
-      setCoverPreview(null);
+      // 2. Upload cover to Telegram if provided
+      if (coverFile) {
+        const coverForm = new FormData();
+        coverForm.append('type', 'cover');
+        coverForm.append('manga_id', manga.id);
+        coverForm.append('cover', coverFile);
+        const coverRes = await fetch(`https://${projectId}.supabase.co/functions/v1/telegram-upload`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: coverForm,
+        });
+        const coverResult = await coverRes.json();
+        if (!coverResult.success) console.error('Cover upload failed:', coverResult.error);
+      }
+
+      // 3. Create chapter 1 and upload pages
+      const { data: chapter, error: chapterError } = await supabase
+        .from('chapters')
+        .insert({ manga_id: manga.id, chapter_number: 1, title: ch1Title || null })
+        .select()
+        .single();
+
+      if (chapterError) {
+        toast.error('Failed to create chapter 1: ' + chapterError.message);
+        return;
+      }
+
+      const pageForm = new FormData();
+      pageForm.append('manga_id', manga.id);
+      pageForm.append('chapter_id', chapter.id);
+      ch1Files.forEach(file => pageForm.append('pages', file));
+
+      const pageRes = await fetch(`https://${projectId}.supabase.co/functions/v1/telegram-upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: pageForm,
+      });
+      const pageResult = await pageRes.json();
+      if (!pageResult.success) {
+        toast.error('Chapter upload failed: ' + pageResult.error);
+        return;
+      }
+
+      toast.success(`Manhwa submitted with Chapter 1 (${pageResult.pages_uploaded} pages)! Admin will review within 48 hours.`);
+      setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false);
+      setCoverFile(null); setCoverPreview(null); setCh1Files([]); setCh1Title('');
       queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
       setActiveTab('works');
     } catch (err: any) {
@@ -421,6 +453,37 @@ const PublisherDashboard: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Chapter 1 Upload - Required */}
+                <div className="border-2 border-primary/30 bg-primary/5 p-4 space-y-3">
+                  <label className="text-sm font-semibold block">Chapter 1 Pages * <span className="text-xs text-muted-foreground font-normal">(Required for submission)</span></label>
+                  <div>
+                    <label className="text-sm font-semibold block mb-1.5">Chapter 1 Title (optional)</label>
+                    <input value={ch1Title} onChange={e => setCh1Title(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" placeholder="e.g. The Beginning" />
+                  </div>
+                  <div
+                    className="border-2 border-dashed border-foreground p-4 text-center hover:border-primary transition-colors cursor-pointer"
+                    onClick={() => ch1InputRef.current?.click()}
+                  >
+                    <Upload className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Click to add Chapter 1 pages ({ch1Files.length} selected)</p>
+                  </div>
+                  <input ref={ch1InputRef} type="file" accept="image/*" multiple onChange={e => {
+                    const files = Array.from(e.target.files || []);
+                    files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+                    setCh1Files(prev => [...prev, ...files]);
+                  }} className="hidden" />
+                  {ch1Files.length > 0 && (
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {ch1Files.map((f, i) => (
+                        <div key={i} className="flex items-center justify-between px-3 py-1.5 border border-foreground/10 text-xs">
+                          <span>#{i + 1} {f.name} ({(f.size / 1024).toFixed(0)}KB)</span>
+                          <button type="button" onClick={() => setCh1Files(prev => prev.filter((_, idx) => idx !== i))} className="text-destructive"><X className="w-3 h-3" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="p-4 border-2 border-destructive/30 bg-destructive/5">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" checked={copyrightChecked} onChange={e => setCopyrightChecked(e.target.checked)} className="mt-0.5 accent-primary" />
@@ -430,9 +493,9 @@ const PublisherDashboard: React.FC = () => {
                   </label>
                 </div>
 
-                <button type="submit" disabled={!copyrightChecked || !uploadTitle || submitting} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <button type="submit" disabled={!copyrightChecked || !uploadTitle || ch1Files.length === 0 || submitting} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {submitting ? 'Submitting...' : 'Submit for Admin Review'}
+                  {submitting ? 'Submitting...' : 'Submit with Chapter 1 for Review'}
                 </button>
               </form>
             </div>

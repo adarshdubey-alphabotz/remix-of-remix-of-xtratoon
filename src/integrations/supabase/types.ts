@@ -194,6 +194,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          banned_reason: string | null
           bio: string | null
           continent: string | null
           country: string | null
@@ -201,6 +202,7 @@ export type Database = {
           currency: string | null
           display_name: string | null
           id: string
+          is_banned: boolean
           role_type: string
           timezone: string | null
           updated_at: string
@@ -209,6 +211,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          banned_reason?: string | null
           bio?: string | null
           continent?: string | null
           country?: string | null
@@ -216,6 +219,7 @@ export type Database = {
           currency?: string | null
           display_name?: string | null
           id?: string
+          is_banned?: boolean
           role_type?: string
           timezone?: string | null
           updated_at?: string
@@ -224,6 +228,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          banned_reason?: string | null
           bio?: string | null
           continent?: string | null
           country?: string | null
@@ -231,6 +236,7 @@ export type Database = {
           currency?: string | null
           display_name?: string | null
           id?: string
+          is_banned?: boolean
           role_type?: string
           timezone?: string | null
           updated_at?: string
@@ -274,6 +280,44 @@ export type Database = {
           },
           {
             foreignKeyName: "reading_history_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          manga_id: string
+          reason: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          manga_id: string
+          reason: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          manga_id?: string
+          reason?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_manga_id_fkey"
             columns: ["manga_id"]
             isOneToOne: false
             referencedRelation: "manga"
@@ -350,6 +394,7 @@ export type Database = {
         Args: { search_term: string }
         Returns: {
           avatar_url: string | null
+          banned_reason: string | null
           bio: string | null
           continent: string | null
           country: string | null
@@ -357,6 +402,7 @@ export type Database = {
           currency: string | null
           display_name: string | null
           id: string
+          is_banned: boolean
           role_type: string
           timezone: string | null
           updated_at: string
