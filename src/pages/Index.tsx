@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, Wallet, ShieldCheck, ChevronDown, HelpCircle } from 'lucide-react';
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValueEvent, useInView, AnimatePresence } from 'framer-motion';
 import { formatViews, getCoverGradient, type ApiManga } from '@/lib/api';
 import { useFeaturedManga, useLatestManga } from '@/hooks/useApi';
 import MagneticButton from '@/components/MagneticButton';
@@ -42,34 +42,117 @@ const FeaturedCard: React.FC<{ manhwa: ApiManga; index: number }> = ({ manhwa, i
   );
 };
 
-const WhyCard: React.FC<{ image: string; title: string; desc: string; index: number }> = ({ image, title, desc, index }) => (
-  <motion.div
-    className="group"
-    initial={{ opacity: 0, y: 40 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '-60px' }}
-    transition={{ delay: index * 0.12, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-  >
-    <div
-      className="rounded-2xl border border-border bg-card overflow-hidden transition-shadow duration-300 group-hover:shadow-xl"
-      style={{ boxShadow: 'var(--shadow-card)' }}
+const whyCards = [
+  {
+    title: 'Endless Library',
+    desc: '500+ series across every genre. Built for today, flexible for what\'s next. Updated daily.',
+    gradient: 'radial-gradient(ellipse at 30% 80%, hsla(170, 80%, 50%, 0.35), transparent 60%), radial-gradient(ellipse at 70% 20%, hsla(200, 80%, 55%, 0.25), transparent 50%)',
+  },
+  {
+    title: 'Instant Updates',
+    desc: 'Get new chapters the moment they drop. A streamlined process — quick, clean, no delays.',
+    gradient: 'radial-gradient(ellipse at 70% 70%, hsla(270, 70%, 55%, 0.35), transparent 60%), radial-gradient(ellipse at 20% 30%, hsla(200, 80%, 55%, 0.2), transparent 50%)',
+  },
+  {
+    title: 'Creator-First Platform',
+    desc: 'We support creators with fair revenue sharing, analytics, and tools to grow their audience.',
+    gradient: 'radial-gradient(ellipse at 40% 90%, hsla(160, 80%, 45%, 0.35), transparent 60%), radial-gradient(ellipse at 80% 20%, hsla(343, 100%, 59%, 0.2), transparent 50%)',
+  },
+];
+
+const WhyChooseSection: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start end', 'end start'],
+  });
+
+  return (
+    <section>
+      <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+        <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-4">Why readers love us</p>
+        <h2 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-wider mb-4">
+          Why Choose <span className="text-primary">Xtratoon</span>.
+        </h2>
+        <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+          We create meaningful connections between creators and readers, delivering tailored, immersive experiences with a reader-first approach.
+        </p>
+      </motion.div>
+
+      <div ref={containerRef} className="relative flex flex-col items-center gap-6 sm:gap-0 sm:min-h-[140vh]">
+        {whyCards.map((card, i) => {
+          const start = i * 0.15;
+          const mid = start + 0.15;
+          return (
+            <WhyGlassCard
+              key={card.title}
+              card={card}
+              index={i}
+              total={whyCards.length}
+              scrollProgress={scrollYProgress}
+              start={start}
+              mid={mid}
+            />
+          );
+        })}
+      </div>
+    </section>
+  );
+};
+
+const WhyGlassCard: React.FC<{
+  card: typeof whyCards[0];
+  index: number;
+  total: number;
+  scrollProgress: any;
+  start: number;
+  mid: number;
+}> = ({ card, index, total, scrollProgress, start, mid }) => {
+  const y = useTransform(scrollProgress, [start, mid], [120 + index * 40, 0]);
+  const opacity = useTransform(scrollProgress, [start, start + 0.05, mid], [0, 1, 1]);
+  const scale = useTransform(scrollProgress, [start, mid], [0.92, 1]);
+  const rotate = useTransform(scrollProgress, [start, mid], [2 - index, 0]);
+
+  return (
+    <motion.div
+      className="w-full max-w-md sm:max-w-lg group cursor-pointer sm:sticky"
+      style={{
+        y,
+        opacity,
+        scale,
+        rotateZ: rotate,
+        top: `${240 + index * 60}px`,
+        zIndex: total - index,
+      }}
     >
-      <div className="relative h-52 sm:h-64 bg-muted/30 flex items-center justify-center overflow-hidden">
-        <div className="absolute w-32 h-32 rounded-full blur-3xl opacity-20" style={{ background: 'hsl(var(--primary))' }} />
-        <img
-          src={image}
-          alt={title}
-          loading="lazy"
-          className="h-40 sm:h-52 object-contain relative z-10 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"
-        />
+      <div
+        className="relative overflow-hidden rounded-3xl border border-border/30 p-6 sm:p-8 min-h-[200px] flex flex-col justify-end transition-transform duration-500 group-hover:scale-[1.02]"
+        style={{
+          background: 'hsla(var(--glass-bg))',
+          backdropFilter: 'blur(40px) saturate(1.6)',
+          WebkitBackdropFilter: 'blur(40px) saturate(1.6)',
+          boxShadow: '0 8px 32px -8px hsla(var(--shadow-color) / 0.2), inset 0 1px 0 0 hsla(0 0% 100% / 0.08)',
+        }}
+      >
+        {/* Aurora background blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl" style={{ background: card.gradient }} />
+        <div className="absolute inset-0 pointer-events-none rounded-3xl opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 0%, hsla(0 0% 100% / 0.08), transparent 60%)' }} />
+
+        <div className="relative z-10">
+          <h3 className="font-display text-2xl sm:text-3xl tracking-wider text-foreground mb-2">{card.title}</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">{card.desc}</p>
+          <motion.div
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border border-border/40 text-foreground/80 bg-background/20 backdrop-blur-sm"
+            whileHover={{ scale: 1.05, backgroundColor: 'hsla(var(--primary) / 0.15)' }}
+            whileTap={{ scale: 0.97 }}
+          >
+            + Learn More
+          </motion.div>
+        </div>
       </div>
-      <div className="p-6 sm:p-7">
-        <h3 className="font-semibold text-lg text-foreground mb-2 tracking-tight">{title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
-      </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 /* Animated Revenue Step — triggers sequentially as user scrolls */
 const revenueSteps = [
@@ -292,23 +375,7 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
 
         {/* Why Choose Xtratoon */}
-        <section>
-          <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-4">Why readers love us</p>
-            <h2 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-wider mb-4">
-              Why Choose <span className="text-primary">Xtratoon</span>.
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-              We create meaningful connections between creators and readers, delivering tailored, immersive experiences with a reader-first approach.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <WhyCard image={featureLibrary} title="Endless Library" desc="500+ series across every genre. Built for today, flexible for what's next. Updated daily." index={0} />
-            <WhyCard image={featureUpdates} title="Instant Updates" desc="Get new chapters the moment they drop. A streamlined process — quick, clean, no delays." index={1} />
-            <WhyCard image={featureCreators} title="Creator-First Platform" desc="We support creators with fair revenue sharing, analytics, and tools to grow their audience." index={2} />
-          </div>
-        </section>
+        <WhyChooseSection />
 
         {/* Revenue Model — Animated Step-by-Step */}
         <section>
