@@ -2,8 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -47,12 +47,14 @@ const ScrollToTop = () => {
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  const { user, loading } = useAuth();
+
   return (
     <>
       <ScrollToTop />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+        <Route path="/" element={<PageTransition>{loading ? <div className="min-h-screen" /> : user ? <Navigate to="/home" replace /> : <Index />}</PageTransition>} />
         <Route path="/manhwa/:id" element={<PageTransition><ManhwaDetail /></PageTransition>} />
         <Route path="/read/:id/:chapter" element={<PageTransition><ReaderPage /></PageTransition>} />
         <Route path="/browse" element={<PageTransition><BrowsePage /></PageTransition>} />
@@ -61,7 +63,8 @@ const AnimatedRoutes = () => {
         <Route path="/dashboard" element={<PageTransition><PublisherDashboard /></PageTransition>} />
         <Route path="/admin" element={<PageTransition><AdminPanel /></PageTransition>} />
         <Route path="/library" element={<PageTransition><MyLibrary /></PageTransition>} />
-        <Route path="/explore" element={<PageTransition><ExplorePage /></PageTransition>} />
+        <Route path="/home" element={<PageTransition><ExplorePage /></PageTransition>} />
+        <Route path="/explore" element={<PageTransition><Navigate to="/home" replace /></PageTransition>} />
         <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
         <Route path="/settings" element={<PageTransition><ProfilePage /></PageTransition>} />
         <Route path="/creators" element={<PageTransition><SearchCreators /></PageTransition>} />
