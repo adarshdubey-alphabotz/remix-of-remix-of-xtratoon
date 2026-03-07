@@ -62,7 +62,8 @@ const AnimatedRoutes = () => {
         <Route path="/admin" element={<PageTransition><AdminPanel /></PageTransition>} />
         <Route path="/library" element={<PageTransition><MyLibrary /></PageTransition>} />
         <Route path="/explore" element={<PageTransition><ExplorePage /></PageTransition>} />
-        <Route path="/settings" element={<PageTransition><ProfileSettings /></PageTransition>} />
+        <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+        <Route path="/settings" element={<PageTransition><ProfilePage /></PageTransition>} />
         <Route path="/creators" element={<PageTransition><SearchCreators /></PageTransition>} />
         <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
