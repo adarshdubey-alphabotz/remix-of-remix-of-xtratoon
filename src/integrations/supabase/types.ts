@@ -14,6 +14,154 @@ export type Database = {
   }
   public: {
     Tables: {
+      chapter_pages: {
+        Row: {
+          chapter_id: string
+          created_at: string
+          file_size: number | null
+          height: number | null
+          id: string
+          page_number: number
+          telegram_file_id: string
+          width: number | null
+        }
+        Insert: {
+          chapter_id: string
+          created_at?: string
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          page_number: number
+          telegram_file_id: string
+          width?: number | null
+        }
+        Update: {
+          chapter_id?: string
+          created_at?: string
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          page_number?: number
+          telegram_file_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_pages_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chapters: {
+        Row: {
+          chapter_number: number
+          created_at: string
+          id: string
+          is_published: boolean | null
+          manga_id: string
+          title: string | null
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          chapter_number: number
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          manga_id: string
+          title?: string | null
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          chapter_number?: number
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          manga_id?: string
+          title?: string | null
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapters_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manga: {
+        Row: {
+          approval_status: string
+          banner_url: string | null
+          bookmarks: number | null
+          cover_url: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          genres: string[] | null
+          id: string
+          is_featured: boolean | null
+          language: string | null
+          likes: number | null
+          rating_average: number | null
+          rating_count: number | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          approval_status?: string
+          banner_url?: string | null
+          bookmarks?: number | null
+          cover_url?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          genres?: string[] | null
+          id?: string
+          is_featured?: boolean | null
+          language?: string | null
+          likes?: number | null
+          rating_average?: number | null
+          rating_count?: number | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          approval_status?: string
+          banner_url?: string | null
+          bookmarks?: number | null
+          cover_url?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          genres?: string[] | null
+          id?: string
+          is_featured?: boolean | null
+          language?: string | null
+          likes?: number | null
+          rating_average?: number | null
+          rating_count?: number | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -49,6 +197,83 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      reading_history: {
+        Row: {
+          chapter_id: string
+          id: string
+          manga_id: string
+          page_number: number | null
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter_id: string
+          id?: string
+          manga_id: string
+          page_number?: number | null
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string
+          id?: string
+          manga_id?: string
+          page_number?: number | null
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_history_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reading_history_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_library: {
+        Row: {
+          created_at: string
+          id: string
+          manga_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manga_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manga_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_library_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
