@@ -184,6 +184,127 @@ export type Database = {
           },
         ]
       }
+      community_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          content: string | null
+          created_at: string
+          creator_id: string
+          id: string
+          image_url: string | null
+          likes_count: number
+          replies_count: number
+          telegram_message_id: number | null
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          creator_id: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number
+          replies_count?: number
+          telegram_message_id?: number | null
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          creator_id?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number
+          replies_count?: number
+          telegram_message_id?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_replies: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          telegram_message_id: number | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          telegram_message_id?: number | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          telegram_message_id?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follows: {
+        Row: {
+          created_at: string
+          creator_id: string
+          follower_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          follower_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          follower_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       manga: {
         Row: {
           approval_status: string
@@ -447,6 +568,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          reference_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          reference_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          reference_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
