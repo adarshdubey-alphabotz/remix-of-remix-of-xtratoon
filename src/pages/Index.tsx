@@ -381,36 +381,20 @@ const HomePage: React.FC = () => {
         </motion.div>
       </section>
 
-      {/* Trusted By Section */}
-      <motion.section
-        className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-          <AvatarCircles
-            numPeople={300}
-            avatarUrls={[
-              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?w=80&h=80&fit=crop&crop=face',
-            ]}
-          />
-          <div className="text-center sm:text-left">
-            <p className="text-sm sm:text-base font-semibold text-foreground">
-              Trusted by <span className="text-primary">hundreds</span> of publishers & viewers
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">Join our growing community of creators and readers worldwide</p>
-          </div>
-        </div>
-      </motion.section>
-
       {/* Zoom Parallax Showcase */}
       <section className="relative">
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+          <motion.h2
+            className="text-display text-4xl sm:text-6xl lg:text-8xl tracking-wider text-white text-center drop-shadow-[0_4px_30px_rgba(0,0,0,0.7)]"
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            EXPLORE EVERY<br /><span className="text-primary">GENRE</span> WITH US
+          </motion.h2>
+        </div>
         <ZoomParallax
           images={[
             { src: parallax1, alt: 'Dark fantasy warrior' },
