@@ -10,14 +10,28 @@ const SearchCreators: React.FC = () => {
   const [results, setResults] = useState<Profile[]>([]);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+
+    const searchTerm = query.trim().toLowerCase();
+    if (!searchTerm) return;
+
     setLoading(true);
-    const { data, error } = await supabase.rpc('search_creators', { search_term: query.trim() });
-    if (!error && data) setResults(data as Profile[]);
-    else setResults([]);
+    setError('');
+
+    const { data, error: searchError } = await supabase.rpc('search_creators', {
+      search_term: searchTerm,
+    });
+
+    if (searchError) {
+      setError(searchError.message);
+      setResults([]);
+    } else {
+      setResults((data as Profile[]) || []);
+    }
+
     setSearched(true);
     setLoading(false);
   };
@@ -26,14 +40,14 @@ const SearchCreators: React.FC = () => {
     <div className="min-h-screen pt-28 pb-20 px-4">
       <div className="max-w-3xl mx-auto space-y-8">
         <h1 className="text-display text-4xl tracking-wider">FIND CREATORS</h1>
-        <p className="text-muted-foreground">Search publishers by their username</p>
+        <p className="text-muted-foreground">Search creators by username</p>
 
         <form onSubmit={handleSearch} className="flex gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               value={query}
-              onChange={e => setQuery(e.target.value)}
+              onChange={e => setQuery(e.target.value.toLowerCase())}
               className="w-full pl-11 pr-4 py-3 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors"
               placeholder="Search by username..."
             />
@@ -42,6 +56,8 @@ const SearchCreators: React.FC = () => {
             {loading ? 'Searching...' : 'Search'}
           </button>
         </form>
+
+        {error && <div className="p-3 border-2 border-destructive bg-destructive/5 text-destructive text-sm">{error}</div>}
 
         {searched && (
           <div className="space-y-3">
@@ -60,9 +76,9 @@ const SearchCreators: React.FC = () => {
                     className="flex items-center gap-4 p-4 border-2 border-foreground bg-background hover:bg-muted/30 transition-colors"
                     style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }}
                   >
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {creator.avatar_url ? (
-                        <img src={creator.avatar_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                        <img src={creator.avatar_url} className="w-12 h-12 rounded-full object-cover" alt={`${creator.username || 'creator'} avatar`} />
                       ) : (
                         <User className="w-6 h-6 text-primary" />
                       )}

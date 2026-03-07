@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, Compass, BarChart3, Grid3X3, Settings, Users } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, Compass, BarChart3, Grid3X3, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -19,6 +19,7 @@ const Navbar: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -38,6 +39,14 @@ const Navbar: React.FC = () => {
 
   const handleLogin = () => { setAuthTab('login'); setShowAuthModal(true); setMobileOpen(false); };
   const handleSignup = () => { setAuthTab('signup'); setShowAuthModal(true); setMobileOpen(false); };
+  const handleLogout = async () => {
+    setLogoutPending(true);
+    await logout();
+    setUserMenuOpen(false);
+    setMobileOpen(false);
+    navigate('/');
+    setLogoutPending(false);
+  };
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
@@ -223,17 +232,16 @@ const Navbar: React.FC = () => {
                            {profile?.role_type || 'reader'}
                          </span>
                        </div>
-                       <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>
-                       <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><BookOpen className="w-4 h-4" /> My Library</Link>
-                       {isPublisher && (
-                         <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
-                       )}
-                       {isAdmin && (
-                         <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
-                       )}
-                       <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Settings className="w-4 h-4" /> Settings</Link>
-                       <div className="my-1 border-t border-border/30" />
-                       <button onClick={() => { logout(); setUserMenuOpen(false); }} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-destructive/10 transition-all w-full text-left text-destructive font-medium rounded-xl"><LogOut className="w-4 h-4" /> Logout</button>
+                        <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>
+                        <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><BookOpen className="w-4 h-4" /> My Library</Link>
+                        {isPublisher && (
+                          <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
+                        )}
+                        {isAdmin && (
+                          <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                        )}
+                        <div className="my-1 border-t border-border/30" />
+                        <button onClick={handleLogout} disabled={logoutPending} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-destructive/10 transition-all w-full text-left text-destructive font-medium rounded-xl disabled:opacity-60"><LogOut className="w-4 h-4" /> {logoutPending ? 'Logging out...' : 'Logout'}</button>
                     </motion.div>
                   </>
                 )}
@@ -307,12 +315,30 @@ const Navbar: React.FC = () => {
                 </Link>
               );
             })}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="relative flex items-center justify-center p-3 rounded-full text-muted-foreground transition-all duration-300"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+            {user ? (
+              <Link
+                to="/profile"
+                className={`relative flex items-center justify-center p-3 rounded-full transition-all duration-300 ${
+                  isActive('/profile') || isActive('/settings') ? 'text-foreground' : 'text-muted-foreground'
+                }`}
+              >
+                {(isActive('/profile') || isActive('/settings')) && (
+                  <motion.div
+                    layoutId="mobile-nav-pill"
+                    className="absolute inset-0 bg-muted/70 rounded-full"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <UserIcon className="w-5 h-5 relative z-10" />
+              </Link>
+            ) : (
+              <button
+                onClick={handleSignup}
+                className="relative flex items-center justify-center p-3 rounded-full text-muted-foreground transition-all duration-300"
+              >
+                <UserIcon className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -359,11 +385,11 @@ const Navbar: React.FC = () => {
                       <p className="text-sm font-bold">{profile?.display_name || user.email}</p>
                       {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
                     </div>
-                    <Link to="/settings" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
+                    <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
                     <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
                     {isPublisher && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
                     {isAdmin && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
-                    <button onClick={() => { logout(); setMobileOpen(false); }} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl">Logout</button>
+                    <button onClick={handleLogout} disabled={logoutPending} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl disabled:opacity-60">{logoutPending ? 'Logging out...' : 'Logout'}</button>
                   </div>
                 )}
               </div>
