@@ -4,6 +4,8 @@ import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen,
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -13,6 +15,7 @@ const allGenres = [
 const Navbar: React.FC = () => {
   const { user, profile, logout, setShowAuthModal, setAuthTab, isAdmin, isPublisher } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [genreOpen, setGenreOpen] = useState(false);
@@ -22,6 +25,33 @@ const Navbar: React.FC = () => {
   const [logoutPending, setLogoutPending] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Admin notifications
+  const { data: adminNotifications = [] } = useQuery({
+    queryKey: ['admin-notifications'],
+    queryFn: async () => {
+      const { data } = await supabase.from('admin_notifications' as any).select('*').eq('is_read', false).order('created_at', { ascending: false }).limit(20);
+      return (data || []) as any[];
+    },
+    enabled: !!user && isAdmin,
+    refetchInterval: 30000,
+  });
+
+  const unreadCount = adminNotifications.length;
+
+  const markNotifRead = async (id: string) => {
+    await supabase.from('admin_notifications' as any).update({ is_read: true }).eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+  };
+
+  const markAllRead = async () => {
+    const ids = adminNotifications.map((n: any) => n.id);
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      await supabase.from('admin_notifications' as any).update({ is_read: true }).eq('id', id);
+    }
+    queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -189,6 +219,9 @@ const Navbar: React.FC = () => {
             <div className="relative">
               <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground">
                 <Bell className="w-[18px] h-[18px]" />
+                {isAdmin && unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                )}
               </button>
               <AnimatePresence>
                 {notifOpen && (
@@ -197,10 +230,25 @@ const Navbar: React.FC = () => {
                     <motion.div
                       variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
                       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 top-full mt-3 w-80 glass-dropdown overflow-hidden"
+                      className="absolute right-0 top-full mt-3 w-80 glass-dropdown overflow-hidden max-h-96 overflow-y-auto"
                     >
-                      <div className="p-4 border-b border-border/50"><h3 className="font-display text-lg tracking-wide">NOTIFICATIONS</h3></div>
-                      <div className="p-4 text-sm text-muted-foreground">No new notifications</div>
+                      <div className="p-4 border-b border-border/50 flex items-center justify-between">
+                        <h3 className="font-display text-lg tracking-wide">NOTIFICATIONS</h3>
+                        {isAdmin && unreadCount > 0 && <button onClick={markAllRead} className="text-xs text-primary hover:underline">Mark all read</button>}
+                      </div>
+                      {isAdmin && adminNotifications.length > 0 ? (
+                        <div className="divide-y divide-border/30">
+                          {adminNotifications.map((n: any) => (
+                            <button key={n.id} onClick={() => { markNotifRead(n.id); setNotifOpen(false); if (n.type === 'new_submission') navigate('/admin'); else if (n.type === 'new_report') navigate('/admin'); }} className="w-full text-left p-3 hover:bg-muted/40 transition-colors">
+                              <p className="text-sm font-medium">{n.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4 text-sm text-muted-foreground">No new notifications</div>
+                      )}
                     </motion.div>
                   </>
                 )}

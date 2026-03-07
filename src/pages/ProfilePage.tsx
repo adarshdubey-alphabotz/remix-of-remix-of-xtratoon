@@ -15,6 +15,23 @@ import { useQuery } from '@tanstack/react-query';
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
 
+const continents = ['Africa', 'Antarctica', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
+const countriesByContinent: Record<string, string[]> = {
+  'Africa': ['Nigeria', 'South Africa', 'Egypt', 'Kenya', 'Ghana', 'Ethiopia', 'Morocco', 'Tanzania'],
+  'Antarctica': ['Antarctica'],
+  'Asia': ['India', 'Japan', 'South Korea', 'China', 'Indonesia', 'Philippines', 'Bangladesh', 'Pakistan', 'Vietnam', 'Thailand', 'Malaysia', 'Turkey', 'Saudi Arabia', 'UAE', 'Israel', 'Singapore'],
+  'Europe': ['United Kingdom', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Russia', 'Ukraine', 'Portugal', 'Belgium', 'Switzerland'],
+  'North America': ['United States', 'Canada', 'Mexico', 'Cuba', 'Jamaica', 'Dominican Republic', 'Costa Rica'],
+  'Oceania': ['Australia', 'New Zealand', 'Fiji', 'Papua New Guinea'],
+  'South America': ['Brazil', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela', 'Ecuador', 'Bolivia'],
+};
+const timezones = [
+  'GMT-12:00','GMT-11:00','GMT-10:00','GMT-09:00','GMT-08:00','GMT-07:00','GMT-06:00','GMT-05:00','GMT-04:00','GMT-03:00','GMT-02:00','GMT-01:00',
+  'GMT+00:00','GMT+01:00','GMT+02:00','GMT+03:00','GMT+03:30','GMT+04:00','GMT+04:30','GMT+05:00','GMT+05:30','GMT+05:45','GMT+06:00','GMT+06:30',
+  'GMT+07:00','GMT+08:00','GMT+09:00','GMT+09:30','GMT+10:00','GMT+11:00','GMT+12:00',
+];
+const currencies = ['USD','EUR','GBP','INR','BDT','JPY','KRW','CNY','BRL','CAD','AUD','NGN','PHP','IDR','MYR','THB','VND','PKR','EGP','ZAR','AED','SAR','TRY','SGD'];
+
 const ProfilePage: React.FC = () => {
   const { user, profile, loading, updateProfile, changePassword, refreshProfile, logout, deleteAccount, isPublisher } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -25,6 +42,10 @@ const ProfilePage: React.FC = () => {
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileType, setProfileType] = useState<ProfileType>('reader');
+  const [continent, setContinent] = useState('');
+  const [country, setCountry] = useState('');
+  const [timezone, setTimezone] = useState('');
+  const [currency, setCurrency] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -47,7 +68,14 @@ const ProfilePage: React.FC = () => {
     setBio(profile.bio || '');
     setAvatarUrl(profile.avatar_url || null);
     setProfileType(profile.role_type === 'publisher' || profile.role_type === 'creator' ? 'publisher' : 'reader');
+    const p = profile as any;
+    setContinent(p.continent || '');
+    setCountry(p.country || '');
+    setTimezone(p.timezone || '');
+    setCurrency(p.currency || '');
   }, [profile]);
+
+  const availableCountries = continent ? (countriesByContinent[continent] || []) : [];
 
   useEffect(() => { localStorage.setItem('xtratoon-compact-cards', String(compactCards)); }, [compactCards]);
   useEffect(() => { localStorage.setItem('xtratoon-creator-alerts', String(creatorAlerts)); }, [creatorAlerts]);
@@ -122,8 +150,23 @@ const ProfilePage: React.FC = () => {
       const { data: existing } = await supabase.from('profiles').select('id').ilike('username', normalizedUsername).neq('user_id', user.id).limit(1);
       if (existing && existing.length > 0) { setError('Username already taken'); setSaving(false); return; }
     }
-    const result = await updateProfile({ display_name: displayName.trim() || null, bio: bio.trim() || null, username: normalizedUsername || null, avatar_url: avatarUrl, role_type: profileType } as any);
-    if (!result.success) { setError(result.error || 'Failed to update profile'); setSaving(false); return; }
+    // Save profile including location fields
+    const { error: updateErr } = await supabase.from('profiles').update({
+      display_name: displayName.trim() || null,
+      bio: bio.trim() || null,
+      username: normalizedUsername || null,
+      avatar_url: avatarUrl,
+      role_type: profileType,
+      continent: continent || null,
+      country: country || null,
+      timezone: timezone || null,
+      currency: currency || null,
+    } as any).eq('user_id', user.id);
+    if (updateErr) {
+      if (updateErr.code === '23505') setError('Username already taken');
+      else setError(updateErr.message);
+      setSaving(false); return;
+    }
     await refreshProfile();
     setSuccess('Profile updated successfully');
     setSaving(false);
@@ -230,6 +273,44 @@ const ProfilePage: React.FC = () => {
               <label className="text-sm font-semibold">Bio</label>
               <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl resize-none" placeholder="Tell readers about your vibe..." />
             </div>
+
+            {/* Location & Currency */}
+            <div className="border-t border-border pt-4 space-y-3">
+              <div className="flex items-center gap-2 mb-2"><MapPin className="w-4 h-4 text-primary" /><h3 className="text-sm font-semibold">Location & Currency</h3></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Continent</label>
+                  <select value={continent} onChange={e => { setContinent(e.target.value); setCountry(''); }} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl">
+                    <option value="">Select...</option>
+                    {continents.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Country</label>
+                  <select value={country} onChange={e => setCountry(e.target.value)} disabled={!continent} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl disabled:opacity-50">
+                    <option value="">Select...</option>
+                    {availableCountries.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Timezone</label>
+                  <select value={timezone} onChange={e => setTimezone(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl">
+                    <option value="">Select...</option>
+                    {timezones.map(tz => <option key={tz} value={tz}>{tz}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Currency</label>
+                  <select value={currency} onChange={e => setCurrency(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl">
+                    <option value="">Select...</option>
+                    {currencies.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <button onClick={handleSave} disabled={saving} className="btn-accent rounded-xl px-6 py-3 text-sm disabled:opacity-50 inline-flex items-center gap-2"><Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Profile'}</button>
           </motion.section>
 
