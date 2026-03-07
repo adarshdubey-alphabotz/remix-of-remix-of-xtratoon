@@ -22,19 +22,22 @@ Deno.serve(async (req) => {
     }
 
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) throw new Error("Unauthorized");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Unauthorized");
 
-    const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
-    if (authError || !user) throw new Error("Unauthorized");
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) throw new Error("Unauthorized");
+    const userId = claimsData.claims.sub as string;
 
     const { manga_id, manga_title, content, parent_id } = await req.json();
 
     // Get user profile
     const supabase = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: profile } = await supabase.from("profiles").select("username, display_name").eq("user_id", user.id).single();
-    const displayName = profile?.display_name || profile?.username || user.email || "Anonymous";
+    const { data: profile } = await supabase.from("profiles").select("username, display_name").eq("user_id", userId).single();
+    const displayName = profile?.display_name || profile?.username || "Anonymous";
 
     const shortId = manga_id.slice(0, 8).toUpperCase();
     const replyTag = parent_id ? `\n↩️ Reply to: ${parent_id.slice(0, 8)}` : "";
