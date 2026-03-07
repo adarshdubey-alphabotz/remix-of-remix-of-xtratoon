@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { X, Eye, EyeOff } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { X, Eye, EyeOff, BookOpen, Pen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+
+const USERNAME_REGEX = /^[a-zA-Z0-9_.]+$/;
 
 const AuthModal: React.FC = () => {
   const { showAuthModal, setShowAuthModal, authTab, setAuthTab, login, signup } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+  const [roleType, setRoleType] = useState<'reader' | 'publisher'>('reader');
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
@@ -17,7 +21,7 @@ const AuthModal: React.FC = () => {
 
   if (!showAuthModal) return null;
 
-  const reset = () => { setEmail(''); setPassword(''); setDisplayName(''); setError(''); setSuccessMsg(''); setForgotMode(false); };
+  const reset = () => { setEmail(''); setPassword(''); setDisplayName(''); setUsername(''); setRoleType('reader'); setError(''); setSuccessMsg(''); setForgotMode(false); };
   const handleClose = () => { setShowAuthModal(false); reset(); };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,7 +36,25 @@ const AuthModal: React.FC = () => {
     e.preventDefault(); setError(''); setSubmitting(true);
     if (!displayName || !email || !password) { setError('All fields required'); setSubmitting(false); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters'); setSubmitting(false); return; }
-    const res = await signup(displayName, email, password);
+    
+    // Validate username for publishers
+    if (roleType === 'publisher') {
+      if (!username) { setError('Username is required for publishers'); setSubmitting(false); return; }
+      if (username.length < 5) { setError('Username must be at least 5 characters'); setSubmitting(false); return; }
+      if (!USERNAME_REGEX.test(username)) { setError('Username: only letters, numbers, _ and . allowed'); setSubmitting(false); return; }
+      
+      // Check uniqueness
+      const { data: existing } = await supabase.from('profiles').select('id').eq('username', username).maybeSingle();
+      if (existing) { setError('Username already taken'); setSubmitting(false); return; }
+    }
+    
+    // Validate optional username for readers
+    if (roleType === 'reader' && username) {
+      if (username.length < 5) { setError('Username must be at least 5 characters'); setSubmitting(false); return; }
+      if (!USERNAME_REGEX.test(username)) { setError('Username: only letters, numbers, _ and . allowed'); setSubmitting(false); return; }
+    }
+
+    const res = await signup({ displayName, email, password, roleType, username: username || undefined });
     if (!res.success) setError(res.error || 'Signup failed');
     setSubmitting(false);
   };
@@ -56,7 +78,7 @@ const AuthModal: React.FC = () => {
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        className="relative bg-background border-2 border-foreground w-full max-w-md overflow-hidden"
+        className="relative bg-background border-2 border-foreground w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
         style={{ boxShadow: '6px 6px 0 hsl(0 0% 8%)' }}
         onClick={e => e.stopPropagation()}
       >
@@ -85,10 +107,52 @@ const AuthModal: React.FC = () => {
           {successMsg && <div className="p-3 border-2 border-primary bg-primary/5 text-primary text-sm font-medium">{successMsg}</div>}
 
           {authTab === 'signup' && !forgotMode && (
-            <div>
-              <label className="text-sm font-semibold text-foreground block mb-1.5">Display Name</label>
-              <input value={displayName} onChange={e => setDisplayName(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" placeholder="Your display name" />
-            </div>
+            <>
+              {/* Role Selection */}
+              <div>
+                <label className="text-sm font-semibold text-foreground block mb-2">I want to</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRoleType('reader')}
+                    className={`flex flex-col items-center gap-2 p-4 border-2 transition-all ${roleType === 'reader' ? 'border-primary bg-primary/5' : 'border-foreground/30 hover:border-foreground'}`}
+                  >
+                    <BookOpen className={`w-6 h-6 ${roleType === 'reader' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-sm font-bold ${roleType === 'reader' ? 'text-primary' : ''}`}>Read</span>
+                    <span className="text-[10px] text-muted-foreground text-center">Browse & read manhwa</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRoleType('publisher')}
+                    className={`flex flex-col items-center gap-2 p-4 border-2 transition-all ${roleType === 'publisher' ? 'border-primary bg-primary/5' : 'border-foreground/30 hover:border-foreground'}`}
+                  >
+                    <Pen className={`w-6 h-6 ${roleType === 'publisher' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-sm font-bold ${roleType === 'publisher' ? 'text-primary' : ''}`}>Create</span>
+                    <span className="text-[10px] text-muted-foreground text-center">Publish your manhwa</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Display Name</label>
+                <input value={displayName} onChange={e => setDisplayName(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" placeholder="Your display name" />
+              </div>
+
+              {/* Username */}
+              <div>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">
+                  Username {roleType === 'publisher' && <span className="text-destructive">*</span>}
+                  {roleType === 'reader' && <span className="text-muted-foreground font-normal ml-1">(optional)</span>}
+                </label>
+                <input 
+                  value={username} 
+                  onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))} 
+                  className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" 
+                  placeholder="e.g. moonx.d" 
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">Min 5 chars · letters, numbers, _ and . only</p>
+              </div>
+            </>
           )}
 
           <div>
