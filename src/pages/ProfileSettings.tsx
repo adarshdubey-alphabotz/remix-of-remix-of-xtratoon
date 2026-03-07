@@ -1,0 +1,229 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { User, Lock, Save, ArrowLeft, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+
+const USERNAME_REGEX = /^[a-zA-Z0-9_.]+$/;
+
+const ProfileSettings: React.FC = () => {
+  const { user, profile, loading, updateProfile, changePassword, isPublisher, refreshProfile } = useAuth();
+  const navigate = useNavigate();
+
+  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [bio, setBio] = useState('');
+  const [roleType, setRoleType] = useState('reader');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Password change
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passError, setPassError] = useState('');
+  const [passSuccess, setPassSuccess] = useState('');
+  const [passSubmitting, setPassSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) navigate('/');
+  }, [loading, user, navigate]);
+
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || '');
+      setDisplayName(profile.display_name || '');
+      setBio(profile.bio || '');
+      setRoleType(profile.role_type || 'reader');
+    }
+  }, [profile]);
+
+  const validateUsername = (val: string) => {
+    if (!val) return roleType === 'publisher' ? 'Username is required for publishers' : null;
+    if (val.length < 5) return 'Username must be at least 5 characters';
+    if (!USERNAME_REGEX.test(val)) return 'Only letters, numbers, underscores and dots allowed';
+    return null;
+  };
+
+  const handleSave = async () => {
+    setError(''); setSuccess(''); setSaving(true);
+
+    // Validate username
+    const usernameError = validateUsername(username);
+    if (usernameError) { setError(usernameError); setSaving(false); return; }
+
+    // Check username uniqueness if changed
+    if (username && username !== profile?.username) {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .neq('user_id', user!.id)
+        .maybeSingle();
+      if (existing) { setError('Username already taken'); setSaving(false); return; }
+    }
+
+    // Update role if changed
+    const updates: any = {
+      display_name: displayName || null,
+      bio: bio || null,
+      role_type: roleType,
+      username: username || null,
+    };
+
+    // If switching to publisher, need role entry
+    if (roleType === 'publisher' && !isPublisher) {
+      const { error: roleErr } = await supabase.from('user_roles').insert({ user_id: user!.id, role: 'publisher' as any });
+      if (roleErr && !roleErr.message.includes('duplicate')) {
+        setError('Failed to update role: ' + roleErr.message); setSaving(false); return;
+      }
+    }
+
+    const res = await updateProfile(updates);
+    if (res.success) {
+      setSuccess('Profile updated!');
+      await refreshProfile();
+    } else {
+      setError(res.error || 'Failed to save');
+    }
+    setSaving(false);
+  };
+
+  const handlePasswordChange = async () => {
+    setPassError(''); setPassSuccess('');
+    if (!newPassword || !confirmPassword) { setPassError('Fill both fields'); return; }
+    if (newPassword.length < 6) { setPassError('Password must be at least 6 characters'); return; }
+    if (newPassword !== confirmPassword) { setPassError('Passwords do not match'); return; }
+    setPassSubmitting(true);
+    const res = await changePassword(newPassword);
+    if (res.success) { setPassSuccess('Password changed!'); setNewPassword(''); setConfirmPassword(''); }
+    else setPassError(res.error || 'Failed');
+    setPassSubmitting(false);
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-muted-foreground">Loading...</div></div>;
+
+  return (
+    <div className="min-h-screen pt-28 pb-20 px-4">
+      <div className="max-w-2xl mx-auto space-y-8">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+
+        <h1 className="text-display text-4xl tracking-wider">PROFILE SETTINGS</h1>
+
+        {/* Profile Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="border-2 border-foreground bg-background p-6 space-y-5"
+          style={{ boxShadow: '4px 4px 0 hsl(0 0% 8%)' }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <User className="w-5 h-5 text-primary" />
+            <h2 className="text-display text-xl tracking-wider">PROFILE</h2>
+          </div>
+
+          {error && <div className="p-3 border-2 border-destructive bg-destructive/5 text-destructive text-sm font-medium">{error}</div>}
+          {success && <div className="p-3 border-2 border-primary bg-primary/5 text-primary text-sm font-medium flex items-center gap-2"><CheckCircle className="w-4 h-4" />{success}</div>}
+
+          {/* Role selection */}
+          <div>
+            <label className="text-sm font-semibold text-foreground block mb-2">I am a</label>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRoleType('reader')}
+                className={`flex-1 py-3 text-sm font-bold border-2 transition-colors ${roleType === 'reader' ? 'border-primary bg-primary text-primary-foreground' : 'border-foreground hover:bg-muted'}`}
+              >Reader</button>
+              <button
+                onClick={() => setRoleType('publisher')}
+                className={`flex-1 py-3 text-sm font-bold border-2 transition-colors ${roleType === 'publisher' ? 'border-primary bg-primary text-primary-foreground' : 'border-foreground hover:bg-muted'}`}
+              >Publisher</button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold text-foreground block mb-1.5">
+              Username {roleType === 'publisher' && <span className="text-destructive">*</span>}
+              {roleType === 'reader' && <span className="text-muted-foreground font-normal ml-1">(optional)</span>}
+            </label>
+            <input
+              value={username}
+              onChange={e => setUsername(e.target.value.toLowerCase())}
+              className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors"
+              placeholder="e.g. moonx.d (min 5 chars)"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Letters, numbers, underscores (_) and dots (.) only. Min 5 characters.</p>
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold text-foreground block mb-1.5">Display Name</label>
+            <input
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors"
+              placeholder="Your display name"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold text-foreground block mb-1.5">Bio</label>
+            <textarea
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors resize-none"
+              placeholder="Tell us about yourself..."
+            />
+          </div>
+
+          <button onClick={handleSave} disabled={saving} className="btn-accent rounded-none py-3 px-6 text-sm flex items-center gap-2 disabled:opacity-50">
+            <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Profile'}
+          </button>
+        </motion.div>
+
+        {/* Password Change */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="border-2 border-foreground bg-background p-6 space-y-5"
+          style={{ boxShadow: '4px 4px 0 hsl(0 0% 8%)' }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <Lock className="w-5 h-5 text-primary" />
+            <h2 className="text-display text-xl tracking-wider">CHANGE PASSWORD</h2>
+          </div>
+
+          {passError && <div className="p-3 border-2 border-destructive bg-destructive/5 text-destructive text-sm font-medium">{passError}</div>}
+          {passSuccess && <div className="p-3 border-2 border-primary bg-primary/5 text-primary text-sm font-medium flex items-center gap-2"><CheckCircle className="w-4 h-4" />{passSuccess}</div>}
+
+          <div>
+            <label className="text-sm font-semibold text-foreground block mb-1.5">New Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors"
+              placeholder="Min 6 characters"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-foreground block mb-1.5">Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors"
+              placeholder="Repeat password"
+            />
+          </div>
+
+          <button onClick={handlePasswordChange} disabled={passSubmitting} className="btn-accent rounded-none py-3 px-6 text-sm flex items-center gap-2 disabled:opacity-50">
+            <Lock className="w-4 h-4" /> {passSubmitting ? 'Changing...' : 'Change Password'}
+          </button>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfileSettings;

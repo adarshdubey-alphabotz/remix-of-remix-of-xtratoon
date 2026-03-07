@@ -48,10 +48,10 @@ const PublisherDashboard: React.FC = () => {
           <div className="brutal-card p-4 space-y-1 sticky top-24">
             <div className="flex items-center gap-3 mb-4 pb-4 border-b-2 border-foreground">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold border border-foreground">
-                {user?.username?.[0] || 'P'}
+                {user?.email?.[0]?.toUpperCase() || 'P'}
               </div>
               <div>
-                <p className="text-sm font-bold">{user?.username || 'Creator'}</p>
+                <p className="text-sm font-bold">{'Creator'}</p>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Creator</p>
               </div>
             </div>
@@ -176,7 +176,7 @@ const PublisherDashboard: React.FC = () => {
               <div className="brutal-card p-6 space-y-4">
                 <div>
                   <label className="text-sm font-semibold block mb-1.5">Username</label>
-                  <input defaultValue={user?.username} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" />
+                  <input defaultValue={user?.email || ''} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" />
                 </div>
                 <button className="btn-accent rounded-none text-sm py-2 px-6">Save Changes</button>
               </div>

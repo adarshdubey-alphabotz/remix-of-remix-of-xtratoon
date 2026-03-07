@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 const AuthModal: React.FC = () => {
   const { showAuthModal, setShowAuthModal, authTab, setAuthTab, login, signup } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
@@ -16,7 +17,7 @@ const AuthModal: React.FC = () => {
 
   if (!showAuthModal) return null;
 
-  const reset = () => { setEmail(''); setPassword(''); setUsername(''); setError(''); setSuccessMsg(''); setForgotMode(false); };
+  const reset = () => { setEmail(''); setPassword(''); setDisplayName(''); setError(''); setSuccessMsg(''); setForgotMode(false); };
   const handleClose = () => { setShowAuthModal(false); reset(); };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -29,17 +30,23 @@ const AuthModal: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault(); setError(''); setSubmitting(true);
-    if (!username || !email || !password) { setError('All fields required'); setSubmitting(false); return; }
+    if (!displayName || !email || !password) { setError('All fields required'); setSubmitting(false); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters'); setSubmitting(false); return; }
-    const res = await signup(username, email, password);
+    const res = await signup(displayName, email, password);
     if (!res.success) setError(res.error || 'Signup failed');
     setSubmitting(false);
   };
 
-  const handleForgot = (e: React.FormEvent) => {
+  const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) { setError('Enter your email'); return; }
-    setSuccessMsg('Password reset link sent! Check your email.'); setError('');
+    setSubmitting(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) { setError(error.message); }
+    else { setSuccessMsg('Password reset link sent! Check your email.'); setError(''); }
+    setSubmitting(false);
   };
 
   return (
@@ -79,8 +86,8 @@ const AuthModal: React.FC = () => {
 
           {authTab === 'signup' && !forgotMode && (
             <div>
-              <label className="text-sm font-semibold text-foreground block mb-1.5">Username</label>
-              <input value={username} onChange={e => setUsername(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" placeholder="Your username" />
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Display Name</label>
+              <input value={displayName} onChange={e => setDisplayName(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" placeholder="Your display name" />
             </div>
           )}
 
