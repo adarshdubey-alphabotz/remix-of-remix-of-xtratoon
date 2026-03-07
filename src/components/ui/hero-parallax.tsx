@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   motion,
   useScroll,
   useTransform,
   useSpring,
+  useMotionValue,
+  animate,
   MotionValue,
 } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -32,14 +34,55 @@ export const HeroParallax = ({
 
   const springConfig = { stiffness: 300, damping: 30, bounce: 100 };
 
-  const translateX = useSpring(
-    useTransform(scrollYProgress, [0, 1], [0, 1000]),
+  // Track whether scroll-driven movement is done (scrollYProgress >= 0.5)
+  const [autoScroll, setAutoScroll] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = scrollYProgress.on("change", (v) => {
+      setAutoScroll(v >= 0.35);
+    });
+    return unsubscribe;
+  }, [scrollYProgress]);
+
+  // Scroll-driven translation (stops at ~500px)
+  const scrollTranslateX = useSpring(
+    useTransform(scrollYProgress, [0, 0.35], [0, 500]),
     springConfig
   );
-  const translateXReverse = useSpring(
-    useTransform(scrollYProgress, [0, 1], [0, -1000]),
+  const scrollTranslateXReverse = useSpring(
+    useTransform(scrollYProgress, [0, 0.35], [0, -500]),
     springConfig
   );
+
+  // Auto-scroll motion values
+  const autoX = useMotionValue(0);
+  const autoXReverse = useMotionValue(0);
+
+  useEffect(() => {
+    if (!autoScroll) return;
+
+    const baseOffset = 500;
+    // Continuous auto-scroll animation
+    const ctrl1 = animate(autoX, [baseOffset, baseOffset + 600, baseOffset], {
+      duration: 20,
+      repeat: Infinity,
+      ease: "linear",
+      repeatType: "loop",
+    });
+    const ctrl2 = animate(autoXReverse, [-baseOffset, -baseOffset - 600, -baseOffset], {
+      duration: 20,
+      repeat: Infinity,
+      ease: "linear",
+      repeatType: "loop",
+    });
+
+    return () => { ctrl1.stop(); ctrl2.stop(); };
+  }, [autoScroll, autoX, autoXReverse]);
+
+  // Use scroll-driven when not auto, auto when auto
+  const translateX = autoScroll ? autoX : scrollTranslateX;
+  const translateXReverse = autoScroll ? autoXReverse : scrollTranslateXReverse;
+
   const rotateX = useSpring(
     useTransform(scrollYProgress, [0, 0.2], [15, 0]),
     springConfig
@@ -53,13 +96,14 @@ export const HeroParallax = ({
     springConfig
   );
   const translateY = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], [-700, 500]),
+    useTransform(scrollYProgress, [0, 0.2], [-700, 200]),
     springConfig
   );
+
   return (
     <div
       ref={ref}
-      className="h-[300vh] py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d] bg-background"
+      className="h-[200vh] py-20 sm:py-40 overflow-hidden antialiased relative flex flex-col self-auto [perspective:1000px] [transform-style:preserve-3d] bg-background"
     >
       {header || <Header />}
       <motion.div
@@ -70,7 +114,7 @@ export const HeroParallax = ({
           opacity,
         }}
       >
-        <motion.div className="flex flex-row-reverse space-x-reverse space-x-20 mb-20">
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-10 sm:space-x-20 mb-10 sm:mb-20">
           {firstRow.map((product) => (
             <ProductCard
               product={product}
@@ -79,7 +123,7 @@ export const HeroParallax = ({
             />
           ))}
         </motion.div>
-        <motion.div className="flex flex-row mb-20 space-x-20">
+        <motion.div className="flex flex-row mb-10 sm:mb-20 space-x-10 sm:space-x-20">
           {secondRow.map((product) => (
             <ProductCard
               product={product}
@@ -88,7 +132,7 @@ export const HeroParallax = ({
             />
           ))}
         </motion.div>
-        <motion.div className="flex flex-row-reverse space-x-reverse space-x-20">
+        <motion.div className="flex flex-row-reverse space-x-reverse space-x-10 sm:space-x-20">
           {thirdRow.map((product) => (
             <ProductCard
               product={product}
@@ -110,8 +154,6 @@ export const Header = () => {
       </h1>
       <p className="max-w-2xl text-base md:text-xl mt-8 text-muted-foreground">
         We build beautiful products with the latest technologies and frameworks.
-        We are a team of passionate developers and designers that love to build
-        amazing products.
       </p>
     </div>
   );
@@ -137,7 +179,7 @@ export const ProductCard = ({
         y: -20,
       }}
       key={product.title}
-      className="group/product h-96 w-[30rem] relative flex-shrink-0"
+      className="group/product h-60 w-[20rem] sm:h-96 sm:w-[30rem] relative flex-shrink-0"
     >
       <Link
         to={product.link}
