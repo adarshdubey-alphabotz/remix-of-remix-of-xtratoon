@@ -6,6 +6,7 @@ import { formatViews, getCoverGradient, type ApiManga } from '@/lib/api';
 import { useFeaturedManga, useLatestManga } from '@/hooks/useApi';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal from '@/components/ScrollReveal';
+import { AvatarCircles } from '@/components/ui/avatar-circles';
 
 import featureLibrary from '@/assets/feature-library.png';
 import featureUpdates from '@/assets/feature-updates.png';
@@ -370,6 +371,33 @@ const HomePage: React.FC = () => {
           </div>
         </motion.div>
       </section>
+
+      {/* Trusted By Section */}
+      <motion.section
+        className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+          <AvatarCircles
+            numPeople={300}
+            avatarUrls={[
+              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?w=80&h=80&fit=crop&crop=face',
+            ]}
+          />
+          <div className="text-center sm:text-left">
+            <p className="text-sm sm:text-base font-semibold text-foreground">
+              Trusted by <span className="text-primary">hundreds</span> of publishers & viewers
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">Join our growing community of creators and readers worldwide</p>
+          </div>
+        </div>
+      </motion.section>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
