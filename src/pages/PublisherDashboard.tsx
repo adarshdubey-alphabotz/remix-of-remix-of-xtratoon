@@ -28,6 +28,11 @@ const PublisherDashboard: React.FC = () => {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Chapter 1 files for initial submission
+  const [ch1Files, setCh1Files] = useState<File[]>([]);
+  const [ch1Title, setCh1Title] = useState('');
+  const ch1InputRef = useRef<HTMLInputElement>(null);
+
   // Chapter upload state
   const [selectedMangaId, setSelectedMangaId] = useState<string | null>(null);
   const [chapterNumber, setChapterNumber] = useState(1);
