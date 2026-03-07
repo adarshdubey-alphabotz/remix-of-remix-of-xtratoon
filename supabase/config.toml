@@ -1,13 +1,1 @@
-project_id = "xdjpazlfwnluzznxdjhr"
-
-[functions.telegram-comment]
-verify_jwt = false
-
-[functions.telegram-upload]
-verify_jwt = false
-
-[functions.telegram-proxy]
-verify_jwt = false
-
-[functions.delete-account]
-verify_jwt = false
+project_id = "nyynuigabiwfgvwvjrvh"
