@@ -443,6 +443,40 @@ const HomePage: React.FC = () => {
           </motion.div>
         </section>
 
+        {/* Trusted By Section */}
+        <motion.div
+          className="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 py-8"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <AvatarCircles
+            numPeople={300}
+            avatarUrls={[
+              'https://i.pravatar.cc/80?img=1',
+              'https://i.pravatar.cc/80?img=5',
+              'https://i.pravatar.cc/80?img=12',
+              'https://i.pravatar.cc/80?img=32',
+            ]}
+          />
+          <div className="text-center sm:text-left">
+            <p className="text-sm sm:text-base font-semibold text-foreground">
+              Trusted by <span className="text-primary">hundreds</span> of publishers & viewers
+            </p>
+            <div className="flex items-center gap-1.5 mt-1 justify-center sm:justify-start">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={`w-3.5 h-3.5 ${s <= 4 ? 'text-gold fill-gold' : 'text-gold fill-gold/40'}`}
+                />
+              ))}
+              <span className="text-xs font-semibold text-foreground ml-1">4.8</span>
+              <span className="text-xs text-muted-foreground">avg. rating</span>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Social section — liquid glass */}
         <ScrollReveal>
           <section className="relative rounded-3xl overflow-hidden" style={{ boxShadow: '0 16px 70px -12px hsla(0, 0%, 0%, 0.2)' }}>
