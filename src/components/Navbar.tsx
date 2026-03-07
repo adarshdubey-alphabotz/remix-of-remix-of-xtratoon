@@ -353,6 +353,19 @@ const Navbar: React.FC = () => {
                     <button onClick={handleSignup} className="flex-1 btn-accent text-xs py-3">Sign Up</button>
                   </div>
                 )}
+                {user && (
+                  <div className="pt-3 border-t border-border/30 space-y-1">
+                    <div className="px-4 py-2">
+                      <p className="text-sm font-bold">{profile?.display_name || user.email}</p>
+                      {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
+                    </div>
+                    <Link to="/settings" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
+                    <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
+                    {isPublisher && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
+                    {isAdmin && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
+                    <button onClick={() => { logout(); setMobileOpen(false); }} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl">Logout</button>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
