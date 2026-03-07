@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
+import CommentSection from '@/components/CommentSection';
 import { toast } from 'sonner';
 
 const formatViews = (n: number): string => {
@@ -255,6 +256,10 @@ const ManhwaDetail: React.FC = () => {
                 </section>
               </ScrollReveal>
             )}
+            {/* Comments */}
+            <ScrollReveal delay={0.2}>
+              <CommentSection mangaId={manhwa.id} mangaTitle={manhwa.title} />
+            </ScrollReveal>
           </div>
 
           <div className="space-y-4">
