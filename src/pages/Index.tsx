@@ -11,7 +11,7 @@ import avatar1 from '@/assets/avatar-1.png';
 import avatar2 from '@/assets/avatar-2.png';
 import avatar3 from '@/assets/avatar-3.png';
 import avatar4 from '@/assets/avatar-4.png';
-import { ZoomParallax } from '@/components/ui/zoom-parallax';
+import { HeroParallax } from '@/components/ui/hero-parallax';
 
 import featureLibrary from '@/assets/feature-library.png';
 
@@ -385,19 +385,36 @@ const HomePage: React.FC = () => {
         </motion.div>
       </section>
 
-      {/* Zoom Parallax Showcase */}
-      <ZoomParallax
-        images={[
-          { src: parallax1, alt: 'Dark fantasy warrior' },
-          { src: parallax2, alt: 'Cherry blossom romance' },
-          { src: parallax3, alt: 'Epic battle scene' },
-          { src: parallax4, alt: 'Gothic castle at night' },
-          { src: parallax5, alt: 'Cyberpunk cityscape' },
-          { src: parallax6, alt: 'Underwater fantasy' },
-          { src: parallax7, alt: 'Dragon in the clouds' },
+      {/* Hero Parallax Showcase */}
+      <HeroParallax
+        products={[
+          { title: 'Solo Leveling', link: '/browse', thumbnail: parallax1 },
+          { title: 'Cherry Blossom', link: '/browse', thumbnail: parallax2 },
+          { title: 'Epic Battle', link: '/browse', thumbnail: parallax3 },
+          { title: 'Gothic Castle', link: '/browse', thumbnail: parallax4 },
+          { title: 'Cyberpunk City', link: '/browse', thumbnail: parallax5 },
+          { title: 'Underwater World', link: '/browse', thumbnail: parallax6 },
+          { title: 'Dragon Realm', link: '/browse', thumbnail: parallax7 },
+          { title: 'Dark Fantasy', link: '/browse', thumbnail: parallax1 },
+          { title: 'Romance Arc', link: '/browse', thumbnail: parallax2 },
+          { title: 'Action Scene', link: '/browse', thumbnail: parallax3 },
+          { title: 'Night Kingdom', link: '/browse', thumbnail: parallax4 },
+          { title: 'Neon Streets', link: '/browse', thumbnail: parallax5 },
+          { title: 'Ocean Depths', link: '/browse', thumbnail: parallax6 },
+          { title: 'Sky Dragons', link: '/browse', thumbnail: parallax7 },
+          { title: 'Shadow Warrior', link: '/browse', thumbnail: parallax1 },
         ]}
-        caption="EXPLORE EVERY GENRE WITH US"
-        captionHighlight="GENRE"
+        header={
+          <div className="max-w-7xl relative mx-auto py-20 md:py-40 px-4 w-full left-0 top-0">
+            <h1 className="text-display text-5xl sm:text-7xl lg:text-9xl tracking-wider text-foreground leading-[0.9]">
+              EXPLORE EVERY<br />
+              <span className="text-primary">GENRE</span> WITH US
+            </h1>
+            <p className="max-w-2xl text-sm sm:text-base md:text-xl mt-8 text-muted-foreground leading-relaxed">
+              From action-packed adventures to heartfelt romances — dive into a universe of stories crafted by world-class creators.
+            </p>
+          </div>
+        }
       />
 
       {/* Content */}
