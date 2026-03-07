@@ -19,7 +19,13 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (data: { displayName: string; email: string; password: string; roleType: string; username?: string }) => Promise<{ success: boolean; error?: string }>;
+  signup: (data: {
+    displayName: string;
+    email: string;
+    password: string;
+    roleType: string;
+    username?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<{ success: boolean; error?: string }>;
   changePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
@@ -31,6 +37,18 @@ interface AuthContextType {
   isAdmin: boolean;
   isPublisher: boolean;
 }
+
+const USERNAME_REGEX = /^[a-z0-9_.]+$/;
+
+const normalizeRoleType = (roleType: string) => {
+  const role = roleType.trim().toLowerCase();
+  return role === 'creator' || role === 'publisher' ? 'publisher' : 'reader';
+};
+
+const normalizeUsername = (username?: string) => {
+  const normalized = username?.trim().toLowerCase().replace(/[^a-z0-9_.]/g, '');
+  return normalized || null;
+};
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -46,66 +64,80 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPublisher, setIsPublisher] = useState(false);
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('user_id', userId)
-      .single();
-    if (!error && data) setProfile(data as Profile);
+      .maybeSingle();
+
+    if (error) return null;
+
+    const nextProfile = (data as Profile | null) ?? null;
+    setProfile(nextProfile);
+    return nextProfile;
   }, []);
 
-  const checkRole = useCallback(async (userId: string, role: string) => {
+  const checkRole = useCallback(async (userId: string, role: 'admin' | 'publisher') => {
     const { data } = await supabase.rpc('has_role', { _user_id: userId, _role: role as any });
     return !!data;
   }, []);
 
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isPublisher, setIsPublisher] = useState(false);
+  const syncRoleFlags = useCallback(
+    async (userId: string, profileData?: Profile | null) => {
+      const [admin, publisher] = await Promise.all([
+        checkRole(userId, 'admin'),
+        checkRole(userId, 'publisher'),
+      ]);
 
-  const refreshProfile = useCallback(async () => {
-    if (!user) return;
-    await fetchProfile(user.id);
-    const admin = await checkRole(user.id, 'admin');
-    const publisher = await checkRole(user.id, 'publisher');
-    setIsAdmin(admin);
-    setIsPublisher(publisher);
-  }, [user, fetchProfile, checkRole]);
+      const publisherFromProfile =
+        profileData?.role_type === 'publisher' || profileData?.role_type === 'creator';
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        await fetchProfile(u.id);
-        const admin = await checkRole(u.id, 'admin');
-        const publisher = await checkRole(u.id, 'publisher');
-        setIsAdmin(admin);
-        setIsPublisher(publisher);
-      } else {
+      setIsAdmin(admin);
+      setIsPublisher(publisher || publisherFromProfile);
+    },
+    [checkRole],
+  );
+
+  const hydrateUserState = useCallback(
+    async (nextUser: User | null) => {
+      setUser(nextUser);
+
+      if (!nextUser) {
         setProfile(null);
         setIsAdmin(false);
         setIsPublisher(false);
+        setLoading(false);
+        return;
       }
+
+      const nextProfile = await fetchProfile(nextUser.id);
+      await syncRoleFlags(nextUser.id, nextProfile);
       setLoading(false);
+    },
+    [fetchProfile, syncRoleFlags],
+  );
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    const nextProfile = await fetchProfile(user.id);
+    await syncRoleFlags(user.id, nextProfile);
+  }, [fetchProfile, syncRoleFlags, user]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void hydrateUserState(session?.user ?? null);
     });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        await fetchProfile(u.id);
-        const admin = await checkRole(u.id, 'admin');
-        const publisher = await checkRole(u.id, 'publisher');
-        setIsAdmin(admin);
-        setIsPublisher(publisher);
-      }
-      setLoading(false);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      void hydrateUserState(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile, checkRole]);
+  }, [hydrateUserState]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -118,54 +150,156 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const signup = useCallback(async ({ displayName, email, password, roleType, username }: { displayName: string; email: string; password: string; roleType: string; username?: string }) => {
-    try {
-      const { data: signUpData, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { display_name: displayName } },
-      });
-      if (error) return { success: false, error: error.message };
-      
-      const userId = signUpData.user?.id;
-      if (userId) {
-        // Update profile with role and username
-        const profileUpdate: any = { role_type: roleType };
-        if (username) profileUpdate.username = username;
-        if (displayName) profileUpdate.display_name = displayName;
-        await supabase.from('profiles').update(profileUpdate).eq('user_id', userId);
-        
-        // Add publisher role if selected
-        if (roleType === 'publisher') {
-          await supabase.from('user_roles').insert({ user_id: userId, role: 'publisher' as any });
+  const signup = useCallback(
+    async ({ displayName, email, password, roleType, username }: {
+      displayName: string;
+      email: string;
+      password: string;
+      roleType: string;
+      username?: string;
+    }) => {
+      try {
+        const normalizedRole = normalizeRoleType(roleType);
+        const normalizedUsername = normalizeUsername(username);
+
+        if (normalizedRole === 'publisher' && !normalizedUsername) {
+          return { success: false, error: 'Username is required for creators' };
         }
+
+        if (normalizedUsername) {
+          if (normalizedUsername.length < 5) {
+            return { success: false, error: 'Username must be at least 5 characters' };
+          }
+          if (!USERNAME_REGEX.test(normalizedUsername)) {
+            return { success: false, error: 'Username can only contain letters, numbers, _ and .' };
+          }
+
+          const { data: existing, error: usernameError } = await supabase
+            .from('profiles')
+            .select('id')
+            .ilike('username', normalizedUsername)
+            .limit(1);
+
+          if (usernameError) {
+            return { success: false, error: usernameError.message };
+          }
+
+          if (existing && existing.length > 0) {
+            return { success: false, error: 'Username already taken' };
+          }
+        }
+
+        const { data: signUpData, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              display_name: displayName,
+              role_type: normalizedRole,
+              username: normalizedUsername,
+            },
+          },
+        });
+
+        if (error) return { success: false, error: error.message };
+
+        const userId = signUpData.user?.id;
+        if (userId) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert(
+              {
+                user_id: userId,
+                display_name: displayName || null,
+                role_type: normalizedRole,
+                username: normalizedUsername,
+              },
+              { onConflict: 'user_id' },
+            );
+
+          if (profileError) {
+            if (profileError.code === '23505') {
+              return { success: false, error: 'Username already taken' };
+            }
+            return { success: false, error: profileError.message };
+          }
+
+          const roleValue = normalizedRole === 'publisher' ? 'publisher' : 'reader';
+          const oppositeRole = roleValue === 'publisher' ? 'reader' : 'publisher';
+
+          const { error: roleInsertError } = await supabase
+            .from('user_roles')
+            .insert({ user_id: userId, role: roleValue as any });
+
+          if (roleInsertError && roleInsertError.code !== '23505') {
+            return { success: false, error: roleInsertError.message };
+          }
+
+          await supabase
+            .from('user_roles')
+            .delete()
+            .eq('user_id', userId)
+            .eq('role', oppositeRole as any);
+
+          await refreshProfile();
+        }
+
+        setShowAuthModal(false);
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err.message };
       }
-      
-      setShowAuthModal(false);
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message };
+    },
+    [refreshProfile],
+  );
+
+  const logout = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      setUser(null);
+      setProfile(null);
+      setIsAdmin(false);
+      setIsPublisher(false);
     }
   }, []);
 
-  const logout = useCallback(async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setIsAdmin(false);
-    setIsPublisher(false);
-  }, []);
+  const updateProfile = useCallback(
+    async (data: Partial<Profile>) => {
+      if (!user) return { success: false, error: 'Not logged in' };
 
-  const updateProfile = useCallback(async (data: Partial<Profile>) => {
-    if (!user) return { success: false, error: 'Not logged in' };
-    const { error } = await supabase
-      .from('profiles')
-      .update(data)
-      .eq('user_id', user.id);
-    if (error) return { success: false, error: error.message };
-    await fetchProfile(user.id);
-    return { success: true };
-  }, [user, fetchProfile]);
+      const normalizedUsername = normalizeUsername(data.username ?? undefined);
+      if (normalizedUsername) {
+        if (normalizedUsername.length < 5) {
+          return { success: false, error: 'Username must be at least 5 characters' };
+        }
+        if (!USERNAME_REGEX.test(normalizedUsername)) {
+          return { success: false, error: 'Username can only contain letters, numbers, _ and .' };
+        }
+      }
+
+      const updates: Partial<Profile> = {
+        ...data,
+        username: normalizedUsername,
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('user_id', user.id);
+
+      if (error) {
+        if (error.code === '23505') {
+          return { success: false, error: 'Username already taken' };
+        }
+        return { success: false, error: error.message };
+      }
+
+      await refreshProfile();
+      return { success: true };
+    },
+    [refreshProfile, user],
+  );
 
   const changePassword = useCallback(async (newPassword: string) => {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -175,10 +309,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{
-      user, profile, loading, login, signup, logout,
-      updateProfile, changePassword, refreshProfile,
-      showAuthModal, setShowAuthModal, authTab, setAuthTab,
-      isAdmin, isPublisher,
+      user,
+      profile,
+      loading,
+      login,
+      signup,
+      logout,
+      updateProfile,
+      changePassword,
+      refreshProfile,
+      showAuthModal,
+      setShowAuthModal,
+      authTab,
+      setAuthTab,
+      isAdmin,
+      isPublisher,
     }}>
       {children}
     </AuthContext.Provider>
