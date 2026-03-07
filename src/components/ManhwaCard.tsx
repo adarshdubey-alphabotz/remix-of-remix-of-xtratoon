@@ -41,7 +41,7 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, index = 0, rank, rankCo
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
         {hasCover && (
-          <img src={manhwa.cover} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={coverSrc} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-400 p-3 flex flex-col justify-end backdrop-blur-sm rounded-2xl">
           <p className="text-xs text-foreground/90 line-clamp-3 leading-relaxed">{manhwa.description}</p>
