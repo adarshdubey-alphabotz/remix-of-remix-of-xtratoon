@@ -315,12 +315,30 @@ const Navbar: React.FC = () => {
                 </Link>
               );
             })}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="relative flex items-center justify-center p-3 rounded-full text-muted-foreground transition-all duration-300"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+            {user ? (
+              <Link
+                to="/profile"
+                className={`relative flex items-center justify-center p-3 rounded-full transition-all duration-300 ${
+                  isActive('/profile') || isActive('/settings') ? 'text-foreground' : 'text-muted-foreground'
+                }`}
+              >
+                {(isActive('/profile') || isActive('/settings')) && (
+                  <motion.div
+                    layoutId="mobile-nav-pill"
+                    className="absolute inset-0 bg-muted/70 rounded-full"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <UserIcon className="w-5 h-5 relative z-10" />
+              </Link>
+            ) : (
+              <button
+                onClick={handleSignup}
+                className="relative flex items-center justify-center p-3 rounded-full text-muted-foreground transition-all duration-300"
+              >
+                <UserIcon className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 
