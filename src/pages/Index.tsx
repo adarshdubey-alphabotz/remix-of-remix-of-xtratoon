@@ -7,6 +7,10 @@ import { useFeaturedManga, useLatestManga } from '@/hooks/useApi';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal from '@/components/ScrollReveal';
 import { AvatarCircles } from '@/components/ui/avatar-circles';
+import avatar1 from '@/assets/avatar-1.png';
+import avatar2 from '@/assets/avatar-2.png';
+import avatar3 from '@/assets/avatar-3.png';
+import avatar4 from '@/assets/avatar-4.png';
 import { ZoomParallax } from '@/components/ui/zoom-parallax';
 
 import featureLibrary from '@/assets/feature-library.png';
@@ -477,12 +481,8 @@ const HomePage: React.FC = () => {
         >
           <AvatarCircles
             numPeople={300}
-            avatarUrls={[
-              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?w=80&h=80&fit=crop&crop=face',
-            ]}
+            avatarUrls={[avatar1, avatar2, avatar3, avatar4]}
+          />
           />
           <div className="text-center sm:text-left">
             <p className="text-sm sm:text-base font-semibold text-foreground">
