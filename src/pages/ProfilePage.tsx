@@ -14,25 +14,49 @@ import {
   Sparkles,
   Bell,
   Palette,
+  Mail,
+  Trash2,
+  Pencil,
+  BarChart3,
+  Image,
+  Upload,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
+import { animeAvatarUrls } from '@/data/animeAvatarUrls';
+import AvatarPicker from '@/components/profile/AvatarPicker';
+import { manhwaList } from '@/data/mockData';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 
+type ProfileType = 'reader' | 'publisher';
+
 const ProfilePage: React.FC = () => {
-  const { user, profile, loading, updateProfile, changePassword, refreshProfile, isPublisher, logout } = useAuth();
+  const {
+    user,
+    profile,
+    loading,
+    updateProfile,
+    changePassword,
+    refreshProfile,
+    logout,
+    deleteAccount,
+    isPublisher,
+  } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [profileType, setProfileType] = useState<ProfileType>('reader');
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -42,6 +66,7 @@ const ProfilePage: React.FC = () => {
 
   const [compactCards, setCompactCards] = useState<boolean>(() => localStorage.getItem('xtratoon-compact-cards') === 'true');
   const [creatorAlerts, setCreatorAlerts] = useState<boolean>(() => localStorage.getItem('xtratoon-creator-alerts') !== 'false');
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate('/');
@@ -52,6 +77,8 @@ const ProfilePage: React.FC = () => {
     setUsername(profile.username || '');
     setDisplayName(profile.display_name || '');
     setBio(profile.bio || '');
+    setAvatarUrl(profile.avatar_url || null);
+    setProfileType(profile.role_type === 'publisher' || profile.role_type === 'creator' ? 'publisher' : 'reader');
   }, [profile]);
 
   useEffect(() => {
@@ -62,20 +89,45 @@ const ProfilePage: React.FC = () => {
     localStorage.setItem('xtratoon-creator-alerts', String(creatorAlerts));
   }, [creatorAlerts]);
 
-  const isCreator = isPublisher || profile?.role_type === 'publisher' || profile?.role_type === 'creator';
+  const isCreator = profileType === 'publisher' || isPublisher;
 
   const completionScore = useMemo(() => {
     let score = 0;
-    if (displayName.trim().length > 0) score += 25;
-    if (bio.trim().length >= 20) score += 25;
-    if (username.trim().length >= 5) score += 25;
-    if (profile?.avatar_url) score += 25;
+    if (displayName.trim().length > 0) score += 20;
+    if (bio.trim().length >= 20) score += 20;
+    if (username.trim().length >= 5) score += 20;
+    if (avatarUrl) score += 20;
+    if (profileType === 'publisher') score += 20;
     return score;
-  }, [displayName, bio, username, profile?.avatar_url]);
+  }, [displayName, bio, username, avatarUrl, profileType]);
 
-  const validateUsername = (value: string) => {
+  const creatorUploads = useMemo(() => {
+    if (!isCreator) return [];
+
+    const marker = (username || displayName || '').toLowerCase();
+    if (!marker) return [];
+
+    return manhwaList.filter((item) => {
+      const author = item.author.toLowerCase();
+      const publisher = item.publisher.toLowerCase();
+      return author.includes(marker) || publisher.includes(marker);
+    });
+  }, [displayName, isCreator, username]);
+
+  const creatorStats = useMemo(() => {
+    const totalUploads = creatorUploads.length;
+    const totalViews = creatorUploads.reduce((sum, item) => sum + item.views, 0);
+    const totalChapters = creatorUploads.reduce((sum, item) => sum + item.chapters.length, 0);
+    const totalBookmarks = creatorUploads.reduce((sum, item) => sum + item.bookmarks, 0);
+
+    return { totalUploads, totalViews, totalChapters, totalBookmarks };
+  }, [creatorUploads]);
+
+  const libraryPreview = useMemo(() => manhwaList.slice(0, 4), []);
+
+  const validateUsername = (value: string, creatorMode: boolean) => {
     const normalized = value.trim().toLowerCase();
-    if (!normalized && isCreator) return 'Username is required for creators';
+    if (!normalized && creatorMode) return 'Username is required for creators';
     if (!normalized) return null;
     if (normalized.length < 5) return 'Username must be at least 5 characters';
     if (!USERNAME_REGEX.test(normalized)) return 'Only letters, numbers, underscores (_) and dots (.) are allowed';
@@ -90,7 +142,7 @@ const ProfilePage: React.FC = () => {
     setSaving(true);
 
     const normalizedUsername = username.trim().toLowerCase();
-    const usernameError = validateUsername(normalizedUsername);
+    const usernameError = validateUsername(normalizedUsername, profileType === 'publisher');
     if (usernameError) {
       setError(usernameError);
       setSaving(false);
@@ -122,7 +174,8 @@ const ProfilePage: React.FC = () => {
       display_name: displayName.trim() || null,
       bio: bio.trim() || null,
       username: normalizedUsername || null,
-      role_type: isCreator ? 'publisher' : 'reader',
+      avatar_url: avatarUrl,
+      role_type: profileType,
     };
 
     const result = await updateProfile(updates as any);
@@ -130,11 +183,6 @@ const ProfilePage: React.FC = () => {
       setError(result.error || 'Failed to update profile');
       setSaving(false);
       return;
-    }
-
-    if (isCreator) {
-      await supabase.from('user_roles').insert({ user_id: user.id, role: 'publisher' as any });
-      await supabase.from('user_roles').delete().eq('user_id', user.id).eq('role', 'reader');
     }
 
     await refreshProfile();
@@ -176,9 +224,28 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleGlobalLogout = async () => {
-    await supabase.auth.signOut({ scope: 'global' });
     await logout();
     navigate('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    const confirmed = window.confirm('This will permanently delete your account. Continue?');
+    if (!confirmed) return;
+
+    setDeletingAccount(true);
+    setError('');
+
+    const result = await deleteAccount();
+    if (!result.success) {
+      setError(result.error || 'Could not delete account');
+      setDeletingAccount(false);
+      return;
+    }
+
+    navigate('/');
+    setDeletingAccount(false);
   };
 
   if (loading) {
@@ -191,56 +258,147 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-28 pb-24 px-4 bg-background">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
 
-        <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="brutal-card p-6">
-          <div className="flex flex-col md:flex-row md:items-center gap-5">
-            <div className="w-20 h-20 rounded-full bg-primary/10 border border-border flex items-center justify-center text-2xl font-bold text-primary">
-              {(displayName || username || user?.email || 'u')[0].toUpperCase()}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="brutal-card p-6"
+        >
+          <div className="grid md:grid-cols-[auto,1fr,auto] gap-5 items-start">
+            <div className="w-24 h-24 rounded-3xl bg-primary/10 border border-border overflow-hidden flex items-center justify-center">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Profile avatar" className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+              ) : (
+                <span className="text-3xl font-bold text-primary">{(displayName || username || user?.email || 'u')[0].toUpperCase()}</span>
+              )}
             </div>
-            <div className="flex-1">
+
+            <div className="space-y-1">
               <h1 className="text-display text-4xl tracking-wider">{displayName || 'Your Profile'}</h1>
               <p className="text-sm text-muted-foreground">@{username || 'set-username'} · {isCreator ? 'Creator' : 'Reader'}</p>
-              <div className="mt-3">
+              <p className="text-sm text-muted-foreground inline-flex items-center gap-2"><Mail className="w-4 h-4" /> {user?.email}</p>
+
+              <div className="mt-3 max-w-md">
                 <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
                   <div className="h-full bg-primary transition-all duration-500" style={{ width: `${completionScore}%` }} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Profile completion: {completionScore}%</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold">{isCreator ? 'Creator Account' : 'Reader Account'}</span>
+
+            <div className="flex flex-col gap-2 min-w-[180px]">
+              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold text-center">
+                {isCreator ? 'Creator Account' : 'Reader Account'}
+              </span>
+              <button
+                onClick={() => setShowAvatarPicker((prev) => !prev)}
+                className="w-full btn-outline px-3 py-2 text-xs"
+              >
+                <Image className="w-4 h-4" /> {showAvatarPicker ? 'Hide Avatars' : 'Choose Avatar'}
+              </button>
             </div>
           </div>
+
+          {showAvatarPicker && (
+            <div className="mt-5 p-4 border border-border rounded-2xl bg-card/50 space-y-3">
+              <h2 className="text-sm font-semibold flex items-center gap-2"><Pencil className="w-4 h-4 text-primary" /> Pick Avatar</h2>
+              <AvatarPicker avatars={animeAvatarUrls} value={avatarUrl} onSelect={setAvatarUrl} />
+            </div>
+          )}
         </motion.section>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="brutal-card p-5 lg:col-span-2 space-y-4">
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="brutal-card p-5 lg:col-span-2 space-y-4"
+          >
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-primary" />
-              <h2 className="text-display text-2xl tracking-wider">Edit Profile</h2>
+              <h2 className="text-display text-2xl tracking-wider">Profile Settings</h2>
             </div>
 
             {error && <div className="p-3 border border-destructive/40 bg-destructive/10 text-destructive text-sm">{error}</div>}
-            {success && <div className="p-3 border border-primary/40 bg-primary/10 text-primary text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" />{success}</div>}
+            {success && (
+              <div className="p-3 border border-primary/40 bg-primary/10 text-primary text-sm flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                {success}
+              </div>
+            )}
 
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Display Name</label>
-              <input value={displayName} onChange={e => setDisplayName(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl" placeholder="Your display name" />
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Profile Type</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setProfileType('reader')}
+                  className={`p-3 rounded-2xl border text-sm font-semibold transition-colors ${
+                    profileType === 'reader' ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/60'
+                  }`}
+                >
+                  Reader
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProfileType('publisher')}
+                  className={`p-3 rounded-2xl border text-sm font-semibold transition-colors ${
+                    profileType === 'publisher' ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/60'
+                  }`}
+                >
+                  Creator
+                </button>
+              </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-semibold">Username {isCreator && <span className="text-destructive">*</span>}</label>
-              <input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl" placeholder="e.g. moonx.d" />
-              <p className="text-xs text-muted-foreground">Unique for every user. Min 5 chars, only letters/numbers/_/.</p>
+              <label className="text-sm font-semibold">Display Name</label>
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl"
+                placeholder="Your display name"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-semibold">Email</label>
+              <input
+                value={user?.email || ''}
+                disabled
+                className="w-full px-3 py-2.5 bg-muted/40 border border-border text-sm rounded-xl text-muted-foreground"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-semibold">
+                Username {profileType === 'publisher' && <span className="text-destructive">*</span>}
+              </label>
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))}
+                className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl"
+                placeholder="e.g. moonx.d"
+              />
+              <p className="text-xs text-muted-foreground">Unique username · min 5 chars · letters, numbers, _ and . only</p>
             </div>
 
             <div className="space-y-1">
               <label className="text-sm font-semibold">Bio</label>
-              <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl resize-none" placeholder="Tell readers about your vibe..." />
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl resize-none"
+                placeholder="Tell readers about your vibe..."
+              />
             </div>
 
             <button onClick={handleSave} disabled={saving} className="btn-accent rounded-xl px-6 py-3 text-sm disabled:opacity-50 inline-flex items-center gap-2">
@@ -248,7 +406,12 @@ const ProfilePage: React.FC = () => {
             </button>
           </motion.section>
 
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="brutal-card p-5 space-y-4">
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="brutal-card p-5 space-y-4"
+          >
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
               <h3 className="text-display text-xl tracking-wider">Quick Actions</h3>
@@ -275,11 +438,11 @@ const ProfilePage: React.FC = () => {
                 <span>Theme mode</span>
                 <span className="text-muted-foreground capitalize">{theme}</span>
               </button>
-              <button onClick={() => setCompactCards(prev => !prev)} className="w-full flex items-center justify-between text-sm border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors">
+              <button onClick={() => setCompactCards((prev) => !prev)} className="w-full flex items-center justify-between text-sm border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors">
                 <span>Compact card mode</span>
                 <span className="text-muted-foreground">{compactCards ? 'On' : 'Off'}</span>
               </button>
-              <button onClick={() => setCreatorAlerts(prev => !prev)} className="w-full flex items-center justify-between text-sm border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors">
+              <button onClick={() => setCreatorAlerts((prev) => !prev)} className="w-full flex items-center justify-between text-sm border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors">
                 <span className="inline-flex items-center gap-2"><Bell className="w-4 h-4" /> Creator alerts</span>
                 <span className="text-muted-foreground">{creatorAlerts ? 'On' : 'Off'}</span>
               </button>
@@ -287,8 +450,86 @@ const ProfilePage: React.FC = () => {
           </motion.section>
         </div>
 
+        {isCreator && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="brutal-card p-5 space-y-5"
+          >
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-display text-2xl tracking-wider inline-flex items-center gap-2"><BarChart3 className="w-5 h-5 text-primary" /> Creator Studio</h3>
+              <Link to="/dashboard" className="btn-outline px-4 py-2 text-xs"><Upload className="w-4 h-4" /> Manage Uploads</Link>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { label: 'My Uploads', value: creatorStats.totalUploads },
+                { label: 'Chapter Count', value: creatorStats.totalChapters },
+                { label: 'Total Views', value: creatorStats.totalViews.toLocaleString() },
+                { label: 'Bookmarks', value: creatorStats.totalBookmarks.toLocaleString() },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-2xl border border-border p-3 bg-card/40">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                  <p className="text-xl font-semibold mt-1">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold">My Uploads</h4>
+              {creatorUploads.length === 0 ? (
+                <p className="text-sm text-muted-foreground border border-border rounded-xl p-3">
+                  No uploads found yet on this profile. Start from creator dashboard.
+                </p>
+              ) : (
+                creatorUploads.slice(0, 5).map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/manhwa/${item.id}`}
+                    className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"
+                  >
+                    <span className="text-sm font-medium">{item.title}</span>
+                    <span className="text-xs text-muted-foreground">{item.views.toLocaleString()} views</span>
+                  </Link>
+                ))
+              )}
+            </div>
+          </motion.section>
+        )}
+
         <div className="grid lg:grid-cols-2 gap-6">
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="brutal-card p-5 space-y-4">
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="brutal-card p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-display text-xl tracking-wider">My Library</h3>
+              <Link to="/library" className="text-xs text-primary hover:underline">Open full library</Link>
+            </div>
+
+            <div className="space-y-2">
+              {libraryPreview.map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/manhwa/${item.id}`}
+                  className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"
+                >
+                  <span className="text-sm font-medium line-clamp-1">{item.title}</span>
+                  <span className="text-xs text-muted-foreground">{item.status}</span>
+                </Link>
+              ))}
+            </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="brutal-card p-5 space-y-4"
+          >
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-primary" />
               <h3 className="text-display text-xl tracking-wider">Security Center</h3>
@@ -299,34 +540,44 @@ const ProfilePage: React.FC = () => {
 
             <div className="space-y-1">
               <label className="text-sm font-semibold">New Password</label>
-              <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl" placeholder="At least 6 characters" />
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl"
+                placeholder="At least 6 characters"
+              />
             </div>
 
             <div className="space-y-1">
               <label className="text-sm font-semibold">Confirm Password</label>
-              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl" placeholder="Repeat password" />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl"
+                placeholder="Repeat password"
+              />
             </div>
 
             <div className="flex flex-wrap gap-2">
               <button onClick={handlePasswordChange} disabled={passSubmitting} className="btn-accent rounded-xl px-5 py-2.5 text-sm disabled:opacity-50 inline-flex items-center gap-2">
                 <Lock className="w-4 h-4" /> {passSubmitting ? 'Updating...' : 'Change Password'}
               </button>
-              <button onClick={handleGlobalLogout} className="btn-outline rounded-xl px-5 py-2.5 text-sm">Sign out all devices</button>
+              <button onClick={handleGlobalLogout} className="btn-outline rounded-xl px-5 py-2.5 text-sm">
+                Sign out all devices
+              </button>
             </div>
-          </motion.section>
 
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="brutal-card p-5">
-            <h3 className="text-display text-xl tracking-wider mb-4">Public Preview</h3>
-            <div className="border border-border rounded-2xl overflow-hidden bg-card">
-              <div className="h-24 bg-muted" />
-              <div className="-mt-8 px-4 pb-4">
-                <div className="w-14 h-14 rounded-full bg-background border border-border flex items-center justify-center font-bold text-primary">
-                  {(displayName || username || 'u')[0]?.toUpperCase()}
-                </div>
-                <h4 className="text-lg font-semibold mt-2">{displayName || 'Display Name'}</h4>
-                <p className="text-sm text-muted-foreground">@{username || 'username'}</p>
-                <p className="text-sm mt-2 text-foreground/90 line-clamp-3">{bio || 'Your public creator card preview will appear here once you add your bio.'}</p>
-              </div>
+            <div className="pt-3 border-t border-border">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" /> {deletingAccount ? 'Deleting...' : 'Delete Account'}
+              </button>
+              <p className="text-xs text-muted-foreground mt-2">This permanently removes your account and profile data.</p>
             </div>
           </motion.section>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, Compass, BarChart3, Grid3X3, Users } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, BarChart3, Grid3X3, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -50,8 +50,7 @@ const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { to: '/', label: 'Home', icon: Home },
-    { to: '/explore', label: 'Explore', icon: Compass },
+    { to: '/home', label: 'Home', icon: Home },
     { to: '/browse', label: 'Browse', icon: Search },
     { to: '/charts', label: 'Charts', icon: BarChart3 },
     { to: '/creators', label: 'Creators', icon: Users },
@@ -365,7 +364,7 @@ const Navbar: React.FC = () => {
                     <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search manhwa..." className="w-full pl-9 pr-3 py-2.5 bg-muted/30 border border-border/30 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                   </div>
                 </form>
-                {[...navItems, { to: '/explore', label: 'Explore', icon: Compass }].filter((v, i, a) => a.findIndex(x => x.to === v.to) === i).map(l => (
+                {navItems.map(l => (
                   <Link key={l.to} to={l.to} onClick={() => setMobileOpen(false)} className={`block px-4 py-3 text-sm font-semibold transition-all rounded-xl ${isActive(l.to) ? 'text-primary bg-primary/10' : 'hover:bg-muted/40'}`}>{l.label}</Link>
                 ))}
                 <div className="grid grid-cols-3 gap-2 pt-2">

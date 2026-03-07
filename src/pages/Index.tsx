@@ -339,7 +339,7 @@ const HomePage: React.FC = () => {
               </motion.p>
 
               <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7, duration: 0.7 }}>
-                <Link to="/explore">
+                <Link to="/home">
                   <MagneticButton className="btn-accent text-sm"><Play className="w-4 h-4 fill-current" /> Start Reading</MagneticButton>
                 </Link>
                 <Link to="/browse">
