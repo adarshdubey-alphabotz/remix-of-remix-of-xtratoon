@@ -19,7 +19,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (data: { displayName: string; email: string; password: string; roleType: string; username?: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<{ success: boolean; error?: string }>;
   changePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
@@ -118,14 +118,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const signup = useCallback(async (displayName: string, email: string, password: string) => {
+  const signup = useCallback(async ({ displayName, email, password, roleType, username }: { displayName: string; email: string; password: string; roleType: string; username?: string }) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { display_name: displayName } },
       });
       if (error) return { success: false, error: error.message };
+      
+      const userId = signUpData.user?.id;
+      if (userId) {
+        // Update profile with role and username
+        const profileUpdate: any = { role_type: roleType };
+        if (username) profileUpdate.username = username;
+        if (displayName) profileUpdate.display_name = displayName;
+        await supabase.from('profiles').update(profileUpdate).eq('user_id', userId);
+        
+        // Add publisher role if selected
+        if (roleType === 'publisher') {
+          await supabase.from('user_roles').insert({ user_id: userId, role: 'publisher' as any });
+        }
+      }
+      
       setShowAuthModal(false);
       return { success: true };
     } catch (err: any) {
