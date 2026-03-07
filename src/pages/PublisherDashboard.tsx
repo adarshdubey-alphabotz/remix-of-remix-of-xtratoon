@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -69,9 +69,35 @@ const PublisherDashboard: React.FC = () => {
     enabled: !!selectedMangaId,
   });
 
+  // Fetch total chapters across all manga for analytics
+  const { data: allChaptersCount } = useQuery({
+    queryKey: ['creator-all-chapters', user?.id],
+    queryFn: async () => {
+      if (!user || !myManga || myManga.length === 0) return 0;
+      const mangaIds = myManga.map(m => m.id);
+      const { count, error } = await supabase
+        .from('chapters')
+        .select('id', { count: 'exact', head: true })
+        .in('manga_id', mangaIds);
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!user && !!myManga && myManga.length > 0,
+  });
+
+  // Auto-set chapter number when selecting a manga
+  useEffect(() => {
+    if (chapters && chapters.length > 0) {
+      const maxChapter = Math.max(...chapters.map(c => c.chapter_number));
+      setChapterNumber(maxChapter + 1);
+    } else if (selectedMangaId) {
+      setChapterNumber(1);
+    }
+  }, [chapters, selectedMangaId]);
+
   // Stats
   const totalManga = myManga?.length || 0;
-  const totalChapters = chapters?.length || 0;
+  const totalChapters = allChaptersCount || 0;
 
   const tabs = [
     { id: 'works', label: 'My Works', icon: <BookOpen className="w-4 h-4" /> },
