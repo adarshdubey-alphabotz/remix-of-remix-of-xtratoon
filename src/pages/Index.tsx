@@ -405,21 +405,25 @@ const HomePage: React.FC = () => {
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">Join our growing community of creators and readers worldwide</p>
           </div>
-          {/* Star Rating */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-muted/30">
-            <div className="flex items-center gap-0.5">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={`w-4 h-4 ${star <= 4 ? 'text-gold fill-gold' : 'text-gold/40 fill-gold/40'}`}
-                />
-              ))}
-            </div>
-            <span className="text-sm font-bold text-foreground">4.8</span>
-            <span className="text-xs text-muted-foreground">/5 avg</span>
-          </div>
         </div>
       </motion.section>
+
+      {/* Zoom Parallax Showcase */}
+      <section className="relative">
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+        <ZoomParallax
+          images={[
+            { src: parallax1, alt: 'Dark fantasy warrior' },
+            { src: parallax2, alt: 'Cherry blossom romance' },
+            { src: parallax3, alt: 'Epic battle scene' },
+            { src: parallax4, alt: 'Gothic castle at night' },
+            { src: parallax5, alt: 'Cyberpunk cityscape' },
+            { src: parallax6, alt: 'Underwater fantasy' },
+            { src: parallax7, alt: 'Dragon in the clouds' },
+          ]}
+        />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+      </section>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
@@ -492,28 +496,6 @@ const HomePage: React.FC = () => {
           </motion.div>
         </section>
 
-      </div>
-
-      {/* Zoom Parallax Showcase */}
-      <section className="relative">
-        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-        <ZoomParallax
-          heading="Explore Every Genre"
-          headingHighlight="With Us"
-          images={[
-            { src: parallax1, alt: 'Action', href: '/browse?genre=action' },
-            { src: parallax2, alt: 'Romance', href: '/browse?genre=romance' },
-            { src: parallax3, alt: 'Fantasy', href: '/browse?genre=fantasy' },
-            { src: parallax4, alt: 'Horror', href: '/browse?genre=horror' },
-            { src: parallax5, alt: 'Sci-Fi', href: '/browse?genre=sci-fi' },
-            { src: parallax6, alt: 'Adventure', href: '/browse?genre=adventure' },
-            { src: parallax7, alt: 'Drama', href: '/browse?genre=drama' },
-          ]}
-        />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
-      </section>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
         {/* Social section — liquid glass */}
         <ScrollReveal>
           <section className="relative rounded-3xl overflow-hidden" style={{ boxShadow: '0 16px 70px -12px hsla(0, 0%, 0%, 0.2)' }}>
