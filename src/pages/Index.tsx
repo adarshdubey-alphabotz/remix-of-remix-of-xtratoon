@@ -7,8 +7,17 @@ import { useFeaturedManga, useLatestManga } from '@/hooks/useApi';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal from '@/components/ScrollReveal';
 import { AvatarCircles } from '@/components/ui/avatar-circles';
+import { ZoomParallax } from '@/components/ui/zoom-parallax';
 
 import featureLibrary from '@/assets/feature-library.png';
+
+import parallax1 from '@/assets/parallax-1.jpg';
+import parallax2 from '@/assets/parallax-2.jpg';
+import parallax3 from '@/assets/parallax-3.jpg';
+import parallax4 from '@/assets/parallax-4.jpg';
+import parallax5 from '@/assets/parallax-5.jpg';
+import parallax6 from '@/assets/parallax-6.jpg';
+import parallax7 from '@/assets/parallax-7.jpg';
 import featureUpdates from '@/assets/feature-updates.png';
 import featureCreators from '@/assets/feature-creators.png';
 
@@ -398,6 +407,23 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </motion.section>
+
+      {/* Zoom Parallax Showcase */}
+      <section className="relative">
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+        <ZoomParallax
+          images={[
+            { src: parallax1, alt: 'Dark fantasy warrior' },
+            { src: parallax2, alt: 'Cherry blossom romance' },
+            { src: parallax3, alt: 'Epic battle scene' },
+            { src: parallax4, alt: 'Gothic castle at night' },
+            { src: parallax5, alt: 'Cyberpunk cityscape' },
+            { src: parallax6, alt: 'Underwater fantasy' },
+            { src: parallax7, alt: 'Dragon in the clouds' },
+          ]}
+        />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+      </section>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
