@@ -367,11 +367,11 @@ const Navbar: React.FC = () => {
                       <p className="text-sm font-bold">{profile?.display_name || user.email}</p>
                       {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
                     </div>
-                    <Link to="/settings" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
+                    <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
                     <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
                     {isPublisher && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
                     {isAdmin && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
-                    <button onClick={() => { logout(); setMobileOpen(false); }} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl">Logout</button>
+                    <button onClick={handleLogout} disabled={logoutPending} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl disabled:opacity-60">{logoutPending ? 'Logging out...' : 'Logout'}</button>
                   </div>
                 )}
               </div>
