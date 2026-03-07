@@ -382,19 +382,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Zoom Parallax Showcase */}
-      <section className="relative">
-        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-        <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
-          <motion.h2
-            className="text-display text-4xl sm:text-6xl lg:text-8xl tracking-wider text-white text-center drop-shadow-[0_4px_30px_rgba(0,0,0,0.7)]"
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            EXPLORE EVERY<br /><span className="text-primary">GENRE</span> WITH US
-          </motion.h2>
-        </div>
+      <section className="relative z-10">
         <ZoomParallax
           images={[
             { src: parallax1, alt: 'Dark fantasy warrior' },
@@ -406,7 +394,25 @@ const HomePage: React.FC = () => {
             { src: parallax7, alt: 'Dragon in the clouds' },
           ]}
         />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+      </section>
+
+      {/* Post-Parallax Bold Statement */}
+      <section className="relative z-10 bg-background py-24 sm:py-36">
+        <motion.div
+          className="max-w-5xl mx-auto px-4 sm:px-6 text-center"
+          initial={{ opacity: 0, y: 60 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <h2 className="text-display text-5xl sm:text-7xl lg:text-9xl tracking-wider text-foreground leading-[0.9]">
+            EXPLORE EVERY<br />
+            <span className="text-primary">GENRE</span> WITH US
+          </h2>
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed mt-6">
+            From action-packed adventures to heartfelt romances — dive into a universe of stories crafted by world-class creators.
+          </p>
+        </motion.div>
       </section>
 
       {/* Content */}
