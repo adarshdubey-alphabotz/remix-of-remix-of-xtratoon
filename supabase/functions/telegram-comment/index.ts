@@ -36,8 +36,8 @@ Deno.serve(async (req) => {
 
     // Get user profile
     const supabase = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: profile } = await supabase.from("profiles").select("username, display_name").eq("user_id", user.id).single();
-    const displayName = profile?.display_name || profile?.username || user.email || "Anonymous";
+    const { data: profile } = await supabase.from("profiles").select("username, display_name").eq("user_id", userId).single();
+    const displayName = profile?.display_name || profile?.username || "Anonymous";
 
     const shortId = manga_id.slice(0, 8).toUpperCase();
     const replyTag = parent_id ? `\n↩️ Reply to: ${parent_id.slice(0, 8)}` : "";
