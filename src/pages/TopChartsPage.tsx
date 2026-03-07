@@ -6,7 +6,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import ScrollReveal from '@/components/ScrollReveal';
 
-const formatViews = (n: number) => {
+const pId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+const resolveCover = (url: string | null) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `https://${pId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(url)}`;
+};
+
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
   if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K';
   return n.toString();
