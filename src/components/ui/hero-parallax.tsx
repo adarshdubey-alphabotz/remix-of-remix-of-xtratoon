@@ -32,7 +32,7 @@ export const HeroParallax = ({
     offset: ["start start", "end start"],
   });
 
-  const springConfig = { stiffness: 300, damping: 30, bounce: 100 };
+  const springConfig = { stiffness: 80, damping: 40, mass: 0.5 };
 
   // Track whether scroll-driven movement is done (scrollYProgress >= 0.5)
   const [autoScroll, setAutoScroll] = useState(false);
@@ -83,21 +83,23 @@ export const HeroParallax = ({
   const translateX = autoScroll ? autoX : scrollTranslateX;
   const translateXReverse = autoScroll ? autoXReverse : scrollTranslateXReverse;
 
+  const smoothSpring = { stiffness: 50, damping: 30, mass: 0.8 };
+
   const rotateX = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], [15, 0]),
-    springConfig
+    useTransform(scrollYProgress, [0, 0.25], [8, 0]),
+    smoothSpring
   );
   const opacity = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], [0.2, 1]),
-    springConfig
+    useTransform(scrollYProgress, [0, 0.15], [0.3, 1]),
+    smoothSpring
   );
   const rotateZ = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], [20, 0]),
-    springConfig
+    useTransform(scrollYProgress, [0, 0.25], [10, 0]),
+    smoothSpring
   );
   const translateY = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], [-700, 200]),
-    springConfig
+    useTransform(scrollYProgress, [0, 0.3], [-400, 200]),
+    smoothSpring
   );
 
   return (
