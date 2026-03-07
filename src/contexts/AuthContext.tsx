@@ -243,6 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           const nextProfile = await fetchProfile(userId);
           await syncRoleFlags(userId, nextProfile);
+        }
 
         setShowAuthModal(false);
         return { success: true };
@@ -250,7 +251,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: err.message };
       }
     },
-    [refreshProfile],
+    [fetchProfile, syncRoleFlags],
   );
 
   const logout = useCallback(async () => {
