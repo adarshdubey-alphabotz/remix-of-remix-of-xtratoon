@@ -492,6 +492,28 @@ const HomePage: React.FC = () => {
           </motion.div>
         </section>
 
+      </div>
+
+      {/* Zoom Parallax Showcase */}
+      <section className="relative">
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+        <ZoomParallax
+          heading="Explore Every Genre"
+          headingHighlight="With Us"
+          images={[
+            { src: parallax1, alt: 'Action', href: '/browse?genre=action' },
+            { src: parallax2, alt: 'Romance', href: '/browse?genre=romance' },
+            { src: parallax3, alt: 'Fantasy', href: '/browse?genre=fantasy' },
+            { src: parallax4, alt: 'Horror', href: '/browse?genre=horror' },
+            { src: parallax5, alt: 'Sci-Fi', href: '/browse?genre=sci-fi' },
+            { src: parallax6, alt: 'Adventure', href: '/browse?genre=adventure' },
+            { src: parallax7, alt: 'Drama', href: '/browse?genre=drama' },
+          ]}
+        />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
         {/* Social section — liquid glass */}
         <ScrollReveal>
           <section className="relative rounded-3xl overflow-hidden" style={{ boxShadow: '0 16px 70px -12px hsla(0, 0%, 0%, 0.2)' }}>
