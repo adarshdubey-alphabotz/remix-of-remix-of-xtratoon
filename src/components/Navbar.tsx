@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, Compass, BarChart3, Grid3X3, Settings } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, Compass, BarChart3, Grid3X3, Settings, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -45,6 +45,7 @@ const Navbar: React.FC = () => {
     { to: '/explore', label: 'Explore', icon: Compass },
     { to: '/browse', label: 'Browse', icon: Search },
     { to: '/charts', label: 'Charts', icon: BarChart3 },
+    { to: '/creators', label: 'Creators', icon: Users },
   ];
 
   const dropdownVariants = {
@@ -209,24 +210,30 @@ const Navbar: React.FC = () => {
                 {userMenuOpen && (
                   <>
                     <div className="fixed inset-0" onClick={() => setUserMenuOpen(false)} />
-                    <motion.div
-                      variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
-                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 top-full mt-3 w-52 glass-dropdown p-2 overflow-hidden"
-                    >
-                      <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><BookOpen className="w-4 h-4" /> My Library</Link>
-                      {isPublisher && (
-                        <>
-                          <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
-                          {profile?.username && <Link to={`/publisher/${profile.username}`} onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>}
-                        </>
-                      )}
-                      {isAdmin && (
-                        <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
-                      )}
-                      <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Settings className="w-4 h-4" /> Settings</Link>
-                      <div className="my-1 border-t border-border/30" />
-                      <button onClick={() => { logout(); setUserMenuOpen(false); }} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-destructive/10 transition-all w-full text-left text-destructive font-medium rounded-xl"><LogOut className="w-4 h-4" /> Logout</button>
+                     <motion.div
+                       variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
+                       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                       className="absolute right-0 top-full mt-3 w-60 glass-dropdown p-2 overflow-hidden"
+                     >
+                       {/* Profile header */}
+                       <div className="px-3 py-3 border-b border-border/30 mb-1">
+                         <p className="text-sm font-bold text-foreground truncate">{profile?.display_name || profile?.username || user.email}</p>
+                         {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
+                         <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">
+                           {profile?.role_type || 'reader'}
+                         </span>
+                       </div>
+                       <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>
+                       <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><BookOpen className="w-4 h-4" /> My Library</Link>
+                       {isPublisher && (
+                         <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
+                       )}
+                       {isAdmin && (
+                         <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                       )}
+                       <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Settings className="w-4 h-4" /> Settings</Link>
+                       <div className="my-1 border-t border-border/30" />
+                       <button onClick={() => { logout(); setUserMenuOpen(false); }} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-destructive/10 transition-all w-full text-left text-destructive font-medium rounded-xl"><LogOut className="w-4 h-4" /> Logout</button>
                     </motion.div>
                   </>
                 )}
@@ -344,6 +351,19 @@ const Navbar: React.FC = () => {
                   <div className="flex gap-2 pt-3 border-t border-border/30">
                     <button onClick={handleLogin} className="flex-1 btn-outline text-xs py-3">Login</button>
                     <button onClick={handleSignup} className="flex-1 btn-accent text-xs py-3">Sign Up</button>
+                  </div>
+                )}
+                {user && (
+                  <div className="pt-3 border-t border-border/30 space-y-1">
+                    <div className="px-4 py-2">
+                      <p className="text-sm font-bold">{profile?.display_name || user.email}</p>
+                      {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
+                    </div>
+                    <Link to="/settings" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
+                    <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
+                    {isPublisher && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
+                    {isAdmin && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
+                    <button onClick={() => { logout(); setMobileOpen(false); }} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl">Logout</button>
                   </div>
                 )}
               </div>
