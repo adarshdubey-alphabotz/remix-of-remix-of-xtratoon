@@ -97,7 +97,7 @@ const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; ba
     <Link to={`/manhwa/${manhwa.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/40 mb-2.5">
         {manhwa.cover_url ? (
-          <img src={manhwa.cover_url} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+          <img src={resolveCover(manhwa.cover_url)!} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
         ) : (
           <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
             <span className="text-3xl font-display text-primary/50">{manhwa.title[0]}</span>
@@ -154,7 +154,7 @@ const RankedItem: React.FC<{ manhwa: MangaItem; rank: number; index: number }> =
     <Link to={`/manhwa/${manhwa.slug}`} className="group flex items-center gap-4 py-3 px-4 rounded-2xl hover:bg-muted/40 transition-colors">
       <span className={`font-display text-2xl tracking-wider w-8 text-center ${rank === 1 ? 'text-yellow-500' : rank === 2 ? 'text-gray-400' : rank === 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>{rank}</span>
       <div className="w-12 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-border/40">
-        {manhwa.cover_url ? <img src={manhwa.cover_url} alt={manhwa.title} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/20" />}
+        {manhwa.cover_url ? <img src={resolveCover(manhwa.cover_url)!} alt={manhwa.title} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/20" />}
       </div>
       <div className="flex-1 min-w-0">
         <h4 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{manhwa.title}</h4>
