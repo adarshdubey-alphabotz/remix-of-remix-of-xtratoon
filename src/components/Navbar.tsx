@@ -4,6 +4,7 @@ import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen,
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
+import { LiquidButton } from '@/components/ui/liquid-glass-button';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -234,7 +235,7 @@ const Navbar: React.FC = () => {
               </AnimatePresence>
             </div>
           ) : (
-            <button onClick={handleSignup} className="btn-accent text-xs py-2 px-5 rounded-full">Sign Up</button>
+            <LiquidButton size="sm" onClick={handleSignup}>Sign Up</LiquidButton>
           )}
         </motion.div>
       </nav>
@@ -343,8 +344,8 @@ const Navbar: React.FC = () => {
                 </div>
                 {!user && (
                   <div className="flex gap-2 pt-3 border-t border-border/30">
-                    <button onClick={handleLogin} className="flex-1 btn-outline text-xs py-3">Login</button>
-                    <button onClick={handleSignup} className="flex-1 btn-accent text-xs py-3">Sign Up</button>
+                    <LiquidButton variant="outline" size="default" onClick={handleLogin} className="flex-1">Login</LiquidButton>
+                    <LiquidButton size="default" onClick={handleSignup} className="flex-1">Sign Up</LiquidButton>
                   </div>
                 )}
               </div>

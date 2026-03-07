@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { LiquidButton } from '@/components/ui/liquid-glass-button';
 
 const AuthModal: React.FC = () => {
   const { showAuthModal, setShowAuthModal, authTab, setAuthTab, login, signup } = useAuth();
@@ -101,9 +102,9 @@ const AuthModal: React.FC = () => {
             </div>
           )}
 
-          <button type="submit" disabled={submitting} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-50">
+          <LiquidButton type="submit" disabled={submitting} size="lg" className="w-full">
             {submitting ? 'Loading...' : forgotMode ? 'Send Reset Link' : authTab === 'login' ? 'Sign In' : 'Create Account'}
-          </button>
+          </LiquidButton>
 
           {authTab === 'login' && !forgotMode && (
             <button type="button" onClick={() => { setForgotMode(true); setError(''); setSuccessMsg(''); }} className="text-sm text-muted-foreground hover:text-primary transition-colors w-full text-center font-medium">

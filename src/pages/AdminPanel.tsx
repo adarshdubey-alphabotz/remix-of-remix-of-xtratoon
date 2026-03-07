@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStats, useAdminManga, useAdminUsers, useUpdateMangaStatus } from '@/hooks/useApi';
 import { formatViews } from '@/lib/api';
 import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2 } from 'lucide-react';
+import { LiquidButton } from '@/components/ui/liquid-glass-button';
 
 const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -174,8 +175,8 @@ const AdminPanel: React.FC = () => {
             </h3>
             <p className="text-sm text-muted-foreground mb-4">This action cannot be undone.</p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmModal(null)} className="flex-1 btn-outline rounded-none py-2 text-sm">Cancel</button>
-              <button onClick={handleAction} className={`flex-1 py-2 text-sm font-bold border-2 border-foreground ${confirmModal.action === 'APPROVED' ? 'bg-primary text-primary-foreground' : 'bg-destructive text-destructive-foreground'}`} style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}>Confirm</button>
+              <LiquidButton variant="outline" size="default" onClick={() => setConfirmModal(null)} className="flex-1">Cancel</LiquidButton>
+              <LiquidButton size="default" onClick={handleAction} className="flex-1">Confirm</LiquidButton>
             </div>
           </div>
         </div>
