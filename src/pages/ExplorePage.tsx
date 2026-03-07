@@ -49,7 +49,7 @@ const FeaturedHero: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => (
     transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
   >
     <div className="absolute inset-0">
-      {manhwa.cover_url && <img src={manhwa.cover_url} alt="" className="w-full h-full object-cover scale-110 blur-sm" />}
+      {manhwa.cover_url && <img src={resolveCover(manhwa.cover_url)!} alt="" className="w-full h-full object-cover scale-110 blur-sm" />}
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
     </div>
 
