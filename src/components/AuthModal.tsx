@@ -1,36 +1,39 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Eye, EyeOff } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const AuthModal: React.FC = () => {
   const { showAuthModal, setShowAuthModal, authTab, setAuthTab, login, signup } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [role, setRole] = useState<'reader' | 'publisher'>('reader');
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   if (!showAuthModal) return null;
 
   const reset = () => { setEmail(''); setPassword(''); setUsername(''); setError(''); setSuccessMsg(''); setForgotMode(false); };
   const handleClose = () => { setShowAuthModal(false); reset(); };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault(); setError('');
-    if (!email || !password) { setError('All fields required'); return; }
-    const res = login(email, password);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault(); setError(''); setSubmitting(true);
+    if (!email || !password) { setError('All fields required'); setSubmitting(false); return; }
+    const res = await login(email, password);
     if (!res.success) setError(res.error || 'Login failed');
+    setSubmitting(false);
   };
 
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault(); setError('');
-    if (!username || !email || !password) { setError('All fields required'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
-    signup(username, email, password, role);
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault(); setError(''); setSubmitting(true);
+    if (!username || !email || !password) { setError('All fields required'); setSubmitting(false); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters'); setSubmitting(false); return; }
+    const res = await signup(username, email, password);
+    if (!res.success) setError(res.error || 'Signup failed');
+    setSubmitting(false);
   };
 
   const handleForgot = (e: React.FormEvent) => {
@@ -50,12 +53,10 @@ const AuthModal: React.FC = () => {
         style={{ boxShadow: '6px 6px 0 hsl(0 0% 8%)' }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Close */}
         <button onClick={handleClose} className="absolute top-4 right-4 p-1 hover:text-primary transition-colors z-10">
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header */}
         <div className="p-6 pb-0">
           <h2 className="text-display text-3xl tracking-wider">
             {forgotMode ? 'RESET PASSWORD' : authTab === 'login' ? 'WELCOME BACK' : 'JOIN XTRATOON'}
@@ -65,32 +66,16 @@ const AuthModal: React.FC = () => {
           </p>
         </div>
 
-        {/* Tabs */}
         {!forgotMode && (
           <div className="flex mx-6 mt-4 border-2 border-foreground overflow-hidden">
-            <button
-              onClick={() => { setAuthTab('login'); reset(); }}
-              className={`flex-1 py-2.5 text-sm font-bold transition-colors ${authTab === 'login' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => { setAuthTab('signup'); reset(); }}
-              className={`flex-1 py-2.5 text-sm font-bold transition-colors border-l-2 border-foreground ${authTab === 'signup' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-            >
-              Sign Up
-            </button>
+            <button onClick={() => { setAuthTab('login'); reset(); }} className={`flex-1 py-2.5 text-sm font-bold transition-colors ${authTab === 'login' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>Login</button>
+            <button onClick={() => { setAuthTab('signup'); reset(); }} className={`flex-1 py-2.5 text-sm font-bold transition-colors border-l-2 border-foreground ${authTab === 'signup' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>Sign Up</button>
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={forgotMode ? handleForgot : authTab === 'login' ? handleLogin : handleSignup} className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 border-2 border-destructive bg-destructive/5 text-destructive text-sm font-medium">{error}</div>
-          )}
-          {successMsg && (
-            <div className="p-3 border-2 border-primary bg-primary/5 text-primary text-sm font-medium">{successMsg}</div>
-          )}
+          {error && <div className="p-3 border-2 border-destructive bg-destructive/5 text-destructive text-sm font-medium">{error}</div>}
+          {successMsg && <div className="p-3 border-2 border-primary bg-primary/5 text-primary text-sm font-medium">{successMsg}</div>}
 
           {authTab === 'signup' && !forgotMode && (
             <div>
@@ -116,22 +101,8 @@ const AuthModal: React.FC = () => {
             </div>
           )}
 
-          {authTab === 'signup' && !forgotMode && (
-            <div>
-              <label className="text-sm font-semibold text-foreground block mb-2">I am a...</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setRole('reader')} className={`py-3 border-2 text-sm font-bold transition-all ${role === 'reader' ? 'border-primary bg-primary/10 text-primary' : 'border-foreground hover:bg-muted'}`}>
-                  📖 Reader
-                </button>
-                <button type="button" onClick={() => setRole('publisher')} className={`py-3 border-2 text-sm font-bold transition-all ${role === 'publisher' ? 'border-primary bg-primary/10 text-primary' : 'border-foreground hover:bg-muted'}`}>
-                  ✍️ Publisher
-                </button>
-              </div>
-            </div>
-          )}
-
-          <button type="submit" className="w-full btn-accent rounded-none py-3 text-sm">
-            {forgotMode ? 'Send Reset Link' : authTab === 'login' ? 'Sign In' : 'Create Account'}
+          <button type="submit" disabled={submitting} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-50">
+            {submitting ? 'Loading...' : forgotMode ? 'Send Reset Link' : authTab === 'login' ? 'Sign In' : 'Create Account'}
           </button>
 
           {authTab === 'login' && !forgotMode && (
@@ -145,16 +116,6 @@ const AuthModal: React.FC = () => {
             </button>
           )}
         </form>
-
-        {/* Demo credentials */}
-        <div className="px-6 pb-6">
-          <div className="p-3 border-2 border-foreground/20 text-xs text-muted-foreground space-y-1">
-            <p className="font-bold text-foreground">Demo Credentials:</p>
-            <p>Publisher: test123@gmail.com / Test123</p>
-            <p>Admin: test456@gmail.com / Test123</p>
-            <p>Reader: reader@gmail.com / Test123</p>
-          </div>
-        </div>
       </motion.div>
     </div>
   );

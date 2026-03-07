@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { User, DUMMY_CREDENTIALS, publishers } from '@/data/mockData';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { authApi, setToken, getToken, type ApiUser } from '@/lib/api';
 
 interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => { success: boolean; error?: string };
-  signup: (username: string, email: string, password: string, role: 'reader' | 'publisher') => { success: boolean; error?: string };
+  user: ApiUser | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   showAuthModal: boolean;
   setShowAuthModal: (show: boolean) => void;
@@ -21,40 +22,55 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
 
-  const login = useCallback((email: string, password: string) => {
-    if (email === DUMMY_CREDENTIALS.admin.email && password === DUMMY_CREDENTIALS.admin.password) {
-      setUser({ id: 'admin-1', username: 'Admin', email, role: 'admin', library: [] });
-      setShowAuthModal(false);
-      return { success: true };
+  // Restore session on mount
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      authApi.me()
+        .then(res => setUser(res.user))
+        .catch(() => setToken(null))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    if (email === DUMMY_CREDENTIALS.publisher.email && password === DUMMY_CREDENTIALS.publisher.password) {
-      const pub = publishers.find(p => p.email === email);
-      setUser({ id: 'pub-1', username: pub?.username || 'Publisher', email, role: 'publisher', library: [] });
-      setShowAuthModal(false);
-      return { success: true };
-    }
-    if (email === DUMMY_CREDENTIALS.reader.email && password === DUMMY_CREDENTIALS.reader.password) {
-      setUser({ id: 'reader-1', username: 'MangaFan', email, role: 'reader', library: ['solo-ascension', 'moonlit-garden', 'void-walker'] });
-      setShowAuthModal(false);
-      return { success: true };
-    }
-    return { success: false, error: 'Invalid email or password' };
   }, []);
 
-  const signup = useCallback((username: string, email: string, _password: string, role: 'reader' | 'publisher') => {
-    setUser({ id: 'new-user', username, email, role, library: [] });
-    setShowAuthModal(false);
-    return { success: true };
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const res = await authApi.login(email, password);
+      setToken(res.token);
+      setUser(res.user);
+      setShowAuthModal(false);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Login failed' };
+    }
   }, []);
 
-  const logout = useCallback(() => setUser(null), []);
+  const signup = useCallback(async (username: string, email: string, password: string) => {
+    try {
+      const res = await authApi.register(username, email, password);
+      setToken(res.token);
+      setUser(res.user);
+      setShowAuthModal(false);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Signup failed' };
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, showAuthModal, setShowAuthModal, authTab, setAuthTab }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, showAuthModal, setShowAuthModal, authTab, setAuthTab }}>
       {children}
     </AuthContext.Provider>
   );
