@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, Eye, Heart, Bookmark, ChevronRight, ArrowLeft, Play, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
@@ -19,6 +19,7 @@ const ManhwaDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showAllChapters, setShowAllChapters] = useState(false);
 
   // Fetch manga from Supabase
@@ -35,6 +36,18 @@ const ManhwaDetail: React.FC = () => {
     },
     enabled: !!id,
   });
+
+  // Increment views on page load
+  useEffect(() => {
+    if (!manhwa) return;
+    supabase
+      .from('manga')
+      .update({ views: (manhwa.views || 0) + 1 })
+      .eq('id', manhwa.id)
+      .then(() => {
+        // Don't need to handle response
+      });
+  }, [manhwa?.id]);
 
   // Fetch chapters
   const { data: chapters } = useQuery({
@@ -68,6 +81,22 @@ const ManhwaDetail: React.FC = () => {
     enabled: !!user && !!manhwa,
   });
 
+  // Check if liked
+  const { data: isLiked } = useQuery({
+    queryKey: ['is-liked', manhwa?.id, user?.id],
+    queryFn: async () => {
+      if (!user || !manhwa) return false;
+      const { data } = await supabase
+        .from('manga_likes')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('manga_id', manhwa.id)
+        .maybeSingle();
+      return !!data;
+    },
+    enabled: !!user && !!manhwa,
+  });
+
   const handleAddToLibrary = async () => {
     if (!user) {
       toast.error('Please login first');
@@ -75,15 +104,72 @@ const ManhwaDetail: React.FC = () => {
     }
     if (!manhwa) return;
 
-    const { error } = await supabase
-      .from('user_library')
-      .upsert({ user_id: user.id, manga_id: manhwa.id, status: 'reading' });
-
-    if (error) {
-      toast.error(error.message);
+    if (inLibrary) {
+      // Remove from library
+      await supabase
+        .from('user_library')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('manga_id', manhwa.id);
+      toast.success('Removed from library');
     } else {
+      const { error } = await supabase
+        .from('user_library')
+        .upsert(
+          { user_id: user.id, manga_id: manhwa.id, status: 'reading' },
+          { onConflict: 'user_id,manga_id' }
+        );
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      // Update bookmarks count
+      await supabase
+        .from('manga')
+        .update({ bookmarks: (manhwa.bookmarks || 0) + 1 })
+        .eq('id', manhwa.id);
       toast.success('Added to library!');
     }
+    queryClient.invalidateQueries({ queryKey: ['in-library', manhwa.id] });
+    queryClient.invalidateQueries({ queryKey: ['manhwa-detail', id] });
+  };
+
+  const handleToggleLike = async () => {
+    if (!user) {
+      toast.error('Please login first');
+      return;
+    }
+    if (!manhwa) return;
+
+    if (isLiked) {
+      await supabase
+        .from('manga_likes')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('manga_id', manhwa.id);
+      // Decrement likes
+      await supabase
+        .from('manga')
+        .update({ likes: Math.max((manhwa.likes || 0) - 1, 0) })
+        .eq('id', manhwa.id);
+      toast.success('Unliked');
+    } else {
+      const { error } = await supabase
+        .from('manga_likes')
+        .insert({ user_id: user.id, manga_id: manhwa.id });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      // Increment likes
+      await supabase
+        .from('manga')
+        .update({ likes: (manhwa.likes || 0) + 1 })
+        .eq('id', manhwa.id);
+      toast.success('Liked! ❤️');
+    }
+    queryClient.invalidateQueries({ queryKey: ['is-liked', manhwa.id] });
+    queryClient.invalidateQueries({ queryKey: ['manhwa-detail', id] });
   };
 
   if (isLoading) return (
@@ -100,10 +186,11 @@ const ManhwaDetail: React.FC = () => {
 
   const allChapters = chapters || [];
   const visibleChapters = showAllChapters ? allChapters : allChapters.slice(0, 10);
+  const firstChapter = allChapters.length > 0 ? allChapters[0] : null;
 
   const stats = [
     { icon: <Eye className="w-5 h-5" />, label: 'Views', value: formatViews(manhwa.views || 0) },
-    { icon: <Heart className="w-5 h-5 text-primary" />, label: 'Likes', value: formatViews(manhwa.likes || 0) },
+    { icon: <Heart className={`w-5 h-5 ${isLiked ? 'text-primary fill-primary' : 'text-primary'}`} />, label: 'Likes', value: formatViews(manhwa.likes || 0), onClick: handleToggleLike },
     { icon: <Bookmark className="w-5 h-5" />, label: 'Bookmarks', value: formatViews(manhwa.bookmarks || 0) },
     { icon: <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />, label: 'Rating', value: Number(manhwa.rating_average || 0).toFixed(1) },
   ];
@@ -159,7 +246,10 @@ const ManhwaDetail: React.FC = () => {
         <StaggerContainer className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {stats.map(s => (
             <StaggerItem key={s.label}>
-              <div className="brutal-card p-4 flex items-center gap-3">
+              <div
+                className={`brutal-card p-4 flex items-center gap-3 ${s.onClick ? 'cursor-pointer hover:bg-primary/5 transition-colors' : ''}`}
+                onClick={s.onClick}
+              >
                 <div className="w-10 h-10 border border-foreground/20 flex items-center justify-center">{s.icon}</div>
                 <div>
                   <div className="text-xl sm:text-2xl font-display tracking-wider">{s.value}</div>
@@ -178,16 +268,21 @@ const ManhwaDetail: React.FC = () => {
 
             <ScrollReveal delay={0.1}>
               <div className="flex flex-wrap gap-3">
-                {allChapters.length > 0 && (
+                {firstChapter && (
                   <MagneticButton>
-                    <Link to={`/read/${manhwa.slug}/chapter-${allChapters[0].chapter_number}`} className="btn-accent rounded-none text-sm">
-                      <Play className="w-4 h-4 fill-current" /> Read Chapter 1
+                    <Link to={`/read/${manhwa.slug}/chapter-${firstChapter.chapter_number}`} className="btn-accent rounded-none text-sm">
+                      <Play className="w-4 h-4 fill-current" /> Read Chapter {firstChapter.chapter_number}
                     </Link>
                   </MagneticButton>
                 )}
                 <MagneticButton>
-                  <button onClick={handleAddToLibrary} className="btn-outline rounded-none text-sm" disabled={!!inLibrary}>
-                    <Bookmark className="w-4 h-4" /> {inLibrary ? 'In Library' : 'Add to Library'}
+                  <button onClick={handleAddToLibrary} className="btn-outline rounded-none text-sm">
+                    <Bookmark className={`w-4 h-4 ${inLibrary ? 'fill-current' : ''}`} /> {inLibrary ? 'In Library ✓' : 'Add to Library'}
+                  </button>
+                </MagneticButton>
+                <MagneticButton>
+                  <button onClick={handleToggleLike} className="btn-outline rounded-none text-sm">
+                    <Heart className={`w-4 h-4 ${isLiked ? 'fill-primary text-primary' : ''}`} /> {isLiked ? 'Liked' : 'Like'}
                   </button>
                 </MagneticButton>
               </div>

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
-import { useSearchManga } from '@/hooks/useApi';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import ManhwaCard from '@/components/ManhwaCard';
 import ScrollReveal from '@/components/ScrollReveal';
 
@@ -21,21 +22,54 @@ const BrowsePage: React.FC = () => {
   const [sort, setSort] = useState<string>('Trending');
   const [showFilters, setShowFilters] = useState(false);
 
-  const apiParams = useMemo(() => ({
-    search: query || undefined,
-    status: status !== 'All' ? status.toUpperCase() : undefined,
-    sort: sort === 'Rating' ? 'rating' : sort === 'Views' ? 'views' : sort === 'New' ? undefined : undefined,
-    limit: 40,
-  }), [query, status, sort]);
+  const { data: results = [], isLoading } = useQuery({
+    queryKey: ['browse-manga', query, status, sort],
+    queryFn: async () => {
+      let q = supabase
+        .from('manga')
+        .select('*')
+        .eq('approval_status', 'APPROVED');
 
-  const { data, isLoading } = useSearchManga(apiParams);
-  const results = data?.manga || [];
+      if (query) {
+        q = q.ilike('title', `%${query}%`);
+      }
+      if (status !== 'All') {
+        q = q.eq('status', status.toUpperCase());
+      }
 
-  // Client-side genre filter (API doesn't have genre param in search)
+      if (sort === 'Rating') q = q.order('rating_average', { ascending: false });
+      else if (sort === 'Views') q = q.order('views', { ascending: false });
+      else if (sort === 'New') q = q.order('created_at', { ascending: false });
+      else q = q.order('views', { ascending: false }); // Trending = views
+
+      q = q.limit(40);
+
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const filtered = useMemo(() => {
     if (!selectedGenres.length) return results;
-    return results.filter(m => m.genres.some(g => selectedGenres.includes(g)));
+    return results.filter(m => (m.genres || []).some((g: string) => selectedGenres.includes(g)));
   }, [results, selectedGenres]);
+
+  // Map DB manga to ManhwaCard format
+  const mappedResults = filtered.map(m => ({
+    _id: m.id,
+    slug: m.slug,
+    title: m.title,
+    description: m.description || '',
+    cover: m.cover_url || '',
+    genres: m.genres || [],
+    status: m.status,
+    type: 'Manhwa',
+    views: m.views || 0,
+    ratingAverage: Number(m.rating_average) || 0,
+    author: '',
+    creator: undefined,
+  }));
 
   const toggleGenre = (g: string) => {
     setSelectedGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
@@ -121,14 +155,14 @@ const BrowsePage: React.FC = () => {
             )}
 
             <p className="text-sm text-muted-foreground mb-4 font-medium">
-              {isLoading ? 'Loading...' : `${filtered.length} results`}
+              {isLoading ? 'Loading...' : `${mappedResults.length} results`}
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 sm:gap-6">
-              {filtered.map((m, i) => <ManhwaCard key={m._id} manhwa={m} index={i} />)}
+              {mappedResults.map((m, i) => <ManhwaCard key={m._id} manhwa={m as any} index={i} />)}
             </div>
 
-            {!isLoading && filtered.length === 0 && (
+            {!isLoading && mappedResults.length === 0 && (
               <div className="text-center py-16">
                 <p className="text-muted-foreground">No manhwa found matching your filters.</p>
               </div>

@@ -1,20 +1,39 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Eye, Trophy } from 'lucide-react';
+import { Star, Eye, Trophy, Heart, Bookmark } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { usePopularManga, useMostLiked, useMostFollowed } from '@/hooks/useApi';
-import { formatViews } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import ScrollReveal from '@/components/ScrollReveal';
 
+const formatViews = (n: number) => {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K';
+  return n.toString();
+};
+
 const TopChartsPage: React.FC = () => {
-  const [tab, setTab] = useState<'weekly' | 'monthly' | 'alltime'>('weekly');
+  const [tab, setTab] = useState<'views' | 'likes' | 'bookmarks'>('views');
 
-  const { data: popular, isLoading: l1 } = usePopularManga(50);
-  const { data: liked, isLoading: l2 } = useMostLiked(50);
-  const { data: followed, isLoading: l3 } = useMostFollowed(50);
+  const { data: manga = [], isLoading } = useQuery({
+    queryKey: ['top-charts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('manga')
+        .select('*')
+        .eq('approval_status', 'APPROVED')
+        .order('views', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
-  const ranked = tab === 'weekly' ? (popular || []) : tab === 'monthly' ? (liked || []) : (followed || []);
-  const isLoading = l1 || l2 || l3;
+  const ranked = [...manga].sort((a, b) => {
+    if (tab === 'views') return (b.views || 0) - (a.views || 0);
+    if (tab === 'likes') return (b.likes || 0) - (a.likes || 0);
+    return (b.bookmarks || 0) - (a.bookmarks || 0);
+  });
 
   const getRankStyle = (rank: number) => {
     if (rank === 1) return { bg: 'bg-gold/10', border: 'border-gold', text: 'text-gold', shadow: '0 0 20px hsla(45,100%,50%,0.2)' };
@@ -36,9 +55,13 @@ const TopChartsPage: React.FC = () => {
         </ScrollReveal>
 
         <div className="flex gap-0 border-2 border-foreground mb-8 w-fit" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }}>
-          {(['weekly', 'monthly', 'alltime'] as const).map((t, i) => (
-            <button key={t} onClick={() => setTab(t)} className={`px-5 py-2.5 text-sm font-bold transition-all ${i > 0 ? 'border-l-2 border-foreground' : ''} ${tab === t ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'}`}>
-              {t === 'weekly' ? 'Popular' : t === 'monthly' ? 'Most Liked' : 'Most Followed'}
+          {([
+            { key: 'views' as const, label: 'Most Viewed', icon: <Eye className="w-3.5 h-3.5" /> },
+            { key: 'likes' as const, label: 'Most Liked', icon: <Heart className="w-3.5 h-3.5" /> },
+            { key: 'bookmarks' as const, label: 'Most Bookmarked', icon: <Bookmark className="w-3.5 h-3.5" /> },
+          ]).map((t, i) => (
+            <button key={t.key} onClick={() => setTab(t.key)} className={`px-5 py-2.5 text-sm font-bold transition-all flex items-center gap-1.5 ${i > 0 ? 'border-l-2 border-foreground' : ''} ${tab === t.key ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'}`}>
+              {t.icon} {t.label}
             </button>
           ))}
         </div>
@@ -50,27 +73,27 @@ const TopChartsPage: React.FC = () => {
             {ranked.map((m, i) => {
               const rank = i + 1;
               const style = getRankStyle(rank);
-              const rating = m.ratingAverage ?? m.rating ?? 0;
+              const rating = Number(m.rating_average) || 0;
               return (
-                <motion.div key={m._id} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: Math.min(i * 0.05, 0.4), duration: 0.4 }}>
+                <motion.div key={m.id} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: Math.min(i * 0.05, 0.4), duration: 0.4 }}>
                   <Link to={`/manhwa/${m.slug}`} className={`flex items-center gap-4 p-4 border-2 ${style.border} hover:bg-primary/5 transition-all group`} style={{ boxShadow: rank <= 3 ? (style.shadow || '3px 3px 0 hsl(0 0% 8%)') : '3px 3px 0 hsl(0 0% 8%)' }}>
                     <div className={`w-10 h-10 flex items-center justify-center font-display text-2xl ${style.bg} ${style.text} flex-shrink-0 tracking-wider`}>{rank}</div>
-                    {m.cover ? (
-                      <img src={m.cover} alt="" className="w-12 h-16 object-cover flex-shrink-0 border border-foreground/20" />
+                    {m.cover_url ? (
+                      <img src={m.cover_url} alt="" className="w-12 h-16 object-cover flex-shrink-0 border border-foreground/20" />
                     ) : (
                       <div className="w-12 h-16 bg-muted flex-shrink-0 border border-foreground/20" />
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display text-lg tracking-wide group-hover:text-primary transition-colors truncate">{m.title}</h3>
-                      <p className="text-xs text-muted-foreground">{m.author || m.creator?.username}</p>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {m.genres.slice(0, 2).map(g => (
+                        {(m.genres || []).slice(0, 2).map((g: string) => (
                           <span key={g} className="px-1.5 py-0.5 text-[9px] border border-foreground/20 text-muted-foreground">{g}</span>
                         ))}
                       </div>
                     </div>
                     <div className="hidden sm:flex items-center gap-4 text-xs text-muted-foreground flex-shrink-0">
-                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatViews(m.views)}</span>
+                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatViews(m.views || 0)}</span>
+                      <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{formatViews(m.likes || 0)}</span>
                       <span className="flex items-center gap-1"><Star className="w-3 h-3 text-gold fill-gold" />{rating.toFixed(1)}</span>
                     </div>
                   </Link>
