@@ -19,6 +19,7 @@ import PublisherProfile from "./pages/PublisherProfile";
 import PublisherDashboard from "./pages/PublisherDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import MyLibrary from "./pages/MyLibrary";
+import ExplorePage from "./pages/ExplorePage";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 
@@ -47,6 +48,7 @@ const AnimatedRoutes = () => {
         <Route path="/dashboard" element={<PageTransition><PublisherDashboard /></PageTransition>} />
         <Route path="/admin" element={<PageTransition><AdminPanel /></PageTransition>} />
         <Route path="/library" element={<PageTransition><MyLibrary /></PageTransition>} />
+        <Route path="/explore" element={<PageTransition><ExplorePage /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>
