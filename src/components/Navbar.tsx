@@ -179,9 +179,6 @@ const Navbar: React.FC = () => {
             <div className="relative">
               <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground">
                 <Bell className="w-[18px] h-[18px]" />
-                {mockNotifications.filter(n => !n.read).length > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full" />
-                )}
               </button>
               <AnimatePresence>
                 {notifOpen && (
@@ -193,14 +190,7 @@ const Navbar: React.FC = () => {
                       className="absolute right-0 top-full mt-3 w-80 glass-dropdown overflow-hidden"
                     >
                       <div className="p-4 border-b border-border/50"><h3 className="font-display text-lg tracking-wide">NOTIFICATIONS</h3></div>
-                      <div className="max-h-64 overflow-y-auto">
-                        {mockNotifications.map(n => (
-                          <div key={n.id} className={`px-4 py-3 border-b border-border/20 text-sm transition-colors hover:bg-primary/5 ${!n.read ? 'bg-primary/5' : ''}`}>
-                            <p className="text-foreground">{n.text}</p>
-                            <p className="text-muted-foreground text-xs mt-1">{n.time}</p>
-                          </div>
-                        ))}
-                      </div>
+                      <div className="p-4 text-sm text-muted-foreground">No new notifications</div>
                     </motion.div>
                   </>
                 )}
@@ -223,13 +213,13 @@ const Navbar: React.FC = () => {
                       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                       className="absolute right-0 top-full mt-3 w-52 glass-dropdown p-2 overflow-hidden"
                     >
-                      {user.role === 'reader' && (
+                      {user.role === 'USER' && (
                         <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><BookOpen className="w-4 h-4" /> My Library</Link>
                       )}
-                      {user.role === 'publisher' && (
+                      {user.role === 'CREATOR' && (
                         <>
                           <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
-                          <Link to={`/publisher/${publishers.find(p => p.email === user.email)?.id || 'pub-1'}`} onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>
+                          <Link to={`/publisher/${user.username}`} onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>
                         </>
                       )}
                       {user.role === 'admin' && (
