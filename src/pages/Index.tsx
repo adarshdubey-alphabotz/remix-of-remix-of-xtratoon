@@ -427,13 +427,9 @@ const HomePage: React.FC = () => {
             </div>
             <div className="mt-5 text-center">
               <Link to="/dashboard">
-                <motion.button
-                  className="btn-accent px-8 py-3 rounded-xl font-semibold text-sm"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  Start Earning <ArrowRight className="w-4 h-4 inline ml-1" />
-                </motion.button>
+                <LiquidButton size="lg">
+                  Start Earning <ArrowRight className="w-4 h-4" />
+                </LiquidButton>
               </Link>
             </div>
           </motion.div>

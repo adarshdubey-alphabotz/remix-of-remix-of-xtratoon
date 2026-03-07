@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import { useMangaBySlug } from '@/hooks/useApi';
 import { formatViews, getCoverGradient } from '@/lib/api';
 import ManhwaCard from '@/components/ManhwaCard';
-import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
+import { LiquidButton } from '@/components/ui/liquid-glass-button';
 
 const ManhwaDetail: React.FC = () => {
   const { id } = useParams();
@@ -114,17 +114,15 @@ const ManhwaDetail: React.FC = () => {
             <ScrollReveal delay={0.1}>
               <div className="flex flex-wrap gap-3">
                 {chapters.length > 0 && (
-                  <MagneticButton>
-                    <Link to={`/read/${manhwa.slug}/chapter-1`} className="btn-accent rounded-none text-sm">
+                  <Link to={`/read/${manhwa.slug}/chapter-1`}>
+                    <LiquidButton size="lg">
                       <Play className="w-4 h-4 fill-current" /> Read Chapter 1
-                    </Link>
-                  </MagneticButton>
+                    </LiquidButton>
+                  </Link>
                 )}
-                <MagneticButton>
-                  <button className="btn-outline rounded-none text-sm">
-                    <Bookmark className="w-4 h-4" /> Add to Library
-                  </button>
-                </MagneticButton>
+                <LiquidButton variant="outline" size="lg">
+                  <Bookmark className="w-4 h-4" /> Add to Library
+                </LiquidButton>
               </div>
             </ScrollReveal>
 

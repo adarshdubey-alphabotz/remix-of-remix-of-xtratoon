@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCreatorManga, useCreatorStats } from '@/hooks/useApi';
 import { formatViews } from '@/lib/api';
 import { BookOpen, Upload, BarChart3, Settings, Eye, Users, Star, Trash2, Edit } from 'lucide-react';
+import { LiquidButton } from '@/components/ui/liquid-glass-button';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -112,7 +113,7 @@ const PublisherDashboard: React.FC = () => {
                   <div className="text-5xl">✅</div>
                   <h3 className="text-display text-2xl tracking-wider">SUBMITTED FOR REVIEW!</h3>
                   <p className="text-muted-foreground text-sm">Admin will review your submission within 48 hours.</p>
-                  <button onClick={() => { setShowUploadSuccess(false); setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false); }} className="btn-outline rounded-none text-xs py-2 px-4">Submit Another</button>
+                  <LiquidButton variant="outline" size="sm" onClick={() => { setShowUploadSuccess(false); setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false); }}>Submit Another</LiquidButton>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="brutal-card p-6 space-y-5">
@@ -147,7 +148,7 @@ const PublisherDashboard: React.FC = () => {
                       </span>
                     </label>
                   </div>
-                  <button type="submit" disabled={!copyrightChecked || !uploadTitle} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed">Submit for Review</button>
+                  <LiquidButton type="submit" disabled={!copyrightChecked || !uploadTitle} size="lg" className="w-full">Submit for Review</LiquidButton>
                 </form>
               )}
             </div>
@@ -178,7 +179,7 @@ const PublisherDashboard: React.FC = () => {
                   <label className="text-sm font-semibold block mb-1.5">Username</label>
                   <input defaultValue={user?.username} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" />
                 </div>
-                <button className="btn-accent rounded-none text-sm py-2 px-6">Save Changes</button>
+                <LiquidButton size="default">Save Changes</LiquidButton>
               </div>
             </div>
           )}
