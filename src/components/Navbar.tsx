@@ -19,6 +19,7 @@ const Navbar: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -38,6 +39,14 @@ const Navbar: React.FC = () => {
 
   const handleLogin = () => { setAuthTab('login'); setShowAuthModal(true); setMobileOpen(false); };
   const handleSignup = () => { setAuthTab('signup'); setShowAuthModal(true); setMobileOpen(false); };
+  const handleLogout = async () => {
+    setLogoutPending(true);
+    await logout();
+    setUserMenuOpen(false);
+    setMobileOpen(false);
+    navigate('/');
+    setLogoutPending(false);
+  };
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
