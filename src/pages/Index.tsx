@@ -483,7 +483,6 @@ const HomePage: React.FC = () => {
             numPeople={300}
             avatarUrls={[avatar1, avatar2, avatar3, avatar4]}
           />
-          />
           <div className="text-center sm:text-left">
             <p className="text-sm sm:text-base font-semibold text-foreground">
               Trusted by <span className="text-primary">hundreds</span> of publishers & viewers
