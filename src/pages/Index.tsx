@@ -408,6 +408,23 @@ const HomePage: React.FC = () => {
         </div>
       </motion.section>
 
+      {/* Zoom Parallax Showcase */}
+      <section className="relative">
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+        <ZoomParallax
+          images={[
+            { src: parallax1, alt: 'Dark fantasy warrior' },
+            { src: parallax2, alt: 'Cherry blossom romance' },
+            { src: parallax3, alt: 'Epic battle scene' },
+            { src: parallax4, alt: 'Gothic castle at night' },
+            { src: parallax5, alt: 'Cyberpunk cityscape' },
+            { src: parallax6, alt: 'Underwater fantasy' },
+            { src: parallax7, alt: 'Dragon in the clouds' },
+          ]}
+        />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+      </section>
+
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
 
