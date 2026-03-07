@@ -7,8 +7,17 @@ import { useFeaturedManga, useLatestManga } from '@/hooks/useApi';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal from '@/components/ScrollReveal';
 import { AvatarCircles } from '@/components/ui/avatar-circles';
+import { ZoomParallax } from '@/components/ui/zoom-parallax';
 
 import featureLibrary from '@/assets/feature-library.png';
+
+import parallax1 from '@/assets/parallax-1.jpg';
+import parallax2 from '@/assets/parallax-2.jpg';
+import parallax3 from '@/assets/parallax-3.jpg';
+import parallax4 from '@/assets/parallax-4.jpg';
+import parallax5 from '@/assets/parallax-5.jpg';
+import parallax6 from '@/assets/parallax-6.jpg';
+import parallax7 from '@/assets/parallax-7.jpg';
 import featureUpdates from '@/assets/feature-updates.png';
 import featureCreators from '@/assets/feature-creators.png';
 
