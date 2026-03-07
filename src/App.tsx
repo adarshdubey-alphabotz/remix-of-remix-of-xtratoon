@@ -22,6 +22,7 @@ import MyLibrary from "./pages/MyLibrary";
 import ExplorePage from "./pages/ExplorePage";
 import ProfilePage from "./pages/ProfilePage";
 import SearchCreators from "./pages/SearchCreators";
+import CommunityPage from "./pages/CommunityPage";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
@@ -68,6 +69,7 @@ const AnimatedRoutes = () => {
         <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
         <Route path="/settings" element={<PageTransition><ProfilePage /></PageTransition>} />
         <Route path="/creators" element={<PageTransition><SearchCreators /></PageTransition>} />
+        <Route path="/community" element={<PageTransition><CommunityPage /></PageTransition>} />
         <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>

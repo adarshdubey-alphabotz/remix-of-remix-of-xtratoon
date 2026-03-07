@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, BarChart3, Grid3X3, Users } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, BarChart3, Grid3X3, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useUserNotifications } from '@/hooks/useUserNotifications';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -79,11 +80,14 @@ const Navbar: React.FC = () => {
   };
   const isActive = (path: string) => location.pathname === path;
 
+  // User notifications
+  const { notifications: userNotifs, unreadCount: userUnreadCount, markRead: markUserNotifRead, markAllRead: markAllUserNotifsRead } = useUserNotifications();
+
   const navItems = [
     { to: '/home', label: 'Home', icon: Home },
     { to: '/browse', label: 'Browse', icon: Search },
     { to: '/charts', label: 'Charts', icon: BarChart3 },
-    { to: '/creators', label: 'Creators', icon: Users },
+    { to: '/community', label: 'Community', icon: MessageSquare },
   ];
 
   const dropdownVariants = {
@@ -219,8 +223,10 @@ const Navbar: React.FC = () => {
             <div className="relative">
               <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground">
                 <Bell className="w-[18px] h-[18px]" />
-                {isAdmin && unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                {(isAdmin ? unreadCount : userUnreadCount) > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {(isAdmin ? unreadCount : userUnreadCount) > 9 ? '9+' : (isAdmin ? unreadCount : userUnreadCount)}
+                  </span>
                 )}
               </button>
               <AnimatePresence>
@@ -234,19 +240,41 @@ const Navbar: React.FC = () => {
                     >
                       <div className="p-4 border-b border-border/50 flex items-center justify-between">
                         <h3 className="font-display text-lg tracking-wide">NOTIFICATIONS</h3>
-                        {isAdmin && unreadCount > 0 && <button onClick={markAllRead} className="text-xs text-primary hover:underline">Mark all read</button>}
+                        {((isAdmin && unreadCount > 0) || userUnreadCount > 0) && (
+                          <button onClick={() => { if (isAdmin) markAllRead(); markAllUserNotifsRead(); }} className="text-xs text-primary hover:underline">Mark all read</button>
+                        )}
                       </div>
-                      {isAdmin && adminNotifications.length > 0 ? (
+                      {/* User notifications */}
+                      {userNotifs.length > 0 && (
                         <div className="divide-y divide-border/30">
-                          {adminNotifications.map((n: any) => (
-                            <button key={n.id} onClick={() => { markNotifRead(n.id); setNotifOpen(false); if (n.type === 'new_submission') navigate('/admin'); else if (n.type === 'new_report') navigate('/admin'); }} className="w-full text-left p-3 hover:bg-muted/40 transition-colors">
+                          {userNotifs.map((n: any) => (
+                            <button key={n.id} onClick={() => {
+                              markUserNotifRead(n.id);
+                              setNotifOpen(false);
+                              if (n.type === 'new_chapter' && n.reference_id) navigate(`/manhwa/${n.reference_id}`);
+                              else if (n.type === 'new_post' && n.reference_id) navigate('/community');
+                            }} className="w-full text-left p-3 hover:bg-muted/40 transition-colors">
                               <p className="text-sm font-medium">{n.title}</p>
                               <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
                               <p className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</p>
                             </button>
                           ))}
                         </div>
-                      ) : (
+                      )}
+                      {/* Admin notifications */}
+                      {isAdmin && adminNotifications.length > 0 && (
+                        <div className="divide-y divide-border/30">
+                          {userNotifs.length > 0 && <div className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/30">Admin</div>}
+                          {adminNotifications.map((n: any) => (
+                            <button key={n.id} onClick={() => { markNotifRead(n.id); setNotifOpen(false); navigate('/admin'); }} className="w-full text-left p-3 hover:bg-muted/40 transition-colors">
+                              <p className="text-sm font-medium">{n.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {userNotifs.length === 0 && (!isAdmin || adminNotifications.length === 0) && (
                         <div className="p-4 text-sm text-muted-foreground">No new notifications</div>
                       )}
                     </motion.div>
