@@ -241,8 +241,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .eq('user_id', userId)
             .eq('role', oppositeRole as any);
 
-          await refreshProfile();
-        }
+          const nextProfile = await fetchProfile(userId);
+          await syncRoleFlags(userId, nextProfile);
 
         setShowAuthModal(false);
         return { success: true };
