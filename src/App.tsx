@@ -34,11 +34,21 @@ const AntiPiracy = () => {
   return null;
 };
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+    <>
+      <ScrollToTop />
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/manhwa/:id" element={<PageTransition><ManhwaDetail /></PageTransition>} />
         <Route path="/read/:id/:chapter" element={<PageTransition><ReaderPage /></PageTransition>} />
@@ -51,7 +61,8 @@ const AnimatedRoutes = () => {
         <Route path="/explore" element={<PageTransition><ExplorePage /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
-    </AnimatePresence>
+      </AnimatePresence>
+    </>
   );
 };
 
