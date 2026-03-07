@@ -480,7 +480,38 @@ const HomePage: React.FC = () => {
           </motion.div>
         </section>
 
-        {/* Social section — liquid glass */}
+        {/* Trusted By Section — before socials */}
+        <motion.div
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <AvatarCircles
+            numPeople={300}
+            avatarUrls={[
+              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?w=80&h=80&fit=crop&crop=face',
+            ]}
+          />
+          <div className="text-center sm:text-left">
+            <p className="text-sm sm:text-base font-semibold text-foreground">
+              Trusted by <span className="text-primary">hundreds</span> of publishers & viewers
+            </p>
+            <div className="flex items-center justify-center sm:justify-start gap-1 mt-1">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star key={s} className={`w-4 h-4 ${s <= 4 ? 'text-primary fill-primary' : 'text-primary fill-primary/40'}`} />
+              ))}
+              <span className="text-sm font-semibold text-foreground ml-1">4.8</span>
+              <span className="text-xs text-muted-foreground ml-1">avg rating</span>
+            </div>
+          </div>
+        </motion.div>
+
+
         <ScrollReveal>
           <section className="relative rounded-3xl overflow-hidden" style={{ boxShadow: '0 16px 70px -12px hsla(0, 0%, 0%, 0.2)' }}>
             <div className="absolute inset-0" style={{
