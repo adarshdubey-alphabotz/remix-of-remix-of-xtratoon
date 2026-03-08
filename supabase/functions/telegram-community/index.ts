@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     const { data: profile } = await supabase.from("profiles").select("username, display_name, avatar_url").eq("user_id", userId).single();
     const displayName = profile?.display_name || profile?.username || "Anonymous";
 
-    const { action, post_id, reply_id, content, image_url } = await req.json();
+    const { action, post_id, reply_id, content, image_url, image_urls } = await req.json();
 
     // ─── Profanity check for content-based actions ───
     if ((action === "create_post" || action === "reply") && content) {
