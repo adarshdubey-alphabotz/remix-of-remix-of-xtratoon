@@ -507,7 +507,7 @@ const AdminPanel: React.FC = () => {
                   <tbody>
                     {(allUsers || []).map((u: any) => (
                       <tr key={u.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
-                        <td className="px-4 py-3 font-semibold">{u.username || '—'}</td>
+                        <td className="px-4 py-3 font-semibold inline-flex items-center gap-1">{u.username || '—'} {u.is_verified && <VerifiedBadge size="sm" />}</td>
                         <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
                         <td className="px-4 py-3">
