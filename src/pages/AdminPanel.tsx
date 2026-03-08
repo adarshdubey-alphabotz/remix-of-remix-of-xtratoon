@@ -343,7 +343,8 @@ const AdminPanel: React.FC = () => {
                   { label: 'Total Manhwa', value: stats?.totalManga ?? '—', color: 'text-foreground' },
                   { label: 'Total Users', value: stats?.totalUsers ?? '—', color: 'text-primary' },
                   { label: 'Total Chapters', value: stats?.totalChapters ?? '—', color: 'text-foreground' },
-                  { label: 'Pending Review', value: stats?.pending ?? '—', color: 'text-yellow-500' },
+                  { label: 'Pending Manga', value: stats?.pending ?? '—', color: 'text-yellow-500' },
+                  { label: 'Pending Chapters', value: stats?.pendingChapters ?? '—', color: 'text-orange-500' },
                   { label: 'Reports', value: stats?.reports ?? '—', color: 'text-destructive' },
                 ].map(s => (
                   <div key={s.label} className="brutal-card p-5">
