@@ -80,8 +80,9 @@ const ProfileHoverCard: React.FC<ProfileHoverCardProps> = ({ userId, username, c
 
           {/* Name & username */}
           <Link to={profileLink} className="block">
-            <p className="text-sm font-bold text-foreground hover:underline leading-tight">
+            <p className="text-sm font-bold text-foreground hover:underline leading-tight inline-flex items-center gap-1">
               {p?.display_name || p?.username || 'User'}
+              {(p as any)?.is_verified && <VerifiedBadge size="sm" />}
             </p>
             {p?.username && (
               <p className="text-xs text-muted-foreground">@{p.username}</p>

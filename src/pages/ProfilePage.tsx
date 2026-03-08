@@ -328,7 +328,10 @@ const ProfilePage: React.FC = () => {
               <Camera className="w-4 h-4" />
             </button>
           </div>
-          <h2 className="text-xl font-bold">{displayName || 'Set your name'}</h2>
+          <h2 className="text-xl font-bold inline-flex items-center gap-1.5">
+            {displayName || 'Set your name'}
+            {(profile as any)?.is_verified && <VerifiedBadge size="md" />}
+          </h2>
           <p className="text-sm text-muted-foreground">@{username || 'set-username'}</p>
           {username && (
             <button
