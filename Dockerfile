@@ -1,5 +1,5 @@
 # ─── Xtratoon VPS Deployment ───
-# Connects to Lovable Cloud backend
+# Replace these with YOUR OWN Supabase project credentials from supabase.com
 
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -7,10 +7,15 @@ COPY package.json package-lock.json* bun.lock* ./
 RUN npm install
 COPY . .
 
-# Build-time env vars — Lovable Cloud backend
-ENV VITE_SUPABASE_URL=https://nyynuigabiwfgvwvjrvh.supabase.co
-ENV VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55eW51aWdhYml3Zmd2d3ZqcnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTQ2MzcsImV4cCI6MjA4ODQ3MDYzN30.gEnvS07twhUS5i27SruCKy6G83GZrcbjENG2-ZBV_1g
-ENV VITE_SUPABASE_PROJECT_ID=nyynuigabiwfgvwvjrvh
+# ⚠️ REPLACE THESE WITH YOUR OWN SUPABASE CREDENTIALS ⚠️
+# Get these from: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_PUBLISHABLE_KEY
+ARG VITE_SUPABASE_PROJECT_ID
+
+ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+ENV VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+ENV VITE_SUPABASE_PROJECT_ID=${VITE_SUPABASE_PROJECT_ID}
 
 RUN npm run build
 
