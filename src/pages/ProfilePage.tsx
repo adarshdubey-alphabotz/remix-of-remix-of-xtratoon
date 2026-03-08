@@ -86,7 +86,7 @@ const SectionHeader: React.FC<{ onBack: () => void; title: string }> = ({ onBack
 );
 
 const ProfilePage: React.FC = () => {
-  const { user, profile, loading, updateProfile, changePassword, refreshProfile, logout, deleteAccount, isPublisher } = useAuth();
+  const { user, profile, loading, updateProfile, changePassword, refreshProfile, logout, deleteAccount, isPublisher, isAdmin, adminMode, setAdminMode } = useAuth();
   const { theme, toggleTheme, cycleTheme } = useTheme();
   const navigate = useNavigate();
 
