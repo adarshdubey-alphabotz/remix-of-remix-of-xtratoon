@@ -6,6 +6,13 @@ import { getImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 
+const PREFETCH_AHEAD = 3; // Load 3 pages ahead of current viewport
+
+interface PageState {
+  status: 'idle' | 'loading' | 'done' | 'error';
+  visible: boolean;
+}
+
 const ReaderPage: React.FC = () => {
   const { id, chapter } = useParams();
   const navigate = useNavigate();
@@ -16,8 +23,10 @@ const ReaderPage: React.FC = () => {
   const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
   const imageCache = useRef<Map<string, HTMLImageElement>>(new Map());
   const fullscreenRef = useRef<HTMLDivElement>(null);
-  const [pageLoadState, setPageLoadState] = useState<Map<number, 'loading' | 'done' | 'error'>>(new Map());
-  const [loadStartTime] = useState(Date.now());
+  const [pageStates, setPageStates] = useState<Map<number, PageState>>(new Map());
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const sentinelRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const loadingRef = useRef<Set<number>>(new Set()); // track in-flight loads
 
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
@@ -65,11 +74,21 @@ const ReaderPage: React.FC = () => {
   });
 
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const pageNum = pageData.page_number;
+    
+    // Prevent duplicate loads
+    if (loadingRef.current.has(pageNum)) return;
+    loadingRef.current.add(pageNum);
 
-    // Mark loading
-    setPageLoadState(prev => new Map(prev).set(pageData.page_number, 'loading'));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { loadingRef.current.delete(pageNum); return; }
+
+    setPageStates(prev => {
+      const next = new Map(prev);
+      const existing = next.get(pageNum) || { status: 'idle' as const, visible: false };
+      next.set(pageNum, { ...existing, status: 'loading' });
+      return next;
+    });
 
     const imgUrl = getImageUrl(pageData.telegram_file_id) || '';
     let img = imageCache.current.get(pageData.id);
@@ -79,20 +98,29 @@ const ReaderPage: React.FC = () => {
       try {
         await new Promise<void>((resolve, reject) => {
           img!.onload = () => resolve();
-          img!.onerror = () => reject(new Error('Failed to load image'));
+          img!.onerror = () => reject(new Error('Failed to load'));
           img!.src = imgUrl;
         });
         imageCache.current.set(pageData.id, img);
       } catch {
-        setPageLoadState(prev => new Map(prev).set(pageData.page_number, 'error'));
+        loadingRef.current.delete(pageNum);
+        setPageStates(prev => {
+          const next = new Map(prev);
+          const existing = next.get(pageNum) || { status: 'idle' as const, visible: false };
+          next.set(pageNum, { ...existing, status: 'error' });
+          return next;
+        });
         return;
       }
     }
+    
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     canvas.style.width = '100%';
     canvas.style.height = 'auto';
     ctx.drawImage(img, 0, 0);
+    
+    // Watermark
     if (user?.email) {
       ctx.save();
       ctx.globalAlpha = 0.015;
@@ -107,16 +135,83 @@ const ReaderPage: React.FC = () => {
       ctx.restore();
     }
 
-    setPageLoadState(prev => new Map(prev).set(pageData.page_number, 'done'));
+    loadingRef.current.delete(pageNum);
+    setPageStates(prev => {
+      const next = new Map(prev);
+      const existing = next.get(pageNum) || { status: 'idle' as const, visible: false };
+      next.set(pageNum, { ...existing, status: 'done' });
+      return next;
+    });
   }, [user]);
 
+  // Trigger load for a page + prefetch ahead
+  const triggerLoad = useCallback((pageNum: number) => {
+    if (!pages || pages.length === 0) return;
+    
+    // Load this page + PREFETCH_AHEAD pages ahead
+    for (let i = 0; i <= PREFETCH_AHEAD; i++) {
+      const targetNum = pageNum + i;
+      const page = pages.find(p => p.page_number === targetNum);
+      if (!page) continue;
+      
+      const state = pageStates.get(targetNum);
+      if (state?.status === 'done' || state?.status === 'loading') continue;
+      if (loadingRef.current.has(targetNum)) continue;
+      
+      const canvas = canvasRefs.current.get(targetNum);
+      if (canvas) {
+        renderPageToCanvas(page, canvas);
+      }
+    }
+  }, [pages, pageStates, renderPageToCanvas]);
+
+  // IntersectionObserver: when a page sentinel enters viewport, load it + prefetch
   useEffect(() => {
     if (!pages || pages.length === 0) return;
-    pages.forEach(page => {
-      const canvas = canvasRefs.current.get(page.page_number);
-      if (canvas) renderPageToCanvas(page, canvas);
+
+    observerRef.current?.disconnect();
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          const pageNum = Number(entry.target.getAttribute('data-page'));
+          if (isNaN(pageNum)) return;
+          
+          if (entry.isIntersecting) {
+            setPageStates(prev => {
+              const next = new Map(prev);
+              const existing = next.get(pageNum) || { status: 'idle' as const, visible: false };
+              next.set(pageNum, { ...existing, visible: true });
+              return next;
+            });
+            triggerLoad(pageNum);
+          }
+        });
+      },
+      { rootMargin: '600px 0px' } // Start loading 600px before visible
+    );
+    
+    observerRef.current = observer;
+    
+    // Observe all sentinel elements
+    sentinelRefs.current.forEach((el) => {
+      observer.observe(el);
     });
-  }, [pages, renderPageToCanvas]);
+
+    // Auto-load first 3 pages immediately
+    for (let i = 0; i < Math.min(3, pages.length); i++) {
+      const page = pages[i];
+      const canvas = canvasRefs.current.get(page.page_number);
+      if (canvas && !loadingRef.current.has(page.page_number)) {
+        const state = pageStates.get(page.page_number);
+        if (!state || state.status === 'idle') {
+          renderPageToCanvas(page, canvas);
+        }
+      }
+    }
+
+    return () => observer.disconnect();
+  }, [pages, triggerLoad, renderPageToCanvas]);
 
   // Fullscreen toggle
   const toggleFullscreen = useCallback(() => {
@@ -136,7 +231,6 @@ const ReaderPage: React.FC = () => {
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  // Auto-hide nav after 3s in fullscreen
   useEffect(() => {
     if (!isFullscreen) return;
     const timer = setTimeout(() => setShowNav(false), 3000);
@@ -146,28 +240,8 @@ const ReaderPage: React.FC = () => {
   const prevChapter = adjacentChapters?.prev;
   const nextChapter = adjacentChapters?.next;
 
-  // Calculate loading stats
   const totalPages = pages?.length || 0;
-  const loadedPages = Array.from(pageLoadState.values()).filter(s => s === 'done').length;
-  const isAnyLoading = totalPages > 0 && loadedPages < totalPages;
-
-  // Estimate time: ~2s for first (uncached), ~0.3s for cached, per page
-  const getEstimatedTime = () => {
-    const remaining = totalPages - loadedPages;
-    if (remaining <= 0) return null;
-    const elapsed = (Date.now() - loadStartTime) / 1000;
-    if (loadedPages > 0) {
-      const avgPerPage = elapsed / loadedPages;
-      const est = Math.ceil(avgPerPage * remaining);
-      if (est <= 1) return '~1 second';
-      if (est <= 5) return `~${est} seconds`;
-      return `~${Math.ceil(est / 5) * 5} seconds`;
-    }
-    // Initial estimate before any loaded
-    const est = remaining * 2;
-    if (est <= 5) return '~5 seconds';
-    return `~${Math.ceil(est / 5) * 5} seconds`;
-  };
+  const loadedPages = Array.from(pageStates.values()).filter(s => s.status === 'done').length;
 
   if (isLoading || loadingPages) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
@@ -190,7 +264,6 @@ const ReaderPage: React.FC = () => {
         @media print { .reader-container { display: none !important; } }
       `}</style>
 
-      {/* Minimal back button - always visible in fullscreen with low opacity */}
       {isFullscreen && (
         <button
           onClick={() => { toggleFullscreen(); setShowNav(true); }}
@@ -200,7 +273,6 @@ const ReaderPage: React.FC = () => {
         </button>
       )}
 
-      {/* Top nav - hidden in fullscreen unless tapped */}
       {showNav && !isFullscreen && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/10">
           <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -222,7 +294,6 @@ const ReaderPage: React.FC = () => {
         </div>
       )}
 
-      {/* Pages */}
       <div
         ref={scrollContainerRef}
         className={`reader-container max-w-3xl mx-auto ${isFullscreen ? 'pt-0 pb-4' : 'pt-16 pb-20'} cursor-pointer`}
@@ -234,13 +305,19 @@ const ReaderPage: React.FC = () => {
 
         {pages && pages.length > 0 ? (
           pages.map(page => {
-            const state = pageLoadState.get(page.page_number);
-            const isPageLoading = !state || state === 'loading';
-            const isPageError = state === 'error';
+            const state = pageStates.get(page.page_number);
+            const status = state?.status || 'idle';
+            const isPageLoading = status === 'idle' || status === 'loading';
+            const isPageError = status === 'error';
+            const isPageDone = status === 'done';
 
             return (
-              <div key={page.id} className="relative">
-                {/* Loading overlay per page */}
+              <div
+                key={page.id}
+                className="relative"
+                ref={el => { if (el) sentinelRefs.current.set(page.page_number, el); }}
+                data-page={page.page_number}
+              >
                 {isPageLoading && (
                   <div className="flex flex-col items-center justify-center py-24 gap-3">
                     <div className="relative">
@@ -249,13 +326,9 @@ const ReaderPage: React.FC = () => {
                     </div>
                     <p className="text-white/50 text-sm font-medium">Loading page {page.page_number}...</p>
                     <p className="text-white/30 text-xs">Please wait, we're fetching the content</p>
-                    {getEstimatedTime() && (
-                      <p className="text-primary/60 text-xs">This may take {getEstimatedTime()}</p>
-                    )}
                   </div>
                 )}
 
-                {/* Error state */}
                 {isPageError && (
                   <div className="flex flex-col items-center justify-center py-24 gap-3">
                     <ImageIcon className="w-8 h-8 text-destructive/60" />
@@ -266,6 +339,7 @@ const ReaderPage: React.FC = () => {
                         const canvas = canvasRefs.current.get(page.page_number);
                         if (canvas) {
                           imageCache.current.delete(page.id);
+                          loadingRef.current.delete(page.page_number);
                           renderPageToCanvas(page, canvas);
                         }
                       }}
@@ -278,7 +352,7 @@ const ReaderPage: React.FC = () => {
 
                 <canvas
                   ref={el => { if (el) canvasRefs.current.set(page.page_number, el); }}
-                  className={`reader-canvas w-full ${isPageLoading || isPageError ? 'hidden' : ''}`}
+                  className={`reader-canvas w-full ${isPageDone ? '' : 'hidden'}`}
                 />
               </div>
             );
@@ -304,7 +378,6 @@ const ReaderPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom progress bar */}
       {showNav && !isFullscreen && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-t border-white/10">
           <div className="max-w-3xl mx-auto px-4 py-3">
@@ -320,7 +393,7 @@ const ReaderPage: React.FC = () => {
                 <div className="flex justify-between mt-1">
                   <span className="text-[10px] text-white/40">Ch. {chapterNum}</span>
                   <span className="text-[10px] text-white/40">
-                    {isAnyLoading ? `Loading ${loadedPages}/${totalPages} pages...` : `${totalPages} pages`}
+                    {loadedPages < totalPages ? `Loading ${loadedPages}/${totalPages}...` : `${totalPages} pages`}
                   </span>
                 </div>
               </div>
