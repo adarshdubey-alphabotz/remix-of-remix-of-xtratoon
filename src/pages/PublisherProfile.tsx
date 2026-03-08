@@ -182,7 +182,7 @@ const PublisherProfile: React.FC = () => {
         {/* Use first manga cover as banner if available */}
         {creatorManga.length > 0 && creatorManga[0].cover_url ? (
           <img
-            src={creatorManga[0].cover_url.startsWith('http') ? creatorManga[0].cover_url : `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(creatorManga[0].cover_url)}`}
+            src={getImageUrl(creatorManga[0].cover_url) || ''}
             alt=""
             className="w-full h-full object-cover opacity-60 blur-sm scale-105"
           />

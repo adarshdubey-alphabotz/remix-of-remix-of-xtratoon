@@ -2,6 +2,7 @@ import React, { useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Eye, Bookmark } from 'lucide-react';
 import { formatViews, getCoverGradient, type Manga } from '@/hooks/useApi';
+import { getImageUrl } from '@/lib/imageUrl';
 
 const genreColors: Record<string, string> = {
   Action: '0 72% 51%',

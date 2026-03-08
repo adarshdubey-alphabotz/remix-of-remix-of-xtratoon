@@ -59,14 +59,7 @@ const ManhwaDetail: React.FC = () => {
     enabled: !!id,
   });
 
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const getCoverUrl = (manhwa: any) => {
-    if (!manhwa?.cover_url) return null;
-    if (manhwa.cover_url.startsWith('http')) return manhwa.cover_url;
-    return `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(manhwa.cover_url)}`;
-  };
-
-  const coverUrl = manhwa ? getCoverUrl(manhwa) : null;
+  const coverUrl = manhwa ? getImageUrl(manhwa.cover_url) : null;
 
   // Dynamic theme from cover art
   useDynamicTheme(coverUrl);

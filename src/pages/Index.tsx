@@ -441,7 +441,7 @@ const HomePage: React.FC = () => {
               <motion.div className="sm:hidden" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }}>
                 <Link to={`/manhwa/${featured.slug}`} className="block">
                   <div className={`aspect-[16/9] ${featured.cover_url ? '' : getCoverGradient(0)} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
-                    {featured.cover_url && <img src={featured.cover_url.startsWith('http') ? featured.cover_url : `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(featured.cover_url)}`} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+                    {featured.cover_url && <img src={getImageUrl(featured.cover_url) || ''} alt="" className="absolute inset-0 w-full h-full object-cover" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <h3 className="font-display text-xl text-white tracking-wide">{featured.title}</h3>

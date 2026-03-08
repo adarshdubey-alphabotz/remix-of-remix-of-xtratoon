@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, Eye, Bookmark } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatViews, getCoverGradient, type Manga } from '@/hooks/useApi';
+import { getImageUrl } from '@/lib/imageUrl';
 
 interface ManhwaCardProps {
   manhwa: Manga;
@@ -12,14 +13,8 @@ interface ManhwaCardProps {
 }
 
 const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, index = 0, rank, rankColor }) => {
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const resolveCover = (url?: string | null) => {
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    return `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(url)}`;
-  };
   const hasCover = !!manhwa.cover_url;
-  const coverSrc = resolveCover(manhwa.cover_url);
+  const coverSrc = getImageUrl(manhwa.cover_url) || '';
   const gradient = getCoverGradient(index);
   const rating = manhwa.rating_average ?? 0;
   const slug = manhwa.slug;
