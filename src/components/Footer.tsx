@@ -97,6 +97,7 @@ const Footer: React.FC = () => (
           </h4>
           <nav className="flex flex-col gap-2">
             <Link to="/community" className="text-sm text-muted-foreground hover:text-primary transition-colors">Feed</Link>
+            <Link to="/blog/publish-on-xtratoon" className="text-sm text-muted-foreground hover:text-primary transition-colors">For Creators</Link>
             <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-primary transition-colors">Publisher Dashboard</Link>
             <Link to="/profile" className="text-sm text-muted-foreground hover:text-primary transition-colors">My Profile</Link>
             <Link to="/settings" className="text-sm text-muted-foreground hover:text-primary transition-colors">Settings</Link>
