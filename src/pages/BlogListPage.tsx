@@ -38,7 +38,12 @@ const BlogListPage: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-32 bg-background">
-      <DynamicMeta title="Blog — Xtratoon" description="Read the latest news, guides, and updates from Xtratoon." />
+      <DynamicMeta
+        title="Blog — Manhwa News, Guides & FAQ"
+        description="Read the latest Xtratoon blog posts — manhwa news, manga guides, FAQs, reading tips, and platform updates. Stay updated with Xtratoon."
+        keywords="Xtratoon blog, xtratoons blog, manhwa blog, manga news, webtoon guides, manhwa FAQ, manga tips, Xtratoon news, Xtratoon updates, manhwa reading guide"
+        url="https://glassy-ink-verse.lovable.app/blog"
+      />
       <div className="max-w-6xl mx-auto px-4">
         <ScrollReveal>
           <div className="text-center mb-12">

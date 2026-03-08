@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import ScrollReveal from '@/components/ScrollReveal';
+import DynamicMeta from '@/components/DynamicMeta';
 
 const pId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 const resolveCover = (url: string | null) => {
@@ -98,6 +99,12 @@ const TopChartsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-background">
+      <DynamicMeta
+        title="Top Charts — Best Manhwa, Manga & Creators"
+        description="Discover the most popular manhwa, manga, and top creators on Xtratoon. Rankings by views, likes, and followers. Find the best Korean manhwa and Japanese manga series."
+        keywords="top manhwa, best manhwa, top manga, best manga, popular manhwa, trending manhwa, manhwa rankings, manga rankings, top webtoon creators, best manhwa 2026, most viewed manhwa, Xtratoon charts"
+        url="https://glassy-ink-verse.lovable.app/charts"
+      />
       <div className="max-w-4xl mx-auto px-4">
         <ScrollReveal>
           <div className="flex items-center gap-3 mb-8">

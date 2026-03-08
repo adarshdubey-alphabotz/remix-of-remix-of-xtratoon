@@ -193,10 +193,11 @@ const ManhwaDetail: React.FC = () => {
   return (
     <div className="min-h-screen pt-16 bg-background">
       <DynamicMeta
-        title={manhwa.title}
-        description={manhwa.description || `Read ${manhwa.title} on Xtratoon`}
+        title={`${manhwa.title} — Read Online Free`}
+        description={manhwa.description || `Read ${manhwa.title} manhwa online for free on Xtratoon. HD quality, latest chapters updated regularly.`}
         image={coverUrl || undefined}
         url={pageUrl}
+        keywords={`${manhwa.title}, read ${manhwa.title} online, ${manhwa.title} manhwa, ${(manhwa.genres || []).join(', ')}, Xtratoon, free manhwa, read manhwa online`}
       />
       {/* Parallax Hero */}
       <div ref={heroRef} className="relative h-72 sm:h-80 lg:h-[420px] overflow-hidden">

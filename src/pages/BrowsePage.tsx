@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import ManhwaCard from '@/components/ManhwaCard';
 import MasonryManhwaCard from '@/components/MasonryManhwaCard';
 import ScrollReveal from '@/components/ScrollReveal';
+import DynamicMeta from '@/components/DynamicMeta';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -139,6 +140,12 @@ const BrowsePage: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-background">
+      <DynamicMeta
+        title="Browse Manhwa, Manga & Webtoons"
+        description="Browse and discover thousands of manhwa, manga, and webtoon series on Xtratoon. Filter by genre, rating, language and status. Read free Korean manhwa and Japanese manga online."
+        keywords="browse manhwa, browse manga, manhwa list, manga list, webtoon list, read manhwa online, read manga online, Xtratoon browse, Korean manhwa, Japanese manga, free comics, manhwa genres"
+        url="https://glassy-ink-verse.lovable.app/browse"
+      />
       <div className="max-w-7xl mx-auto px-4">
         <ScrollReveal>
           <div className="flex items-center justify-between mb-8">
