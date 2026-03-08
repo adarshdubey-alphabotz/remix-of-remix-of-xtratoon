@@ -1,5 +1,6 @@
 # ─── Xtratoon VPS Deployment ───
-# Replace these with YOUR OWN Supabase project credentials from supabase.com
+# On VPS: create .env.local with your own Supabase credentials
+# Vite automatically picks up .env.local over .env
 
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -7,10 +8,8 @@ COPY package.json package-lock.json* bun.lock* ./
 RUN npm install
 COPY . .
 
-# ⚠️ REPLACE THESE WITH YOUR OWN SUPABASE CREDENTIALS ⚠️
-# Get these from: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api
-# Copy .env.local if it exists (overrides .env at build time)
-COPY .env.local* ./
+# If .env.local exists it overrides .env automatically (Vite priority)
+# No special COPY needed — "COPY . ." already includes it
 
 RUN npm run build
 
