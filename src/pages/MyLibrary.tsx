@@ -98,14 +98,16 @@ const MyLibrary: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="brutal-card p-12 text-center">
-            <p className="text-muted-foreground">
-              {tab === 'liked' ? 'No liked manhwa yet. Like your favorites!' : 'No manhwa in this category yet.'}
-            </p>
-            <Link to="/browse" className="inline-flex items-center gap-1 text-primary text-sm font-semibold mt-2 hover:underline">
-              Browse manhwa <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
+          <EmptyState
+            type="library"
+            title={tab === 'liked' ? 'No liked manhwa yet' : 'Nothing here yet'}
+            subtitle={tab === 'liked' ? 'Like your favorites to see them here!' : 'Start reading and add manhwa to your collection.'}
+            action={
+              <Link to="/browse" className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline">
+                Browse manhwa <ChevronRight className="w-3 h-3" />
+              </Link>
+            }
+          />
         )}
       </div>
     </div>
