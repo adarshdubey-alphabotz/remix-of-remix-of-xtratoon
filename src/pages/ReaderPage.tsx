@@ -224,7 +224,7 @@ const ReaderPage: React.FC = () => {
         .eq('chapter_id', chapterData.id)
         .maybeSingle();
       if ((data as any)?.page_number && (data as any).page_number > 1) {
-        const idx = pages.findIndex((p: any) => p.page_number === data.page_number);
+        const idx = pages.findIndex((p: any) => p.page_number === (data as any).page_number);
         if (idx > 0) {
           setCurrentPage(idx);
           setDirection(1);
