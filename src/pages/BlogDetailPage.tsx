@@ -64,7 +64,7 @@ const BlogDetailPage: React.FC = () => {
         description={blog.seo_description || blog.description || ''}
         image={blog.thumbnail_url}
         keywords={(blog.seo_keywords || []).join(', ') + ', Xtratoon, xtratoons, manhwa, manga, webtoon'}
-        url={`https://glassy-ink-verse.lovable.app/blog/${blog.slug}`}
+        url={`https://xtratoon.com/blog/${blog.slug}`}
       />
 
       <article className="max-w-3xl mx-auto px-4" itemScope itemType="https://schema.org/BlogPosting">

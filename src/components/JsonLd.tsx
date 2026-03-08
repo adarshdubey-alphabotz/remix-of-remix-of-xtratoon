@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SITE_URL = 'https://glassy-ink-verse.lovable.app';
+const SITE_URL = 'https://xtratoon.com';
 const SITE_NAME = 'Xtratoon';
 
 const JsonLd: React.FC = () => (

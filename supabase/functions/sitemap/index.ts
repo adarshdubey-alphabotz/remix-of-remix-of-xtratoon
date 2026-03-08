@@ -6,7 +6,7 @@ const corsHeaders = {
   "Content-Type": "application/xml; charset=utf-8",
 };
 
-const SITE_URL = "https://glassy-ink-verse.lovable.app";
+const SITE_URL = "https://xtratoon.com";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
