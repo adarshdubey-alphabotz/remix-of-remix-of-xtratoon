@@ -123,6 +123,7 @@ Deno.serve(async (req) => {
           creator_id: userId,
           content: content || null,
           image_url: image_url || null,
+          image_urls: image_urls || [],
           telegram_message_id: tgMessageId,
         })
         .select("*")
