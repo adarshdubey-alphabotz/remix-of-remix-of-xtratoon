@@ -1,32 +1,27 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Maximize, Minimize, Loader2, ImageIcon } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
+import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
 
-const PREFETCH_AHEAD = 3; // Load 3 pages ahead of current viewport
-
-interface PageState {
-  status: 'idle' | 'loading' | 'done' | 'error';
-  visible: boolean;
-}
+const PREFETCH_AHEAD = 3;
 
 const ReaderPage: React.FC = () => {
   const { id, chapter } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState(0);
+  const [direction, setDirection] = useState(0);
   const [showNav, setShowNav] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
   const imageCache = useRef<Map<string, HTMLImageElement>>(new Map());
+  const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
+  const [renderedPages, setRenderedPages] = useState<Set<number>>(new Set());
+  const [errorPages, setErrorPages] = useState<Set<number>>(new Set());
+  const [loadingPages, setLoadingPages] = useState<Set<number>>(new Set());
   const fullscreenRef = useRef<HTMLDivElement>(null);
-  const [pageStates, setPageStates] = useState<Map<number, PageState>>(new Map());
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-  const loadingRef = useRef<Set<number>>(new Set()); // track in-flight loads
 
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
@@ -51,7 +46,7 @@ const ReaderPage: React.FC = () => {
     enabled: !!manga,
   });
 
-  const { data: pages, isLoading: loadingPages } = useQuery({
+  const { data: pages, isLoading: pagesLoading } = useQuery({
     queryKey: ['reader-pages', chapterData?.id],
     queryFn: async () => {
       if (!chapterData) return [];
@@ -76,19 +71,10 @@ const ReaderPage: React.FC = () => {
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
     const pageNum = pageData.page_number;
     
-    // Prevent duplicate loads
-    if (loadingRef.current.has(pageNum)) return;
-    loadingRef.current.add(pageNum);
+    setLoadingPages(prev => new Set(prev).add(pageNum));
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) { loadingRef.current.delete(pageNum); return; }
-
-    setPageStates(prev => {
-      const next = new Map(prev);
-      const existing = next.get(pageNum) || { status: 'idle' as const, visible: false };
-      next.set(pageNum, { ...existing, status: 'loading' });
-      return next;
-    });
+    if (!ctx) { setLoadingPages(prev => { const n = new Set(prev); n.delete(pageNum); return n; }); return; }
 
     const imgUrl = getImageUrl(pageData.telegram_file_id) || '';
     let img = imageCache.current.get(pageData.id);
@@ -103,23 +89,19 @@ const ReaderPage: React.FC = () => {
         });
         imageCache.current.set(pageData.id, img);
       } catch {
-        loadingRef.current.delete(pageNum);
-        setPageStates(prev => {
-          const next = new Map(prev);
-          const existing = next.get(pageNum) || { status: 'idle' as const, visible: false };
-          next.set(pageNum, { ...existing, status: 'error' });
-          return next;
-        });
+        setLoadingPages(prev => { const n = new Set(prev); n.delete(pageNum); return n; });
+        setErrorPages(prev => new Set(prev).add(pageNum));
         return;
       }
     }
-    
+
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     canvas.style.width = '100%';
-    canvas.style.height = 'auto';
+    canvas.style.height = '100%';
+    canvas.style.objectFit = 'contain';
     ctx.drawImage(img, 0, 0);
-    
+
     // Watermark
     if (user?.email) {
       ctx.save();
@@ -135,115 +117,81 @@ const ReaderPage: React.FC = () => {
       ctx.restore();
     }
 
-    loadingRef.current.delete(pageNum);
-    setPageStates(prev => {
-      const next = new Map(prev);
-      const existing = next.get(pageNum) || { status: 'idle' as const, visible: false };
-      next.set(pageNum, { ...existing, status: 'done' });
-      return next;
-    });
+    setLoadingPages(prev => { const n = new Set(prev); n.delete(pageNum); return n; });
+    setErrorPages(prev => { const n = new Set(prev); n.delete(pageNum); return n; });
+    setRenderedPages(prev => new Set(prev).add(pageNum));
   }, [user]);
 
-  // Trigger load for a page + prefetch ahead
-  const triggerLoad = useCallback((pageNum: number) => {
+  // Prefetch current + ahead pages
+  useEffect(() => {
     if (!pages || pages.length === 0) return;
     
-    // Load this page + PREFETCH_AHEAD pages ahead
     for (let i = 0; i <= PREFETCH_AHEAD; i++) {
-      const targetNum = pageNum + i;
-      const page = pages.find(p => p.page_number === targetNum);
-      if (!page) continue;
+      const idx = currentPage + i;
+      if (idx >= pages.length) break;
+      const page = pages[idx];
+      if (renderedPages.has(page.page_number) || loadingPages.has(page.page_number)) continue;
       
-      const state = pageStates.get(targetNum);
-      if (state?.status === 'done' || state?.status === 'loading') continue;
-      if (loadingRef.current.has(targetNum)) continue;
-      
-      const canvas = canvasRefs.current.get(targetNum);
-      if (canvas) {
-        renderPageToCanvas(page, canvas);
+      // Create canvas offscreen if needed
+      let canvas = canvasRefs.current.get(page.page_number);
+      if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvasRefs.current.set(page.page_number, canvas);
       }
+      renderPageToCanvas(page, canvas);
     }
-  }, [pages, pageStates, renderPageToCanvas]);
+  }, [currentPage, pages, renderedPages, loadingPages, renderPageToCanvas]);
 
-  // IntersectionObserver: when a page sentinel enters viewport, load it + prefetch
+  // Enter fullscreen on mount
   useEffect(() => {
-    if (!pages || pages.length === 0) return;
-
-    observerRef.current?.disconnect();
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          const pageNum = Number(entry.target.getAttribute('data-page'));
-          if (isNaN(pageNum)) return;
-          
-          if (entry.isIntersecting) {
-            setPageStates(prev => {
-              const next = new Map(prev);
-              const existing = next.get(pageNum) || { status: 'idle' as const, visible: false };
-              next.set(pageNum, { ...existing, visible: true });
-              return next;
-            });
-            triggerLoad(pageNum);
-          }
-        });
-      },
-      { rootMargin: '600px 0px' } // Start loading 600px before visible
-    );
-    
-    observerRef.current = observer;
-    
-    // Observe all sentinel elements
-    sentinelRefs.current.forEach((el) => {
-      observer.observe(el);
-    });
-
-    // Auto-load first 3 pages immediately
-    for (let i = 0; i < Math.min(3, pages.length); i++) {
-      const page = pages[i];
-      const canvas = canvasRefs.current.get(page.page_number);
-      if (canvas && !loadingRef.current.has(page.page_number)) {
-        const state = pageStates.get(page.page_number);
-        if (!state || state.status === 'idle') {
-          renderPageToCanvas(page, canvas);
-        }
+    const el = fullscreenRef.current;
+    if (el && el.requestFullscreen && !document.fullscreenElement) {
+      el.requestFullscreen().catch(() => {});
+    }
+    return () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
       }
-    }
-
-    return () => observer.disconnect();
-  }, [pages, triggerLoad, renderPageToCanvas]);
-
-  // Fullscreen toggle
-  const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement && fullscreenRef.current) {
-      fullscreenRef.current.requestFullscreen?.();
-      setIsFullscreen(true);
-      setShowNav(false);
-    } else if (document.fullscreenElement) {
-      document.exitFullscreen?.();
-      setIsFullscreen(false);
-    }
+    };
   }, []);
 
-  useEffect(() => {
-    const handler = () => { if (!document.fullscreenElement) setIsFullscreen(false); };
-    document.addEventListener('fullscreenchange', handler);
-    return () => document.removeEventListener('fullscreenchange', handler);
-  }, []);
+  const goToPage = (newPage: number, dir: number) => {
+    if (!pages || newPage < 0 || newPage >= pages.length) return;
+    setDirection(dir);
+    setCurrentPage(newPage);
+  };
 
-  useEffect(() => {
-    if (!isFullscreen) return;
-    const timer = setTimeout(() => setShowNav(false), 3000);
-    return () => clearTimeout(timer);
-  }, [isFullscreen, showNav]);
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    const threshold = 50;
+    if (info.offset.x < -threshold) {
+      // Swiped left → next page
+      goToPage(currentPage + 1, 1);
+    } else if (info.offset.x > threshold) {
+      // Swiped right → prev page
+      goToPage(currentPage - 1, -1);
+    }
+  };
+
+  const handleTap = (e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const third = rect.width / 3;
+    
+    if (x < third) {
+      goToPage(currentPage - 1, -1);
+    } else if (x > third * 2) {
+      goToPage(currentPage + 1, 1);
+    } else {
+      setShowNav(s => !s);
+    }
+  };
 
   const prevChapter = adjacentChapters?.prev;
   const nextChapter = adjacentChapters?.next;
-
   const totalPages = pages?.length || 0;
-  const loadedPages = Array.from(pageStates.values()).filter(s => s.status === 'done').length;
+  const currentPageData = pages?.[currentPage];
 
-  if (isLoading || loadingPages) return (
+  if (isLoading || pagesLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
   );
 
@@ -251,157 +199,225 @@ const ReaderPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><p className="text-white/50">Chapter not found</p></div>
   );
 
+  // Page turn animation variants (book-like)
+  const variants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? '100%' : '-100%',
+      rotateY: dir > 0 ? -15 : 15,
+      opacity: 0.5,
+      scale: 0.95,
+    }),
+    center: {
+      x: 0,
+      rotateY: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? '-100%' : '100%',
+      rotateY: dir > 0 ? 15 : -15,
+      opacity: 0.5,
+      scale: 0.95,
+    }),
+  };
+
+  const isEnd = currentPage >= totalPages;
+
   return (
     <div
       ref={fullscreenRef}
-      className="min-h-screen bg-[#0a0a0a] relative select-none"
+      className="fixed inset-0 bg-[#0a0a0a] z-[100] select-none flex flex-col"
       onContextMenu={e => e.preventDefault()}
-      onDragStart={e => e.preventDefault()}
-      style={{ WebkitUserSelect: 'none', userSelect: 'none' } as React.CSSProperties}
+      style={{ WebkitUserSelect: 'none', userSelect: 'none', perspective: '1200px' } as React.CSSProperties}
     >
       <style>{`
         .reader-canvas { -webkit-touch-callout: none; -webkit-user-select: none; pointer-events: none; }
-        @media print { .reader-container { display: none !important; } }
+        @media print { .reader-swipe { display: none !important; } }
       `}</style>
 
-      {isFullscreen && (
-        <button
-          onClick={() => { toggleFullscreen(); setShowNav(true); }}
-          className="fixed top-4 left-4 z-[60] p-2 rounded-full bg-black/30 text-white/40 hover:text-white/80 hover:bg-black/60 transition-all"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-      )}
-
-      {showNav && !isFullscreen && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/10">
-          <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-            <button onClick={() => navigate(`/manhwa/${manga.slug}`)} className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Back
-            </button>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-white truncate max-w-[150px]">{manga.title}</span>
-              <span className="px-3 py-1.5 border border-white/20 text-sm text-white">Ch. {chapterNum}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button onClick={toggleFullscreen} className="p-2 text-white/70 hover:text-white" title="Fullscreen">
-                <Maximize className="w-4 h-4" />
+      {/* Top nav */}
+      <AnimatePresence>
+        {showNav && (
+          <motion.div
+            initial={{ y: -60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -60, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="absolute top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/10"
+          >
+            <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+              <button onClick={() => navigate(`/manhwa/${manga.slug}`)} className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors">
+                <ArrowLeft className="w-4 h-4" /> Back
               </button>
-              {prevChapter != null && <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="p-2 text-white/70 hover:text-white"><ChevronLeft className="w-4 h-4" /></Link>}
-              {nextChapter != null && <Link to={`/read/${manga.slug}/chapter-${nextChapter}`} className="p-2 text-white/70 hover:text-white"><ChevronRight className="w-4 h-4" /></Link>}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-white truncate max-w-[150px]">{manga.title}</span>
+                <span className="px-3 py-1.5 border border-white/20 text-sm text-white rounded">Ch. {chapterNum}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                {prevChapter != null && <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="p-2 text-white/70 hover:text-white"><ChevronLeft className="w-4 h-4" /></Link>}
+                {nextChapter != null && <Link to={`/read/${manga.slug}/chapter-${nextChapter}`} className="p-2 text-white/70 hover:text-white"><ChevronRight className="w-4 h-4" /></Link>}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main swipe area */}
+      <div
+        className="flex-1 relative overflow-hidden reader-swipe"
+        onClick={handleTap}
+      >
+        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+          {!isEnd && currentPageData ? (
+            <motion.div
+              key={currentPageData.id}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: 'spring', stiffness: 300, damping: 30 },
+                rotateY: { type: 'spring', stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 },
+                scale: { duration: 0.25 },
+              }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.15}
+              onDragEnd={handleDragEnd}
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              {renderedPages.has(currentPageData.page_number) ? (
+                <canvas
+                  ref={el => {
+                    if (el && canvasRefs.current.has(currentPageData.page_number)) {
+                      const offscreen = canvasRefs.current.get(currentPageData.page_number)!;
+                      el.width = offscreen.width;
+                      el.height = offscreen.height;
+                      const ctx = el.getContext('2d');
+                      if (ctx) ctx.drawImage(offscreen, 0, 0);
+                    }
+                  }}
+                  className="reader-canvas max-w-full max-h-full object-contain"
+                />
+              ) : errorPages.has(currentPageData.page_number) ? (
+                <div className="flex flex-col items-center gap-3">
+                  <ImageIcon className="w-8 h-8 text-destructive/60" />
+                  <p className="text-white/50 text-sm">Failed to load page {currentPageData.page_number}</p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      imageCache.current.delete(currentPageData.id);
+                      setErrorPages(prev => { const n = new Set(prev); n.delete(currentPageData.page_number); return n; });
+                      const canvas = canvasRefs.current.get(currentPageData.page_number);
+                      if (canvas) renderPageToCanvas(currentPageData, canvas);
+                    }}
+                    className="px-3 py-1.5 text-xs border border-primary/40 text-primary hover:bg-primary/10 transition-colors rounded"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+                    <ImageIcon className="w-5 h-5 text-primary/60 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  <p className="text-white/50 text-sm">Loading page {currentPageData.page_number}...</p>
+                </div>
+              )}
+            </motion.div>
+          ) : isEnd ? (
+            <motion.div
+              key="end-screen"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <div className="text-center space-y-6 p-8">
+                <p className="text-white/60 text-lg font-medium">End of Chapter {chapterNum}</p>
+                <div className="flex justify-center gap-3">
+                  {prevChapter != null && (
+                    <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="px-5 py-2.5 border border-white/20 text-white text-sm font-medium flex items-center gap-1 hover:bg-white/5 rounded">
+                      <ChevronLeft className="w-4 h-4" /> Previous
+                    </Link>
+                  )}
+                  {nextChapter != null && (
+                    <Link to={`/read/${manga.slug}/chapter-${nextChapter}`} className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold flex items-center gap-1 rounded">
+                      Next <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  )}
+                </div>
+                <button
+                  onClick={() => navigate(`/manhwa/${manga.slug}`)}
+                  className="text-sm text-white/40 hover:text-white/70 transition-colors"
+                >
+                  Back to manga page
+                </button>
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
+        {/* Tap zone hints (shown briefly) */}
+        {showNav && totalPages > 0 && (
+          <div className="absolute inset-0 flex pointer-events-none">
+            <div className="w-1/3 flex items-center justify-center">
+              <ChevronLeft className="w-8 h-8 text-white/10" />
+            </div>
+            <div className="w-1/3" />
+            <div className="w-1/3 flex items-center justify-center">
+              <ChevronRight className="w-8 h-8 text-white/10" />
             </div>
           </div>
-        </div>
-      )}
-
-      <div
-        ref={scrollContainerRef}
-        className={`reader-container max-w-3xl mx-auto ${isFullscreen ? 'pt-0 pb-4' : 'pt-16 pb-20'} cursor-pointer`}
-        onClick={() => { if (isFullscreen) setShowNav(s => !s); else setShowNav(!showNav); }}
-      >
-        {!isFullscreen && (
-          <div className="px-2 text-center text-xs text-white/30 py-4">🔒 Content protected · Tap to toggle navigation</div>
         )}
-
-        {pages && pages.length > 0 ? (
-          pages.map(page => {
-            const state = pageStates.get(page.page_number);
-            const status = state?.status || 'idle';
-            const isPageLoading = status === 'idle' || status === 'loading';
-            const isPageError = status === 'error';
-            const isPageDone = status === 'done';
-
-            return (
-              <div
-                key={page.id}
-                className="relative"
-                ref={el => { if (el) sentinelRefs.current.set(page.page_number, el); }}
-                data-page={page.page_number}
-              >
-                {isPageLoading && (
-                  <div className="flex flex-col items-center justify-center py-24 gap-3">
-                    <div className="relative">
-                      <div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-                      <ImageIcon className="w-5 h-5 text-primary/60 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                    </div>
-                    <p className="text-white/50 text-sm font-medium">Loading page {page.page_number}...</p>
-                    <p className="text-white/30 text-xs">Please wait, we're fetching the content</p>
-                  </div>
-                )}
-
-                {isPageError && (
-                  <div className="flex flex-col items-center justify-center py-24 gap-3">
-                    <ImageIcon className="w-8 h-8 text-destructive/60" />
-                    <p className="text-white/50 text-sm">Failed to load page {page.page_number}</p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const canvas = canvasRefs.current.get(page.page_number);
-                        if (canvas) {
-                          imageCache.current.delete(page.id);
-                          loadingRef.current.delete(page.page_number);
-                          renderPageToCanvas(page, canvas);
-                        }
-                      }}
-                      className="px-3 py-1.5 text-xs border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
-
-                <canvas
-                  ref={el => { if (el) canvasRefs.current.set(page.page_number, el); }}
-                  className={`reader-canvas w-full ${isPageDone ? '' : 'hidden'}`}
-                />
-              </div>
-            );
-          })
-        ) : (
-          <div className="text-center py-20 text-white/30">No pages available for this chapter.</div>
-        )}
-
-        <div className="text-center py-8 space-y-4">
-          <p className="text-white/50 text-sm">End of Chapter {chapterNum}</p>
-          <div className="flex justify-center gap-3">
-            {prevChapter != null && (
-              <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="px-4 py-2 border border-white/20 text-white text-sm font-medium flex items-center gap-1 hover:bg-white/5">
-                <ChevronLeft className="w-4 h-4" /> Previous
-              </Link>
-            )}
-            {nextChapter != null && (
-              <Link to={`/read/${manga.slug}/chapter-${nextChapter}`} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-bold flex items-center gap-1 border-2 border-white/20">
-                Next <ChevronRight className="w-4 h-4" />
-              </Link>
-            )}
-          </div>
-        </div>
       </div>
 
-      {showNav && !isFullscreen && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-t border-white/10">
-          <div className="max-w-3xl mx-auto px-4 py-3">
-            <div className="flex items-center gap-3">
-              {prevChapter != null && <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="p-2 text-white/70 hover:text-white"><ChevronLeft className="w-4 h-4" /></Link>}
-              <div className="flex-1">
-                <div className="h-1.5 bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-500"
-                    style={{ width: totalPages > 0 ? `${(loadedPages / totalPages) * 100}%` : '0%' }}
-                  />
+      {/* Bottom bar */}
+      <AnimatePresence>
+        {showNav && (
+          <motion.div
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 60, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="absolute bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-t border-white/10"
+          >
+            <div className="max-w-3xl mx-auto px-4 py-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); goToPage(currentPage - 1, -1); }}
+                  disabled={currentPage <= 0}
+                  className="p-2 text-white/70 hover:text-white disabled:text-white/20 transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="flex-1">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-300 rounded-full"
+                      style={{ width: totalPages > 0 ? `${((currentPage + 1) / totalPages) * 100}%` : '0%' }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[10px] text-white/40">Ch. {chapterNum}</span>
+                    <span className="text-[10px] text-white/40">{currentPage + 1} / {totalPages}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-[10px] text-white/40">Ch. {chapterNum}</span>
-                  <span className="text-[10px] text-white/40">
-                    {loadedPages < totalPages ? `Loading ${loadedPages}/${totalPages}...` : `${totalPages} pages`}
-                  </span>
-                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); goToPage(currentPage + 1, 1); }}
+                  disabled={currentPage >= totalPages - 1}
+                  className="p-2 text-white/70 hover:text-white disabled:text-white/20 transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-              {nextChapter != null && <Link to={`/read/${manga.slug}/chapter-${nextChapter}`} className="p-2 text-white/70 hover:text-white"><ChevronRight className="w-4 h-4" /></Link>}
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
