@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X } from 'lucide-react';
+import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 const allGenres = [
@@ -40,6 +40,9 @@ const PublisherDashboard: React.FC = () => {
   const [pageFiles, setPageFiles] = useState<File[]>([]);
   const [uploadingChapter, setUploadingChapter] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
   const pageInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch creator's manga
@@ -231,13 +234,19 @@ const PublisherDashboard: React.FC = () => {
 
     try {
       // Create chapter record first
+      const scheduledAt = scheduleEnabled && scheduledDate && scheduledTime
+        ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
+        : null;
+
       const { data: chapter, error: chapterError } = await supabase
         .from('chapters')
         .insert({
           manga_id: selectedMangaId,
           chapter_number: chapterNumber,
           title: chapterTitle || null,
-        })
+          is_published: !scheduledAt,
+          scheduled_at: scheduledAt,
+        } as any)
         .select()
         .single();
 
@@ -281,10 +290,14 @@ const PublisherDashboard: React.FC = () => {
         throw new Error(result.error || 'Upload failed');
       }
 
-      toast.success(`Chapter ${chapterNumber} uploaded! (${result.pages_uploaded} pages)`);
+      const schedLabel = scheduledAt ? ` (scheduled for ${new Date(scheduledAt).toLocaleString()})` : '';
+      toast.success(`Chapter ${chapterNumber} uploaded!${schedLabel} (${result.pages_uploaded} pages)`);
       setPageFiles([]);
       setChapterTitle('');
       setChapterNumber(prev => prev + 1);
+      setScheduleEnabled(false);
+      setScheduledDate('');
+      setScheduledTime('');
       queryClient.invalidateQueries({ queryKey: ['creator-chapters'] });
     } catch (err: any) {
       toast.error(err.message || 'Failed to upload chapter');
