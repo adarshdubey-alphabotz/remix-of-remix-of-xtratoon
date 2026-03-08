@@ -93,7 +93,7 @@ const BrowsePage: React.FC = () => {
     <div className="min-h-screen pt-24 pb-12 bg-background">
       <div className="max-w-7xl mx-auto px-4">
         <ScrollReveal>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-8">
             <h1 className="text-display text-5xl sm:text-6xl tracking-wider">
               <span className="text-primary">BROWSE</span> & DISCOVER
             </h1>
@@ -106,7 +106,6 @@ const BrowsePage: React.FC = () => {
               </button>
             </div>
           </div>
-          </h1>
         </ScrollReveal>
 
         <div className="flex flex-col lg:flex-row gap-8">
