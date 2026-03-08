@@ -29,6 +29,7 @@ import SearchCreators from "./pages/SearchCreators";
 import CommunityPage from "./pages/CommunityPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import MyPostsPage from "./pages/MyPostsPage";
+import BookmarksPage from "./pages/BookmarksPage";
 import ResetPassword from "./pages/ResetPassword";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -86,6 +87,7 @@ const AnimatedRoutes = () => {
         <Route path="/community" element={<PageTransition><CommunityPage /></PageTransition>} />
         <Route path="/community/post/:postId" element={<PageTransition><PostDetailPage /></PageTransition>} />
         <Route path="/community/my-posts" element={<PageTransition><MyPostsPage /></PageTransition>} />
+        <Route path="/community/bookmarks" element={<PageTransition><BookmarksPage /></PageTransition>} />
         <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
         <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
