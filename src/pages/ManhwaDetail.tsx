@@ -194,6 +194,60 @@ const ManhwaDetail: React.FC = () => {
         url={pageUrl}
         keywords={`${manhwa.title}, read ${manhwa.title} online, ${manhwa.title} manhwa, ${(manhwa.genres || []).join(', ')}, Xtratoon, free manhwa, read manhwa online`}
       />
+      {/* JSON-LD Structured Data for this manhwa */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ComicSeries",
+            "name": manhwa.title,
+            "url": pageUrl,
+            "description": manhwa.description || `Read ${manhwa.title} manhwa online for free on Xtratoon.`,
+            "image": coverUrl || undefined,
+            "genre": manhwa.genres || [],
+            "inLanguage": manhwa.language || "Korean",
+            "author": {
+              "@type": "Person",
+              "name": creatorName,
+              "url": creatorProfile?.username ? `https://xtratoon.com/publisher/${creatorProfile.username}` : undefined,
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Xtratoon",
+              "url": "https://xtratoon.com",
+            },
+            "aggregateRating": (manhwa.rating_count || 0) > 0 ? {
+              "@type": "AggregateRating",
+              "ratingValue": Number(manhwa.rating_average || 0).toFixed(1),
+              "ratingCount": manhwa.rating_count,
+              "bestRating": "5",
+              "worstRating": "1",
+            } : undefined,
+            "numberOfEpisodes": allChapters.length || undefined,
+            "datePublished": manhwa.created_at?.split("T")[0],
+            "dateModified": manhwa.updated_at?.split("T")[0],
+            "isAccessibleForFree": true,
+            "creativeWorkStatus": manhwa.status === "ONGOING" ? "Incomplete" : "Complete",
+            "keywords": [manhwa.title, "manhwa", "manga", "webtoon", "read online free", ...(manhwa.genres || [])].join(", "),
+          })
+        }}
+      />
+      {/* BreadcrumbList for this manhwa */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://xtratoon.com" },
+              { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://xtratoon.com/browse" },
+              { "@type": "ListItem", "position": 3, "name": manhwa.title, "item": pageUrl },
+            ]
+          })
+        }}
+      />
       {/* Parallax Hero */}
       <div ref={heroRef} className="relative h-72 sm:h-80 lg:h-[420px] overflow-hidden">
         {/* Layer 1: Background image with parallax */}
