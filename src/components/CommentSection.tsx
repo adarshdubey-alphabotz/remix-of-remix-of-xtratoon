@@ -15,7 +15,7 @@ interface Comment {
   content: string;
   created_at: string;
   is_pinned?: boolean;
-  profile?: { username: string | null; display_name: string | null; avatar_url: string | null };
+  profile?: { username: string | null; display_name: string | null; avatar_url: string | null; is_verified?: boolean };
   replies?: Comment[];
 }
 
