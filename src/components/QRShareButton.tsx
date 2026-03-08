@@ -27,7 +27,7 @@ const QRShareButton: React.FC<QRShareButtonProps> = ({ url, title }) => {
       a.href = canvas.toDataURL('image/png');
       a.click();
     };
-    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   return (
