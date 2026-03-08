@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, Grid3X3, MessageSquare } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, Grid3X3, MessageSquare, Command } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -79,6 +79,8 @@ const Navbar: React.FC = () => {
     setLogoutPending(false);
   };
   const isActive = (path: string) => location.pathname === path;
+  const isReaderPage = location.pathname.startsWith('/read/');
+  const isHomePage = location.pathname === '/' || location.pathname === '/home';
 
   // User notifications
   const { notifications: userNotifs, unreadCount: userUnreadCount, markRead: markUserNotifRead, markAllRead: markAllUserNotifsRead } = useUserNotifications();
@@ -96,6 +98,9 @@ const Navbar: React.FC = () => {
     exit: { opacity: 0, scale: 0.95, y: -8 },
   };
 
+  // Hide navbar completely in reader mode
+  if (isReaderPage) return null;
+
   return (
     <>
       {/* Desktop: floating glass pill navbar */}
@@ -103,12 +108,16 @@ const Navbar: React.FC = () => {
         <motion.div
           className="pointer-events-auto flex items-center gap-1 rounded-full p-1.5 border"
           style={{
-            background: scrolled
+            background: isHomePage && !scrolled
+              ? 'hsla(var(--background) / 0.15)'
+              : scrolled
               ? 'hsla(var(--glass-bg))'
               : 'hsla(var(--background) / 0.4)',
             backdropFilter: 'blur(60px) saturate(1.8)',
             WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
-            borderColor: scrolled
+            borderColor: isHomePage && !scrolled
+              ? 'hsla(0, 0%, 100% / 0.15)'
+              : scrolled
               ? 'hsla(var(--glass-border))'
               : 'hsla(var(--border) / 0.3)',
             boxShadow: scrolled
@@ -192,16 +201,15 @@ const Navbar: React.FC = () => {
           {/* Divider */}
           <div className="w-px h-6 bg-border/40 mx-1" />
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="w-36 pl-9 pr-3 py-2 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:w-48 transition-all duration-300 rounded-full"
-            />
-          </form>
+          {/* Search — triggers ⌘K spotlight */}
+          <button
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            className="flex items-center gap-2 px-3 py-2 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
+          >
+            <Search className="w-4 h-4" />
+            <span className="hidden lg:inline">Search...</span>
+            <kbd className="hidden lg:inline-flex px-1.5 py-0.5 text-[9px] font-bold bg-muted rounded border border-border/50">⌘K</kbd>
+          </button>
 
           {/* Theme toggle */}
           <button onClick={toggleTheme} className="p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground" aria-label="Toggle theme" title={`Theme: ${theme}`}>

@@ -4,6 +4,7 @@ import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Spar
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import GenreWheel from '@/components/GenreWheel';
 
 interface MangaItem {
   id: string;
@@ -172,6 +173,7 @@ const RankedItem: React.FC<{ manhwa: MangaItem; rank: number; index: number }> =
 
 const ExplorePage: React.FC = () => {
   const [activeGenre, setActiveGenre] = useState('All');
+  const [showWheel, setShowWheel] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
@@ -209,22 +211,42 @@ const ExplorePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pt-20">
-      {/* Genre tabs */}
+      {/* Genre tabs + wheel toggle */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-6">
-        <motion.div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none' }}
-          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          {genres.map((g, i) => {
-            const isActive = activeGenre === g;
-            return (
-              <motion.button key={g} onClick={() => setActiveGenre(g)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${isActive ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40'}`}
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
-                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.3 }}>
-                {g}
-              </motion.button>
-            );
-          })}
-        </motion.div>
+        <div className="flex items-center gap-3 mb-3">
+          <motion.div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1" style={{ scrollbarWidth: 'none' }}
+            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            {genres.map((g, i) => {
+              const isActive = activeGenre === g;
+              return (
+                <motion.button key={g} onClick={() => setActiveGenre(g)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${isActive ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40'}`}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+                  initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.3 }}>
+                  {g}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+          <button
+            onClick={() => setShowWheel(!showWheel)}
+            className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex-shrink-0 ${showWheel ? 'bg-primary text-primary-foreground border-primary' : 'border-border/40 text-muted-foreground hover:text-foreground'}`}
+          >
+            🎯 Wheel
+          </button>
+        </div>
+
+        {/* Genre Wheel */}
+        {showWheel && (
+          <motion.div
+            className="flex justify-center py-4 mb-4"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <GenreWheel genres={genres} activeGenre={activeGenre} onSelect={setActiveGenre} />
+          </motion.div>
+        )}
       </div>
 
       {isLoading ? (
