@@ -48,6 +48,16 @@ const PostDetailPage: React.FC = () => {
     enabled: !!postId,
   });
 
+  // Increment view count on post detail visit
+  useEffect(() => {
+    if (!post?.id) return;
+    supabase
+      .from('community_posts' as any)
+      .update({ views_count: (post.views_count || 0) + 1 })
+      .eq('id', post.id)
+      .then(() => {});
+  }, [post?.id]);
+
   const { data: creator } = useQuery({
     queryKey: ['post-creator', post?.creator_id],
     queryFn: async () => {
