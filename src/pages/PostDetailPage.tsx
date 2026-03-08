@@ -227,7 +227,7 @@ const PostDetailPage: React.FC = () => {
           <div className="flex gap-3 mb-4">
             <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
               {creator?.avatar_url ? (
-                <img src={creator.avatar_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                <img src={creator.avatar_url} className="w-12 h-12 rounded-full object-cover" alt={`${creator.display_name || creator.username || 'Creator'}'s avatar`} />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                   <User className="w-6 h-6 text-muted-foreground" />
