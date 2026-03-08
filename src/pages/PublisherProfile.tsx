@@ -376,7 +376,7 @@ const PublisherProfile: React.FC = () => {
                       <p className="text-xs text-muted-foreground mb-2">{timeAgo(post.created_at)}</p>
                       {post.content && <p className="text-sm whitespace-pre-wrap mb-2">{post.content}</p>}
                       {post.image_url && (
-                        <img src={post.image_url} alt="" className="w-full rounded-xl object-cover max-h-[500px]" loading="lazy" />
+                        <img src={post.image_url} alt={`Post by ${profile.display_name || profile.username || 'creator'}`} className="w-full rounded-xl object-cover max-h-[500px]" loading="lazy" />
                       )}
                     </div>
                     <div className="flex items-center gap-4 px-4 py-3 border-t border-border/30">
