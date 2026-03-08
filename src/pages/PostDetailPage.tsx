@@ -252,7 +252,7 @@ const PostDetailPage: React.FC = () => {
           {/* Post image */}
           {post.image_url && (
             <div className="rounded-2xl overflow-hidden border border-border/30 mb-4">
-              <img src={post.image_url} alt="" className="w-full object-contain max-h-[600px]" />
+              <img src={post.image_url} alt={`Post image by ${creator?.display_name || creator?.username || 'creator'}`} className="w-full object-contain max-h-[600px]" />
             </div>
           )}
 
