@@ -291,10 +291,10 @@ const ExplorePage: React.FC = () => {
 
           {/* Content Sections */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-20">
-            <ScrollSection title="TOP THIS WEEK" icon={<Flame className="w-5 h-5" />} items={topByViews} viewAllLink="/charts"
+            <ScrollSection title="TOP THIS WEEK" icon={<Flame className="w-5 h-5" />} items={topByViews} viewAllLink="/charts" creatorMap={creatorMap}
               badge={(_, i) => i === 0 ? { text: 'HOT', color: 'bg-destructive text-destructive-foreground' } : i === 1 ? { text: 'TOP', color: 'bg-foreground text-background' } : null} />
 
-            <ScrollSection title="RECENTLY ADDED" icon={<Clock className="w-5 h-5" />} items={recentlyAdded} viewAllLink="/browse"
+            <ScrollSection title="RECENTLY ADDED" icon={<Clock className="w-5 h-5" />} items={recentlyAdded} viewAllLink="/browse" creatorMap={creatorMap}
               badge={(_, i) => i < 3 ? { text: 'NEW', color: 'bg-primary text-primary-foreground' } : null} />
 
             {topCharts.length > 0 && (
@@ -313,7 +313,7 @@ const ExplorePage: React.FC = () => {
             )}
 
             {highRated.length > 0 && (
-              <ScrollSection title="FEATURED PICKS" icon={<TrendingUp className="w-5 h-5" />} items={highRated}
+              <ScrollSection title="FEATURED PICKS" icon={<TrendingUp className="w-5 h-5" />} items={highRated} creatorMap={creatorMap}
                 badge={(m) => Number(m.rating_average) >= 4.5 ? { text: '★ TOP RATED', color: 'bg-yellow-500/90 text-black' } : null} />
             )}
           </div>
