@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
 import CommentSection from '@/components/CommentSection';
+import LibraryStatusButton from '@/components/LibraryStatusButton';
 import SocialShareMenu from '@/components/SocialShareMenu';
 import QRShareButton from '@/components/QRShareButton';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
