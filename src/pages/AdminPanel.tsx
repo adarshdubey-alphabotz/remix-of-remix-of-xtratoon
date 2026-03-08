@@ -13,6 +13,8 @@ const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [confirmModal, setConfirmModal] = useState<{ id: string; action: string; type?: string } | null>(null);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [verifyUsername, setVerifyUsername] = useState('');
+  const [verifyLoading, setVerifyLoading] = useState(false);
 
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
