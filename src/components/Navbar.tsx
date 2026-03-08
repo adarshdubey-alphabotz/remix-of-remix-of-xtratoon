@@ -84,7 +84,7 @@ const Navbar: React.FC = () => {
   const isHomePage = location.pathname === '/' || location.pathname === '/home';
 
   // User notifications
-  const { notifications: userNotifs, unreadCount: userUnreadCount, markRead: markUserNotifRead, markAllRead: markAllUserNotifsRead } = useUserNotifications();
+  const { unreadCount: userUnreadCount } = useUserNotifications();
 
   const navItems = [
     { to: '/home', label: 'Home', icon: Home },
