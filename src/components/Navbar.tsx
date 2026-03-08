@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, Grid3X3, MessageSquare } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, Grid3X3, MessageSquare, Command } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -79,6 +79,8 @@ const Navbar: React.FC = () => {
     setLogoutPending(false);
   };
   const isActive = (path: string) => location.pathname === path;
+  const isReaderPage = location.pathname.startsWith('/read/');
+  const isHomePage = location.pathname === '/' || location.pathname === '/home';
 
   // User notifications
   const { notifications: userNotifs, unreadCount: userUnreadCount, markRead: markUserNotifRead, markAllRead: markAllUserNotifsRead } = useUserNotifications();
