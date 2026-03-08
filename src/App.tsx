@@ -29,6 +29,7 @@ import SearchCreators from "./pages/SearchCreators";
 import CommunityPage from "./pages/CommunityPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import MyPostsPage from "./pages/MyPostsPage";
+import BookmarksPage from "./pages/BookmarksPage";
 import ResetPassword from "./pages/ResetPassword";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
