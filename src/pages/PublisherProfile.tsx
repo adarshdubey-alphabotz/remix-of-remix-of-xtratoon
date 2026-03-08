@@ -355,9 +355,8 @@ const PublisherProfile: React.FC = () => {
                     <ManhwaCard
                       key={m.id}
                       manhwa={{
-                        _id: m.id, slug: m.slug, title: m.title, description: m.description || '',
-                        cover: m.cover_url || '', genres: m.genres || [], status: m.status, type: 'Manhwa',
-                        views: m.views || 0, ratingAverage: Number(m.rating_average) || 0,
+                        ...m,
+                        profiles: { username: profile?.username || null, display_name: profile?.display_name || null },
                       } as any}
                       index={i}
                     />

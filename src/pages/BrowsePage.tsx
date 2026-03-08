@@ -97,18 +97,8 @@ const BrowsePage: React.FC = () => {
   }, [results, selectedGenres, ratingFilter]);
 
   const mappedResults = filtered.map(m => ({
-    _id: m.id,
-    slug: m.slug,
-    title: m.title,
-    description: m.description || '',
-    cover: m.cover_url || '',
-    genres: m.genres || [],
-    status: m.status,
-    type: 'Manhwa',
-    views: m.views || 0,
-    ratingAverage: Number(m.rating_average) || 0,
-    author: creatorMap[m.creator_id] || '',
-    creator: creatorMap[m.creator_id] ? { username: creatorMap[m.creator_id] } : undefined,
+    ...m,
+    profiles: creatorMap[m.creator_id] ? { username: creatorMap[m.creator_id], display_name: null } : null,
   }));
 
   const toggleGenre = (g: string) => {
