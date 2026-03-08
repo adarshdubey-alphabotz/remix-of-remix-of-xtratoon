@@ -391,7 +391,7 @@ const PublisherProfile: React.FC = () => {
               {activeTab === tab.key && (
                 <motion.div
                   layoutId="profile-tab-indicator"
-                  className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-primary rounded-full"
+                  className={`absolute bottom-0 left-1/4 right-1/4 h-0.5 ${ts.tabIndicator} rounded-full`}
                   transition={{ type: 'spring', stiffness: 400, damping: 35 }}
                 />
               )}
