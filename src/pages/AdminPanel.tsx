@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
@@ -11,6 +11,7 @@ const AdminPanel: React.FC = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [confirmModal, setConfirmModal] = useState<{ id: string; action: string; type?: string } | null>(null);
+  const [showDeleted, setShowDeleted] = useState(false);
 
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
@@ -103,6 +104,18 @@ const AdminPanel: React.FC = () => {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const unbanUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.from('profiles').update({ is_banned: false, banned_reason: null } as any).eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('User unbanned');
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const dismissReport = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('reports' as any).update({ status: 'DISMISSED' }).eq('id', id);
@@ -122,17 +135,25 @@ const AdminPanel: React.FC = () => {
       deleteManga.mutate(confirmModal.id);
     } else if (confirmModal.type === 'ban') {
       banUser.mutate({ userId: confirmModal.id, reason: confirmModal.action });
+    } else if (confirmModal.type === 'unban') {
+      unbanUser.mutate(confirmModal.id);
     } else {
       updateApproval.mutate({ id: confirmModal.id, status: confirmModal.action });
     }
     setConfirmModal(null);
   };
 
-  // Fetch community posts for admin
+  // Fetch community posts for admin (including soft-deleted)
   const { data: communityPosts = [] } = useQuery({
-    queryKey: ['admin-community-posts'],
+    queryKey: ['admin-community-posts', showDeleted],
     queryFn: async () => {
-      const { data } = await supabase.from('community_posts' as any).select('*').order('created_at', { ascending: false }).limit(50);
+      let query = supabase.from('community_posts' as any).select('*').order('created_at', { ascending: false }).limit(50);
+      if (showDeleted) {
+        query = query.eq('is_deleted', true);
+      } else {
+        query = query.eq('is_deleted', false);
+      }
+      const { data } = await query;
       return (data || []) as any[];
     },
     enabled: isAdmin,
@@ -150,7 +171,38 @@ const AdminPanel: React.FC = () => {
   });
   const communityProfileMap = Object.fromEntries(communityProfiles.map((p: any) => [p.user_id, p]));
 
-  const deleteCommunityPost = useMutation({
+  // Soft delete community post
+  const softDeletePost = useMutation({
+    mutationFn: async (postId: string) => {
+      const { error } = await supabase.from('community_posts' as any)
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() } as any)
+        .eq('id', postId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Post soft-deleted. Can be restored within 7 days.');
+      queryClient.invalidateQueries({ queryKey: ['admin-community-posts'] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Restore soft-deleted post
+  const restorePost = useMutation({
+    mutationFn: async (postId: string) => {
+      const { error } = await supabase.from('community_posts' as any)
+        .update({ is_deleted: false, deleted_at: null } as any)
+        .eq('id', postId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Post restored!');
+      queryClient.invalidateQueries({ queryKey: ['admin-community-posts'] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Permanent delete
+  const permanentDeletePost = useMutation({
     mutationFn: async (postId: string) => {
       const { data, error } = await supabase.functions.invoke('telegram-community', {
         body: { action: 'delete_post', post_id: postId },
@@ -159,11 +211,28 @@ const AdminPanel: React.FC = () => {
       if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
-      toast.success('Community post deleted');
+      toast.success('Post permanently deleted');
       queryClient.invalidateQueries({ queryKey: ['admin-community-posts'] });
     },
     onError: (err: any) => toast.error(err.message),
   });
+
+  // Check if a soft-deleted post can still be restored (within 7 days)
+  const canRestore = (deletedAt: string | null) => {
+    if (!deletedAt) return false;
+    const deleted = new Date(deletedAt);
+    const now = new Date();
+    const daysDiff = (now.getTime() - deleted.getTime()) / (1000 * 60 * 60 * 24);
+    return daysDiff <= 7;
+  };
+
+  const daysRemaining = (deletedAt: string | null) => {
+    if (!deletedAt) return 0;
+    const deleted = new Date(deletedAt);
+    const now = new Date();
+    const days = 7 - Math.floor((now.getTime() - deleted.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, days);
+  };
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -278,29 +347,69 @@ const AdminPanel: React.FC = () => {
 
           {activeTab === 'community' && (
             <div>
-              <h2 className="text-display text-3xl mb-4 tracking-wider">COMMUNITY POSTS</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-display text-3xl tracking-wider">COMMUNITY POSTS</h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowDeleted(false)}
+                    className={`px-3 py-1.5 text-xs font-bold border transition-colors ${!showDeleted ? 'bg-primary/10 text-primary border-primary' : 'border-foreground/20 text-muted-foreground hover:bg-muted'}`}
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => setShowDeleted(true)}
+                    className={`px-3 py-1.5 text-xs font-bold border transition-colors ${showDeleted ? 'bg-destructive/10 text-destructive border-destructive' : 'border-foreground/20 text-muted-foreground hover:bg-muted'}`}
+                  >
+                    🗑️ Trash
+                  </button>
+                </div>
+              </div>
               <div className="brutal-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                    <th className="px-4 py-3">Creator</th><th className="px-4 py-3">Content</th><th className="px-4 py-3">Likes</th><th className="px-4 py-3">Replies</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Actions</th>
+                    <th className="px-4 py-3">Creator</th><th className="px-4 py-3">Content</th><th className="px-4 py-3">Likes</th><th className="px-4 py-3">Replies</th><th className="px-4 py-3">Date</th>
+                    {showDeleted && <th className="px-4 py-3">Expires</th>}
+                    <th className="px-4 py-3">Actions</th>
                   </tr></thead>
                   <tbody>
                     {communityPosts.map((p: any) => {
                       const cp = communityProfileMap[p.creator_id];
+                      const restorable = showDeleted && canRestore(p.deleted_at);
+                      const days = showDeleted ? daysRemaining(p.deleted_at) : 0;
                       return (
-                        <tr key={p.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                        <tr key={p.id} className={`border-b border-foreground/10 hover:bg-primary/5 transition-colors ${showDeleted ? 'opacity-70' : ''}`}>
                           <td className="px-4 py-3 font-semibold">{cp?.display_name || cp?.username || '—'}</td>
                           <td className="px-4 py-3 text-xs max-w-[200px] truncate">{p.content || '(image only)'}</td>
                           <td className="px-4 py-3 text-muted-foreground">{p.likes_count}</td>
                           <td className="px-4 py-3 text-muted-foreground">{p.replies_count}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
+                          {showDeleted && (
+                            <td className="px-4 py-3">
+                              {restorable ? (
+                                <span className="px-2 py-0.5 text-[10px] font-bold border border-yellow-500/50 text-yellow-600">{days}d left</span>
+                              ) : (
+                                <span className="px-2 py-0.5 text-[10px] font-bold border border-destructive/50 text-destructive">Expired</span>
+                              )}
+                            </td>
+                          )}
                           <td className="px-4 py-3">
-                            <button onClick={() => deleteCommunityPost.mutate(p.id)} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                            <div className="flex gap-1">
+                              {showDeleted ? (
+                                <>
+                                  {restorable && (
+                                    <button onClick={() => restorePost.mutate(p.id)} className="p-1.5 border border-green-500 text-green-500 hover:bg-green-500/10" title="Restore post"><Undo2 className="w-3.5 h-3.5" /></button>
+                                  )}
+                                  <button onClick={() => { if (window.confirm('Permanently delete? This cannot be undone.')) permanentDeletePost.mutate(p.id); }} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Permanently delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                                </>
+                              ) : (
+                                <button onClick={() => softDeletePost.mutate(p.id)} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Soft delete (7-day undo)"><Trash2 className="w-3.5 h-3.5" /></button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
                     })}
-                    {communityPosts.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No community posts 🎉</td></tr>}
+                    {communityPosts.length === 0 && <tr><td colSpan={showDeleted ? 7 : 6} className="px-4 py-8 text-center text-muted-foreground">{showDeleted ? 'No deleted posts' : 'No community posts'} 🎉</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -336,6 +445,14 @@ const AdminPanel: React.FC = () => {
           {activeTab === 'users' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">USERS</h2>
+              {/* Ban appeal info */}
+              <div className="brutal-card p-4 mb-4 flex items-start gap-3 border-l-4 border-primary">
+                <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold">Ban Appeal Process</p>
+                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:admin@xtratoon.com" className="text-primary hover:underline font-semibold">admin@xtratoon.com</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
+                </div>
+              </div>
               <div className="brutal-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
@@ -347,11 +464,26 @@ const AdminPanel: React.FC = () => {
                         <td className="px-4 py-3 font-semibold">{u.username || '—'}</td>
                         <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
-                        <td className="px-4 py-3">{u.is_banned ? <span className="px-2 py-0.5 text-xs font-bold border border-destructive bg-destructive/10 text-destructive">BANNED</span> : <span className="text-xs text-muted-foreground">Active</span>}</td>
                         <td className="px-4 py-3">
-                          {!u.is_banned && u.role_type === 'publisher' && (
-                            <button onClick={() => setConfirmModal({ id: u.user_id, action: 'Banned by admin', type: 'ban' })} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Ban publisher"><Ban className="w-3.5 h-3.5" /></button>
+                          {u.is_banned ? (
+                            <div>
+                              <span className="px-2 py-0.5 text-xs font-bold border border-destructive bg-destructive/10 text-destructive">BANNED</span>
+                              {u.banned_reason && <p className="text-[10px] text-muted-foreground mt-1 max-w-[150px] truncate" title={u.banned_reason}>Reason: {u.banned_reason}</p>}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Active</span>
                           )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-1">
+                            {u.is_banned ? (
+                              <button onClick={() => setConfirmModal({ id: u.user_id, action: 'unban', type: 'unban' })} className="p-1.5 border border-green-500 text-green-500 hover:bg-green-500/10" title="Unban user"><ShieldOff className="w-3.5 h-3.5" /></button>
+                            ) : (
+                              u.role_type === 'publisher' && (
+                                <button onClick={() => setConfirmModal({ id: u.user_id, action: 'Banned by admin', type: 'ban' })} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Ban publisher"><Ban className="w-3.5 h-3.5" /></button>
+                              )
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -377,12 +509,14 @@ const AdminPanel: React.FC = () => {
           <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" />
           <div className="relative bg-background border-2 border-foreground p-6 w-full max-w-sm text-center" style={{ boxShadow: '6px 6px 0 hsl(var(--foreground))' }} onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-2xl tracking-wider mb-2">
-              {confirmModal.type === 'delete' ? '🗑️ DELETE?' : confirmModal.type === 'ban' ? '🚫 BAN USER?' : confirmModal.action === 'APPROVED' ? '✅ APPROVE?' : '❌ REJECT?'}
+              {confirmModal.type === 'delete' ? '🗑️ DELETE?' : confirmModal.type === 'ban' ? '🚫 BAN USER?' : confirmModal.type === 'unban' ? '✅ UNBAN USER?' : confirmModal.action === 'APPROVED' ? '✅ APPROVE?' : '❌ REJECT?'}
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">This action cannot be undone.</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              {confirmModal.type === 'unban' ? 'This will restore the user\'s access to the platform.' : 'This action cannot be undone.'}
+            </p>
             <div className="flex gap-2">
               <button onClick={() => setConfirmModal(null)} className="flex-1 btn-outline rounded-none py-2 text-sm">Cancel</button>
-              <button onClick={handleAction} className="flex-1 py-2 text-sm font-bold border-2 border-foreground bg-destructive text-destructive-foreground">Confirm</button>
+              <button onClick={handleAction} className={`flex-1 py-2 text-sm font-bold border-2 border-foreground ${confirmModal.type === 'unban' ? 'bg-green-500 text-white' : 'bg-destructive text-destructive-foreground'}`}>Confirm</button>
             </div>
           </div>
         </div>
