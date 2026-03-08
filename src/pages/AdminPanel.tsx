@@ -539,6 +539,78 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'verification' && (
+            <div>
+              <h2 className="text-display text-3xl mb-4 tracking-wider">VERIFICATION</h2>
+              <div className="brutal-card p-4 mb-4 flex items-start gap-3 border-l-4 border-primary">
+                <BadgeCheck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold">Official Account Verification</p>
+                  <p className="text-xs text-muted-foreground mt-1">Add a gold verification badge to official Xtratoon team accounts. This is different from the blue tick (coming soon) which will be for verified creators.</p>
+                </div>
+              </div>
+
+              {/* Add verification */}
+              <div className="brutal-card p-5 mb-6">
+                <h3 className="text-sm font-bold mb-3">Verify a User</h3>
+                <div className="flex gap-2">
+                  <input
+                    value={verifyUsername}
+                    onChange={e => setVerifyUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))}
+                    placeholder="Enter username..."
+                    className="flex-1 px-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                    onKeyDown={e => e.key === 'Enter' && handleVerifyUser()}
+                  />
+                  <button
+                    onClick={handleVerifyUser}
+                    disabled={verifyLoading || !verifyUsername.trim()}
+                    className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {verifyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BadgeCheck className="w-4 h-4" />}
+                    Verify
+                  </button>
+                </div>
+              </div>
+
+              {/* Verified users list */}
+              <div className="brutal-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
+                      <th className="px-4 py-3">User</th>
+                      <th className="px-4 py-3">Display Name</th>
+                      <th className="px-4 py-3">Role</th>
+                      <th className="px-4 py-3">Badge</th>
+                      <th className="px-4 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {verifiedUsers.map((u: any) => (
+                      <tr key={u.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                        <td className="px-4 py-3 font-semibold">@{u.username || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
+                        <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
+                        <td className="px-4 py-3"><VerifiedBadge size="md" /></td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleUnverifyUser(u.user_id)}
+                            className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10 rounded"
+                            title="Remove verification"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {verifiedUsers.length === 0 && (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No verified accounts yet</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'blog' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">BLOG MANAGER</h2>
