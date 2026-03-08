@@ -215,6 +215,32 @@ const PublisherProfile: React.FC = () => {
                     </div>
                   )}
                 </div>
+                {/* Social Links */}
+                {profile.social_links && Object.keys(profile.social_links as Record<string, string>).filter(k => (profile.social_links as Record<string, string>)[k]).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {Object.entries(profile.social_links as Record<string, string>).filter(([, v]) => v).map(([key, url]) => {
+                      const icons: Record<string, { label: string; icon: string }> = {
+                        telegram: { label: 'Telegram', icon: '✈️' },
+                        instagram: { label: 'Instagram', icon: '📸' },
+                        twitter: { label: 'Twitter/X', icon: '𝕏' },
+                        pinterest: { label: 'Pinterest', icon: '📌' },
+                        youtube: { label: 'YouTube', icon: '▶️' },
+                        tiktok: { label: 'TikTok', icon: '🎵' },
+                        discord: { label: 'Discord', icon: '💬' },
+                        website: { label: 'Website', icon: '🔗' },
+                      };
+                      const info = icons[key] || { label: key, icon: '🔗' };
+                      const href = url.startsWith('http') ? url : `https://${url}`;
+                      return (
+                        <a key={key} href={href} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                          <span>{info.icon}</span>
+                          <span>{info.label}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
