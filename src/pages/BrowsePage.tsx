@@ -97,18 +97,8 @@ const BrowsePage: React.FC = () => {
   }, [results, selectedGenres, ratingFilter]);
 
   const mappedResults = filtered.map(m => ({
-    _id: m.id,
-    slug: m.slug,
-    title: m.title,
-    description: m.description || '',
-    cover: m.cover_url || '',
-    genres: m.genres || [],
-    status: m.status,
-    type: 'Manhwa',
-    views: m.views || 0,
-    ratingAverage: Number(m.rating_average) || 0,
-    author: creatorMap[m.creator_id] || '',
-    creator: creatorMap[m.creator_id] ? { username: creatorMap[m.creator_id] } : undefined,
+    ...m,
+    profiles: creatorMap[m.creator_id] ? { username: creatorMap[m.creator_id], display_name: null } : null,
   }));
 
   const toggleGenre = (g: string) => {
@@ -255,12 +245,12 @@ const BrowsePage: React.FC = () => {
               <div className="columns-2 sm:columns-3 md:columns-4 gap-4">
                 {mappedResults.map((m, i) => {
                   const heights: Array<'tall' | 'medium' | 'short'> = ['tall', 'medium', 'short', 'medium'];
-                  return <MasonryManhwaCard key={m._id} manhwa={m as any} index={i} height={heights[i % 4]} />;
+                  return <MasonryManhwaCard key={m.id} manhwa={m as any} index={i} height={heights[i % 4]} />;
                 })}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 sm:gap-6">
-                {mappedResults.map((m, i) => <ManhwaCard key={m._id} manhwa={m as any} index={i} />)}
+                {mappedResults.map((m, i) => <ManhwaCard key={m.id} manhwa={m as any} index={i} />)}
               </div>
             )}
 
