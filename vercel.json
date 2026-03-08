@@ -4,6 +4,22 @@
       "source": "/api/img",
       "destination": "https://lpozkutezttxiwafhwul.supabase.co/functions/v1/telegram-proxy"
     },
+    {
+      "source": "/rest/v1/:path*",
+      "destination": "https://lpozkutezttxiwafhwul.supabase.co/rest/v1/:path*"
+    },
+    {
+      "source": "/auth/v1/:path*",
+      "destination": "https://lpozkutezttxiwafhwul.supabase.co/auth/v1/:path*"
+    },
+    {
+      "source": "/storage/v1/:path*",
+      "destination": "https://lpozkutezttxiwafhwul.supabase.co/storage/v1/:path*"
+    },
+    {
+      "source": "/functions/v1/:path*",
+      "destination": "https://lpozkutezttxiwafhwul.supabase.co/functions/v1/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
