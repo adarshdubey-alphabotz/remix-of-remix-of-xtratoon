@@ -104,6 +104,7 @@ const AppLayout = () => (
   <>
     <AntiPiracy />
     <JsonLd />
+    <BanNotice />
     <Navbar />
     <AuthModal />
     <SpotlightSearch />
