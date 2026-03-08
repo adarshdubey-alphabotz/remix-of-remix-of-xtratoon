@@ -328,6 +328,7 @@ const AdminPanel: React.FC = () => {
                 {t.icon} {t.label}
                 {t.id === 'reports' && (stats?.reports || 0) > 0 && <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-destructive text-destructive-foreground font-bold">{stats?.reports}</span>}
                 {t.id === 'submissions' && (stats?.pending || 0) > 0 && <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-yellow-500 text-black font-bold">{stats?.pending}</span>}
+                {t.id === 'chapter-reviews' && (stats?.pendingChapters || 0) > 0 && <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-orange-500 text-white font-bold">{stats?.pendingChapters}</span>}
               </button>
             ))}
           </div>
