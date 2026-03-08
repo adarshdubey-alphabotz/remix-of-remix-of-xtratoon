@@ -763,6 +763,7 @@ const ProfilePage: React.FC = () => {
           {activeSection === 'social' && renderSocial()}
           {activeSection === 'location' && renderLocation()}
           {activeSection === 'security' && renderSecurity()}
+          {activeSection === 'profile-theme' && renderProfileTheme()}
           {activeSection === 'creator' && renderCreator()}
           {activeSection === 'library' && renderLibrary()}
         </AnimatePresence>
