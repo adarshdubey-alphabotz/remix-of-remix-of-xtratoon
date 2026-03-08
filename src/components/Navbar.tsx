@@ -247,58 +247,14 @@ const Navbar: React.FC = () => {
                   ) : null;
                 })()}
               </button>
-              <AnimatePresence>
-                {notifOpen && (
-                  <>
-                    <div className="fixed inset-0" onClick={() => setNotifOpen(false)} />
-                    <motion.div
-                      variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
-                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute right-0 top-full mt-3 w-80 glass-dropdown overflow-hidden max-h-96 overflow-y-auto"
-                    >
-                      <div className="p-4 border-b border-border/50 flex items-center justify-between">
-                        <h3 className="font-display text-lg tracking-wide">NOTIFICATIONS</h3>
-                        {(userUnreadCount > 0 || (isAdmin && adminMode && unreadCount > 0)) && (
-                          <button onClick={() => { if (isAdmin && adminMode) markAllRead(); markAllUserNotifsRead(); }} className="text-xs text-primary hover:underline">Mark all read</button>
-                        )}
-                      </div>
-                      {/* User notifications */}
-                      {userNotifs.length > 0 && (
-                        <div className="divide-y divide-border/30">
-                          {userNotifs.map((n: any) => (
-                            <button key={n.id} onClick={() => {
-                              markUserNotifRead(n.id);
-                              setNotifOpen(false);
-                              if (n.type === 'new_chapter' && n.reference_id) navigate(`/manhwa/${n.reference_id}`);
-                              else if (n.type === 'new_post' && n.reference_id) navigate('/community');
-                            }} className="w-full text-left p-3 hover:bg-muted/40 transition-colors">
-                              <p className="text-sm font-medium">{n.title}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                              <p className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</p>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      {/* Admin notifications */}
-                      {isAdmin && adminMode && adminNotifications.length > 0 && (
-                        <div className="divide-y divide-border/30">
-                          {userNotifs.length > 0 && <div className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/30">Admin</div>}
-                          {adminNotifications.map((n: any) => (
-                            <button key={n.id} onClick={() => { markNotifRead(n.id); setNotifOpen(false); navigate('/admin'); }} className="w-full text-left p-3 hover:bg-muted/40 transition-colors">
-                              <p className="text-sm font-medium">{n.title}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                              <p className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</p>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      {userNotifs.length === 0 && (!(isAdmin && adminMode) || adminNotifications.length === 0) && (
-                        <div className="p-4 text-sm text-muted-foreground">No new notifications</div>
-                      )}
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
+              <NotificationCenter
+                open={notifOpen}
+                onClose={() => setNotifOpen(false)}
+                adminNotifications={adminNotifications}
+                adminMode={adminMode}
+                onMarkAdminRead={markNotifRead}
+                onMarkAllAdminRead={markAllRead}
+              />
             </div>
           )}
 
