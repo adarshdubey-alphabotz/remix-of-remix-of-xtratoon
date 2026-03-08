@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search, Sparkles, MessageSquare,
-  Bell, Palette, Mail, Trash2, Pencil, BarChart3, Image, Upload, MapPin, Clock, Globe,
+  ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search,
+  MessageSquare, Bell, Palette, Mail, Trash2, Pencil, BarChart3, Image, Upload, MapPin, 
+  Clock, Globe, ChevronRight, LogOut, Eye, EyeOff, Camera, Link as LinkIcon, ExternalLink,
+  Plus, X, Instagram, Twitter,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -32,11 +34,62 @@ const timezones = [
 ];
 const currencies = ['USD','EUR','GBP','INR','BDT','JPY','KRW','CNY','BRL','CAD','AUD','NGN','PHP','IDR','MYR','THB','VND','PKR','EGP','ZAR','AED','SAR','TRY','SGD'];
 
+type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library';
+
+interface SocialLinks {
+  telegram?: string;
+  instagram?: string;
+  twitter?: string;
+  pinterest?: string;
+  youtube?: string;
+  tiktok?: string;
+  discord?: string;
+  website?: string;
+  [key: string]: string | undefined;
+}
+
+const SOCIAL_PLATFORMS = [
+  { key: 'telegram', label: 'Telegram', icon: '✈️', placeholder: 'username or t.me/link' },
+  { key: 'instagram', label: 'Instagram', icon: '📸', placeholder: '@username' },
+  { key: 'twitter', label: 'Twitter / X', icon: '𝕏', placeholder: '@username' },
+  { key: 'pinterest', label: 'Pinterest', icon: '📌', placeholder: 'username or link' },
+  { key: 'youtube', label: 'YouTube', icon: '▶️', placeholder: 'channel link' },
+  { key: 'tiktok', label: 'TikTok', icon: '🎵', placeholder: '@username' },
+  { key: 'discord', label: 'Discord', icon: '💬', placeholder: 'username or invite link' },
+  { key: 'website', label: 'Website', icon: '🌐', placeholder: 'https://your-site.com' },
+];
+
+const SettingsRow: React.FC<{ icon: React.ReactNode; label: string; value?: string; onClick?: () => void; danger?: boolean }> = ({ icon, label, value, onClick, danger }) => (
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors text-left ${danger ? 'text-destructive' : ''}`}
+  >
+    <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm ${danger ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+      {icon}
+    </span>
+    <span className="flex-1 min-w-0">
+      <span className={`text-sm font-medium ${danger ? 'text-destructive' : 'text-foreground'}`}>{label}</span>
+      {value && <span className="block text-xs text-muted-foreground truncate">{value}</span>}
+    </span>
+    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+  </button>
+);
+
+const SectionHeader: React.FC<{ onBack: () => void; title: string }> = ({ onBack, title }) => (
+  <div className="flex items-center gap-3 px-4 py-4 border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+    <button onClick={onBack} className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors">
+      <ArrowLeft className="w-5 h-5" />
+    </button>
+    <h2 className="text-lg font-semibold">{title}</h2>
+  </div>
+);
+
 const ProfilePage: React.FC = () => {
   const { user, profile, loading, updateProfile, changePassword, refreshProfile, logout, deleteAccount, isPublisher } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, cycleTheme } = useTheme();
   const navigate = useNavigate();
 
+  const [activeSection, setActiveSection] = useState<ActiveSection>('main');
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
@@ -46,18 +99,22 @@ const ProfilePage: React.FC = () => {
   const [country, setCountry] = useState('');
   const [timezone, setTimezone] = useState('');
   const [currency, setCurrency] = useState('');
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [passError, setPassError] = useState('');
   const [passSuccess, setPassSuccess] = useState('');
   const [passSubmitting, setPassSubmitting] = useState(false);
   const [compactCards, setCompactCards] = useState<boolean>(() => localStorage.getItem('xtratoon-compact-cards') === 'true');
   const [creatorAlerts, setCreatorAlerts] = useState<boolean>(() => localStorage.getItem('xtratoon-creator-alerts') !== 'false');
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [customLinkName, setCustomLinkName] = useState('');
+  const [customLinkUrl, setCustomLinkUrl] = useState('');
 
   useEffect(() => { if (!loading && !user) navigate('/'); }, [loading, user, navigate]);
 
@@ -73,6 +130,7 @@ const ProfilePage: React.FC = () => {
     setCountry(p.country || '');
     setTimezone(p.timezone || '');
     setCurrency(p.currency || '');
+    setSocialLinks(p.social_links || {});
   }, [profile]);
 
   const availableCountries = continent ? (countriesByContinent[continent] || []) : [];
@@ -82,7 +140,6 @@ const ProfilePage: React.FC = () => {
 
   const isCreator = profileType === 'publisher' || isPublisher;
 
-  // Fetch real creator data from Supabase
   const { data: creatorManga = [] } = useQuery({
     queryKey: ['profile-creator-manga', user?.id],
     queryFn: async () => {
@@ -110,7 +167,6 @@ const ProfilePage: React.FC = () => {
     totalBookmarks: creatorManga.reduce((sum, m) => sum + (m.bookmarks || 0), 0),
   }), [creatorManga, creatorChapterCount]);
 
-  // Fetch library from Supabase
   const { data: libraryItems = [] } = useQuery({
     queryKey: ['profile-library', user?.id],
     queryFn: async () => {
@@ -123,13 +179,14 @@ const ProfilePage: React.FC = () => {
 
   const completionScore = useMemo(() => {
     let score = 0;
-    if (displayName.trim().length > 0) score += 20;
-    if (bio.trim().length >= 20) score += 20;
+    if (displayName.trim().length > 0) score += 15;
+    if (bio.trim().length >= 20) score += 15;
     if (username.trim().length >= 5) score += 20;
     if (avatarUrl) score += 20;
-    if (profileType === 'publisher') score += 20;
-    return score;
-  }, [displayName, bio, username, avatarUrl, profileType]);
+    if (profileType === 'publisher') score += 15;
+    if (Object.values(socialLinks).some(v => v && v.trim())) score += 15;
+    return Math.min(score, 100);
+  }, [displayName, bio, username, avatarUrl, profileType, socialLinks]);
 
   const validateUsername = (value: string, creatorMode: boolean) => {
     const normalized = value.trim().toLowerCase();
@@ -150,7 +207,6 @@ const ProfilePage: React.FC = () => {
       const { data: existing } = await supabase.from('profiles').select('id').ilike('username', normalizedUsername).neq('user_id', user.id).limit(1);
       if (existing && existing.length > 0) { setError('Username already taken'); setSaving(false); return; }
     }
-    // Save profile including location fields
     const { error: updateErr } = await supabase.from('profiles').update({
       display_name: displayName.trim() || null,
       bio: bio.trim() || null,
@@ -161,6 +217,7 @@ const ProfilePage: React.FC = () => {
       country: country || null,
       timezone: timezone || null,
       currency: currency || null,
+      social_links: socialLinks,
     } as any).eq('user_id', user.id);
     if (updateErr) {
       if (updateErr.code === '23505') setError('Username already taken');
@@ -168,8 +225,9 @@ const ProfilePage: React.FC = () => {
       setSaving(false); return;
     }
     await refreshProfile();
-    setSuccess('Profile updated successfully');
+    setSuccess('Profile updated!');
     setSaving(false);
+    setTimeout(() => setSuccess(''), 3000);
   };
 
   const handlePasswordChange = async () => {
@@ -180,7 +238,8 @@ const ProfilePage: React.FC = () => {
     setPassSubmitting(true);
     const result = await changePassword(newPassword);
     if (!result.success) { setPassError(result.error || 'Could not change password'); setPassSubmitting(false); return; }
-    setPassSuccess('Password updated'); setNewPassword(''); setConfirmPassword(''); setPassSubmitting(false);
+    setPassSuccess('Password updated!'); setNewPassword(''); setConfirmPassword(''); setPassSubmitting(false);
+    setTimeout(() => setPassSuccess(''), 3000);
   };
 
   const handleGlobalLogout = async () => { await logout(); navigate('/'); };
@@ -193,224 +252,462 @@ const ProfilePage: React.FC = () => {
     navigate('/'); setDeletingAccount(false);
   };
 
+  const updateSocialLink = (key: string, value: string) => {
+    setSocialLinks(prev => ({ ...prev, [key]: value }));
+  };
+
+  const removeSocialLink = (key: string) => {
+    setSocialLinks(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const addCustomLink = () => {
+    if (!customLinkName.trim() || !customLinkUrl.trim()) return;
+    const key = `custom_${customLinkName.trim().toLowerCase().replace(/\s+/g, '_')}`;
+    setSocialLinks(prev => ({ ...prev, [key]: customLinkUrl.trim() }));
+    setCustomLinkName('');
+    setCustomLinkUrl('');
+  };
+
+  const socialCount = Object.values(socialLinks).filter(v => v && v.trim()).length;
+  const p = profile as any;
+  const location = [p?.continent, p?.country].filter(Boolean).join(', ');
+
   if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Loading profile...</p></div>;
 
-  const p = profile as any;
-  const location = [p?.continent, p?.country].filter(Boolean).join(' → ');
+  const slideVariants = {
+    enter: { x: 300, opacity: 0 },
+    center: { x: 0, opacity: 1 },
+    exit: { x: -300, opacity: 0 },
+  };
 
-  return (
-    <div className="min-h-screen pt-28 pb-24 px-4 bg-background">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-
-        <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="brutal-card p-6">
-          <div className="grid md:grid-cols-[auto,1fr,auto] gap-5 items-start">
-            <div className="w-24 h-24 rounded-3xl bg-primary/10 border border-border overflow-hidden flex items-center justify-center">
-              {avatarUrl ? <img src={avatarUrl} alt="Profile avatar" className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" /> : <span className="text-3xl font-bold text-primary">{(displayName || username || user?.email || 'u')[0].toUpperCase()}</span>}
-            </div>
-            <div className="space-y-1">
-              <h1 className="text-display text-4xl tracking-wider">{displayName || 'Your Profile'}</h1>
-              <p className="text-sm text-muted-foreground">@{username || 'set-username'} · {isCreator ? 'Creator' : 'Reader'}</p>
-              <p className="text-sm text-muted-foreground inline-flex items-center gap-2"><Mail className="w-4 h-4" /> {user?.email}</p>
-              {/* Location info */}
-              {location && (
-                <p className="text-sm text-muted-foreground inline-flex items-center gap-2"><MapPin className="w-4 h-4" /> {location}</p>
-              )}
-              {p?.timezone && (
-                <p className="text-sm text-muted-foreground inline-flex items-center gap-2"><Clock className="w-4 h-4" /> {p.timezone}</p>
-              )}
-              {p?.currency && (
-                <p className="text-sm text-muted-foreground inline-flex items-center gap-2"><Globe className="w-4 h-4" /> {p.currency}</p>
-              )}
-              <div className="mt-3 max-w-md">
-                <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-primary transition-all duration-500" style={{ width: `${completionScore}%` }} />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Profile completion: {completionScore}%</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 min-w-[180px]">
-              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold text-center">{isCreator ? 'Creator Account' : 'Reader Account'}</span>
-              <button onClick={() => setShowAvatarPicker(prev => !prev)} className="w-full btn-outline px-3 py-2 text-xs"><Image className="w-4 h-4" /> {showAvatarPicker ? 'Hide Avatars' : 'Choose Avatar'}</button>
-            </div>
-          </div>
-          {showAvatarPicker && (
-            <div className="mt-5 p-4 border border-border rounded-2xl bg-card/50 space-y-3">
-              <h2 className="text-sm font-semibold flex items-center gap-2"><Pencil className="w-4 h-4 text-primary" /> Pick Avatar</h2>
-              <AvatarPicker avatars={animeAvatarUrls} value={avatarUrl} onSelect={setAvatarUrl} />
-            </div>
-          )}
-        </motion.section>
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="brutal-card p-5 lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2"><User className="w-4 h-4 text-primary" /><h2 className="text-display text-2xl tracking-wider">Profile Settings</h2></div>
-            {error && <div className="p-3 border border-destructive/40 bg-destructive/10 text-destructive text-sm">{error}</div>}
-            {success && <div className="p-3 border border-primary/40 bg-primary/10 text-primary text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" />{success}</div>}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold">Profile Type</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={() => setProfileType('reader')} className={`p-3 rounded-2xl border text-sm font-semibold transition-colors ${profileType === 'reader' ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/60'}`}>Reader</button>
-                <button type="button" onClick={() => setProfileType('publisher')} className={`p-3 rounded-2xl border text-sm font-semibold transition-colors ${profileType === 'publisher' ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/60'}`}>Creator</button>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Display Name</label>
-              <input value={displayName} onChange={e => setDisplayName(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl" placeholder="Your display name" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Email</label>
-              <input value={user?.email || ''} disabled className="w-full px-3 py-2.5 bg-muted/40 border border-border text-sm rounded-xl text-muted-foreground" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Username {profileType === 'publisher' && <span className="text-destructive">*</span>}</label>
-              <input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl" placeholder="e.g. moonx.d" />
-              <p className="text-xs text-muted-foreground">Unique username · min 5 chars · letters, numbers, _ and . only</p>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Bio</label>
-              <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl resize-none" placeholder="Tell readers about your vibe..." />
-            </div>
-
-            {/* Location & Currency */}
-            <div className="border-t border-border pt-4 space-y-3">
-              <div className="flex items-center gap-2 mb-2"><MapPin className="w-4 h-4 text-primary" /><h3 className="text-sm font-semibold">Location & Currency</h3></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Continent</label>
-                  <select value={continent} onChange={e => { setContinent(e.target.value); setCountry(''); }} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl">
-                    <option value="">Select...</option>
-                    {continents.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Country</label>
-                  <select value={country} onChange={e => setCountry(e.target.value)} disabled={!continent} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl disabled:opacity-50">
-                    <option value="">Select...</option>
-                    {availableCountries.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Timezone</label>
-                  <select value={timezone} onChange={e => setTimezone(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl">
-                    <option value="">Select...</option>
-                    {timezones.map(tz => <option key={tz} value={tz}>{tz}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Currency</label>
-                  <select value={currency} onChange={e => setCurrency(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl">
-                    <option value="">Select...</option>
-                    {currencies.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <button onClick={handleSave} disabled={saving} className="btn-accent rounded-xl px-6 py-3 text-sm disabled:opacity-50 inline-flex items-center gap-2"><Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Profile'}</button>
-          </motion.section>
-
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="brutal-card p-5 space-y-4">
-            <div className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary" /><h3 className="text-display text-xl tracking-wider">Quick Actions</h3></div>
-            <Link to="/library" className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"><span className="inline-flex items-center gap-2 text-sm font-medium"><BookOpen className="w-4 h-4" /> My Library</span><span className="text-xs text-muted-foreground">Open</span></Link>
-            <Link to="/creators" className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"><span className="inline-flex items-center gap-2 text-sm font-medium"><Search className="w-4 h-4" /> Creator Search</span><span className="text-xs text-muted-foreground">Open</span></Link>
-            <Link to="/community/my-posts" className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"><span className="inline-flex items-center gap-2 text-sm font-medium"><MessageSquare className="w-4 h-4" /> My Posts</span><span className="text-xs text-muted-foreground">Open</span></Link>
-            <Link to="/settings" className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"><span className="inline-flex items-center gap-2 text-sm font-medium"><MapPin className="w-4 h-4" /> Location & Settings</span><span className="text-xs text-muted-foreground">Open</span></Link>
-            {isCreator && (
-              <Link to="/dashboard" className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"><span className="inline-flex items-center gap-2 text-sm font-medium"><LayoutDashboard className="w-4 h-4" /> Creator Dashboard</span><span className="text-xs text-muted-foreground">Open</span></Link>
-            )}
-            <div className="border-t border-border pt-3 space-y-3">
-              <h4 className="text-sm font-semibold flex items-center gap-2"><Palette className="w-4 h-4 text-primary" /> Preferences</h4>
-              <button onClick={toggleTheme} className="w-full flex items-center justify-between text-sm border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"><span>Theme mode</span><span className="text-muted-foreground capitalize">{theme}</span></button>
-              <button onClick={() => setCompactCards(prev => !prev)} className="w-full flex items-center justify-between text-sm border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"><span>Compact card mode</span><span className="text-muted-foreground">{compactCards ? 'On' : 'Off'}</span></button>
-              <button onClick={() => setCreatorAlerts(prev => !prev)} className="w-full flex items-center justify-between text-sm border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors"><span className="inline-flex items-center gap-2"><Bell className="w-4 h-4" /> Creator alerts</span><span className="text-muted-foreground">{creatorAlerts ? 'On' : 'Off'}</span></button>
-            </div>
-          </motion.section>
+  // ─── MAIN PROFILE VIEW ─── 
+  const renderMain = () => (
+    <motion.div key="main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-0">
+      {/* Profile Header */}
+      <div className="relative px-6 pt-6 pb-8">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-lg font-semibold">Profile</h1>
+          <button onClick={handleGlobalLogout} className="text-sm text-destructive font-medium hover:underline">Logout</button>
         </div>
 
-        {isCreator && (
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="brutal-card p-5 space-y-5">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h3 className="text-display text-2xl tracking-wider inline-flex items-center gap-2"><BarChart3 className="w-5 h-5 text-primary" /> Creator Studio</h3>
-              <Link to="/dashboard" className="btn-outline px-4 py-2 text-xs"><Upload className="w-4 h-4" /> Manage Uploads</Link>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {[
-                { label: 'My Uploads', value: creatorStats.totalUploads },
-                { label: 'Chapter Count', value: creatorStats.totalChapters },
-                { label: 'Total Views', value: creatorStats.totalViews.toLocaleString() },
-                { label: 'Bookmarks', value: creatorStats.totalBookmarks.toLocaleString() },
-              ].map(stat => (
-                <div key={stat.label} className="rounded-2xl border border-border p-3 bg-card/40">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-                  <p className="text-xl font-semibold mt-1">{stat.value}</p>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold">My Uploads</h4>
-              {creatorManga.length === 0 ? (
-                <p className="text-sm text-muted-foreground border border-border rounded-xl p-3">No uploads found yet. Start from creator dashboard.</p>
+        <div className="flex flex-col items-center text-center">
+          <div className="relative mb-3">
+            <div className="w-24 h-24 rounded-full bg-primary/10 border-2 border-border overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
               ) : (
-                creatorManga.slice(0, 5).map(item => (
-                  <Link key={item.id} to={`/manhwa/${item.slug}`} className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors">
-                    <span className="text-sm font-medium">{item.title}</span>
-                    <span className="text-xs text-muted-foreground">{(item.views || 0).toLocaleString()} views</span>
-                  </Link>
-                ))
+                <span className="w-full h-full flex items-center justify-center text-3xl font-bold text-primary">
+                  {(displayName || username || user?.email || 'U')[0].toUpperCase()}
+                </span>
               )}
             </div>
-          </motion.section>
+            <button
+              onClick={() => { setActiveSection('edit'); setShowAvatarPicker(true); }}
+              className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-background"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
+          </div>
+          <h2 className="text-xl font-bold">{displayName || 'Set your name'}</h2>
+          <p className="text-sm text-muted-foreground">@{username || 'set-username'}</p>
+          <span className="mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            {isCreator ? '✨ Creator' : '📖 Reader'}
+          </span>
+          
+          {/* Completion bar */}
+          <div className="w-full max-w-[200px] mt-4">
+            <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+              <motion.div
+                className="h-full bg-primary rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${completionScore}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{completionScore}% complete</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Settings Groups */}
+      <div className="space-y-2 px-4 pb-6">
+        {/* Account */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <SettingsRow icon={<User className="w-4 h-4" />} label="Edit Profile" value={displayName || 'Set your name'} onClick={() => setActiveSection('edit')} />
+          <div className="h-px bg-border ml-16" />
+          <SettingsRow icon={<LinkIcon className="w-4 h-4" />} label="Social Links" value={socialCount ? `${socialCount} linked` : 'Add your socials'} onClick={() => setActiveSection('social')} />
+          <div className="h-px bg-border ml-16" />
+          <SettingsRow icon={<MapPin className="w-4 h-4" />} label="Location & Currency" value={location || 'Not set'} onClick={() => setActiveSection('location')} />
+        </div>
+
+        {/* Navigation */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <SettingsRow icon={<BookOpen className="w-4 h-4" />} label="My Library" value={`${libraryItems.length} items`} onClick={() => setActiveSection('library')} />
+          <div className="h-px bg-border ml-16" />
+          <SettingsRow icon={<MessageSquare className="w-4 h-4" />} label="My Posts" onClick={() => navigate('/community/my-posts')} />
+          <div className="h-px bg-border ml-16" />
+          <SettingsRow icon={<Search className="w-4 h-4" />} label="Creator Search" onClick={() => navigate('/creators')} />
+          {isCreator && (
+            <>
+              <div className="h-px bg-border ml-16" />
+              <SettingsRow icon={<LayoutDashboard className="w-4 h-4" />} label="Creator Dashboard" onClick={() => navigate('/dashboard')} />
+              <div className="h-px bg-border ml-16" />
+              <SettingsRow icon={<BarChart3 className="w-4 h-4" />} label="Creator Studio" value={`${creatorStats.totalUploads} uploads · ${creatorStats.totalViews.toLocaleString()} views`} onClick={() => setActiveSection('creator')} />
+            </>
+          )}
+        </div>
+
+        {/* Preferences */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <SettingsRow icon={<Palette className="w-4 h-4" />} label="Theme" value={theme.charAt(0).toUpperCase() + theme.slice(1)} onClick={cycleTheme} />
+          <div className="h-px bg-border ml-16" />
+          <SettingsRow icon={<Bell className="w-4 h-4" />} label="Notifications" value={creatorAlerts ? 'On' : 'Off'} onClick={() => setCreatorAlerts(prev => !prev)} />
+        </div>
+
+        {/* Security */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <SettingsRow icon={<Shield className="w-4 h-4" />} label="Security & Password" onClick={() => setActiveSection('security')} />
+          <div className="h-px bg-border ml-16" />
+          <SettingsRow icon={<LogOut className="w-4 h-4" />} label="Sign Out All Devices" onClick={handleGlobalLogout} />
+        </div>
+
+        {/* Danger Zone */}
+        <div className="rounded-2xl border border-destructive/20 bg-card overflow-hidden">
+          <SettingsRow icon={<Trash2 className="w-4 h-4" />} label="Delete Account" danger onClick={handleDeleteAccount} />
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  // ─── EDIT PROFILE ───
+  const renderEdit = () => (
+    <motion.div key="edit" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+      <SectionHeader onBack={() => setActiveSection('main')} title="Edit Profile" />
+      <div className="px-4 py-6 space-y-5">
+        {/* Avatar */}
+        <div className="flex flex-col items-center">
+          <div className="relative mb-2">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-border bg-primary/10">
+              {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <span className="w-full h-full flex items-center justify-center text-2xl font-bold text-primary">{(displayName || 'U')[0].toUpperCase()}</span>}
+            </div>
+            <button onClick={() => setShowAvatarPicker(prev => !prev)} className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-2 border-background">
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {showAvatarPicker && (
+          <div className="p-3 border border-border rounded-2xl bg-card">
+            <AvatarPicker avatars={animeAvatarUrls} value={avatarUrl} onSelect={setAvatarUrl} />
+          </div>
         )}
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="brutal-card p-5 space-y-4">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-display text-xl tracking-wider">My Library</h3>
-              <Link to="/library" className="text-xs text-primary hover:underline">Open full library</Link>
-            </div>
-            <div className="space-y-2">
-              {libraryItems.length === 0 ? (
-                <p className="text-sm text-muted-foreground border border-border rounded-xl p-3">Your library is empty. Browse manhwa to add some!</p>
-              ) : (
-                libraryItems.map((item: any) => (
-                  <Link key={item.id} to={`/manhwa/${item.manga?.slug || ''}`} className="flex items-center justify-between border border-border rounded-xl px-3 py-2.5 hover:border-primary transition-colors">
-                    <span className="text-sm font-medium line-clamp-1">{item.manga?.title || 'Unknown'}</span>
-                    <span className="text-xs text-muted-foreground">{item.manga?.status || ''}</span>
-                  </Link>
-                ))
-              )}
-            </div>
-          </motion.section>
+        {error && <div className="p-3 rounded-xl border border-destructive/40 bg-destructive/10 text-destructive text-sm">{error}</div>}
+        {success && (
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="p-3 rounded-xl border border-primary/40 bg-primary/10 text-primary text-sm flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />{success}
+          </motion.div>
+        )}
 
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="brutal-card p-5 space-y-4">
-            <div className="flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /><h3 className="text-display text-xl tracking-wider">Security Center</h3></div>
-            {passError && <div className="p-3 border border-destructive/40 bg-destructive/10 text-destructive text-sm">{passError}</div>}
-            {passSuccess && <div className="p-3 border border-primary/40 bg-primary/10 text-primary text-sm">{passSuccess}</div>}
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">New Password</label>
-              <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl" placeholder="At least 6 characters" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Confirm Password</label>
-              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary transition-colors rounded-xl" placeholder="Repeat password" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={handlePasswordChange} disabled={passSubmitting} className="btn-accent rounded-xl px-5 py-2.5 text-sm disabled:opacity-50 inline-flex items-center gap-2"><Lock className="w-4 h-4" /> {passSubmitting ? 'Updating...' : 'Change Password'}</button>
-              <button onClick={handleGlobalLogout} className="btn-outline rounded-xl px-5 py-2.5 text-sm">Sign out all devices</button>
-            </div>
-            <div className="pt-3 border-t border-border">
-              <button onClick={handleDeleteAccount} disabled={deletingAccount} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50">
-                <Trash2 className="w-4 h-4" /> {deletingAccount ? 'Deleting...' : 'Delete Account'}
-              </button>
-              <p className="text-xs text-muted-foreground mt-2">This permanently removes your account and profile data.</p>
-            </div>
-          </motion.section>
+        {/* Profile Type */}
+        <div>
+          <label className="text-sm font-medium text-muted-foreground block mb-2">I am a</label>
+          <div className="grid grid-cols-2 gap-3">
+            {(['reader', 'publisher'] as const).map(t => (
+              <button key={t} onClick={() => setProfileType(t)}
+                className={`py-3 rounded-xl border text-sm font-semibold transition-all ${profileType === t ? 'border-primary bg-primary text-primary-foreground shadow-md' : 'border-border hover:border-primary/50'}`}
+              >{t === 'reader' ? '📖 Reader' : '✨ Creator'}</button>
+            ))}
+          </div>
         </div>
+
+        {/* Fields */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Display Name</label>
+          <input value={displayName} onChange={e => setDisplayName(e.target.value)}
+            className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+            placeholder="Your display name" />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Email</label>
+          <input value={user?.email || ''} disabled className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl text-sm text-muted-foreground" />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">
+            Username {profileType === 'publisher' && <span className="text-destructive">*</span>}
+          </label>
+          <input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))}
+            className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+            placeholder="e.g. moonx.d (min 5)" />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Bio</label>
+          <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3}
+            className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors resize-none"
+            placeholder="Tell readers about yourself..." />
+        </div>
+
+        <button onClick={handleSave} disabled={saving}
+          className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+          <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+    </motion.div>
+  );
+
+  // ─── SOCIAL LINKS ───
+  const renderSocial = () => {
+    const customLinks = Object.entries(socialLinks).filter(([k]) => k.startsWith('custom_'));
+
+    return (
+      <motion.div key="social" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+        <SectionHeader onBack={() => setActiveSection('main')} title="Social Links" />
+        <div className="px-4 py-6 space-y-4">
+          <p className="text-sm text-muted-foreground">Add your social profiles so readers can find you across platforms.</p>
+
+          {SOCIAL_PLATFORMS.map(({ key, label, icon, placeholder }) => (
+            <div key={key} className="space-y-1">
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <span>{icon}</span> {label}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  value={socialLinks[key] || ''}
+                  onChange={e => updateSocialLink(key, e.target.value)}
+                  className="flex-1 px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                  placeholder={placeholder}
+                />
+                {socialLinks[key] && (
+                  <button onClick={() => removeSocialLink(key)} className="w-10 h-10 rounded-xl border border-border hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-colors self-end">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {/* Custom links */}
+          {customLinks.map(([key, value]) => (
+            <div key={key} className="space-y-1">
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <span>🔗</span> {key.replace('custom_', '').replace(/_/g, ' ')}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  value={value || ''}
+                  onChange={e => updateSocialLink(key, e.target.value)}
+                  className="flex-1 px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                />
+                <button onClick={() => removeSocialLink(key)} className="w-10 h-10 rounded-xl border border-border hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-colors self-end">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {/* Add custom link */}
+          <div className="border-t border-border pt-4 space-y-3">
+            <p className="text-sm font-medium flex items-center gap-2"><Plus className="w-4 h-4 text-primary" /> Add Custom Link</p>
+            <div className="grid grid-cols-2 gap-2">
+              <input value={customLinkName} onChange={e => setCustomLinkName(e.target.value)}
+                className="px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary" placeholder="Link name" />
+              <input value={customLinkUrl} onChange={e => setCustomLinkUrl(e.target.value)}
+                className="px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary" placeholder="URL" />
+            </div>
+            <button onClick={addCustomLink} disabled={!customLinkName.trim() || !customLinkUrl.trim()}
+              className="px-4 py-2 rounded-xl border border-primary text-primary text-sm font-medium hover:bg-primary/10 transition-colors disabled:opacity-40">
+              Add Link
+            </button>
+          </div>
+
+          <button onClick={handleSave} disabled={saving}
+            className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+            <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Social Links'}
+          </button>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // ─── LOCATION ───
+  const renderLocation = () => (
+    <motion.div key="location" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+      <SectionHeader onBack={() => setActiveSection('main')} title="Location & Currency" />
+      <div className="px-4 py-6 space-y-4">
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Continent</label>
+          <select value={continent} onChange={e => { setContinent(e.target.value); setCountry(''); }}
+            className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+            <option value="">Select continent...</option>
+            {continents.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Country</label>
+          <select value={country} onChange={e => setCountry(e.target.value)} disabled={!continent}
+            className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary disabled:opacity-50">
+            <option value="">Select country...</option>
+            {availableCountries.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Timezone</label>
+          <select value={timezone} onChange={e => setTimezone(e.target.value)}
+            className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+            <option value="">Select timezone...</option>
+            {timezones.map(tz => <option key={tz} value={tz}>{tz}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Currency</label>
+          <select value={currency} onChange={e => setCurrency(e.target.value)}
+            className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+            <option value="">Select currency...</option>
+            {currencies.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <button onClick={handleSave} disabled={saving}
+          className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+          <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Location'}
+        </button>
+      </div>
+    </motion.div>
+  );
+
+  // ─── SECURITY ───
+  const renderSecurity = () => (
+    <motion.div key="security" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+      <SectionHeader onBack={() => setActiveSection('main')} title="Security & Password" />
+      <div className="px-4 py-6 space-y-5">
+        {passError && <div className="p-3 rounded-xl border border-destructive/40 bg-destructive/10 text-destructive text-sm">{passError}</div>}
+        {passSuccess && <div className="p-3 rounded-xl border border-primary/40 bg-primary/10 text-primary text-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" />{passSuccess}</div>}
+
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">New Password</label>
+          <div className="relative">
+            <input type={showPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)}
+              className="w-full px-4 py-3 pr-11 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+              placeholder="At least 6 characters" />
+            <button onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-muted-foreground">Confirm Password</label>
+          <input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+            className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+            placeholder="Repeat password" />
+        </div>
+        <button onClick={handlePasswordChange} disabled={passSubmitting}
+          className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+          <Lock className="w-4 h-4" /> {passSubmitting ? 'Updating...' : 'Change Password'}
+        </button>
+
+        <div className="border-t border-border pt-5 space-y-3">
+          <button onClick={handleGlobalLogout}
+            className="w-full py-3 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2">
+            <LogOut className="w-4 h-4" /> Sign Out All Devices
+          </button>
+          <button onClick={handleDeleteAccount} disabled={deletingAccount}
+            className="w-full py-3 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+            <Trash2 className="w-4 h-4" /> {deletingAccount ? 'Deleting...' : 'Delete Account'}
+          </button>
+          <p className="text-xs text-muted-foreground text-center">This permanently removes your account and all data.</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  // ─── CREATOR STUDIO ───
+  const renderCreator = () => (
+    <motion.div key="creator" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+      <SectionHeader onBack={() => setActiveSection('main')} title="Creator Studio" />
+      <div className="px-4 py-6 space-y-5">
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: 'Uploads', value: creatorStats.totalUploads, emoji: '📚' },
+            { label: 'Chapters', value: creatorStats.totalChapters, emoji: '📄' },
+            { label: 'Views', value: creatorStats.totalViews.toLocaleString(), emoji: '👁️' },
+            { label: 'Bookmarks', value: creatorStats.totalBookmarks.toLocaleString(), emoji: '🔖' },
+          ].map(stat => (
+            <div key={stat.label} className="rounded-2xl border border-border p-4 bg-card">
+              <p className="text-xs text-muted-foreground">{stat.emoji} {stat.label}</p>
+              <p className="text-2xl font-bold mt-1">{stat.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="text-sm font-semibold">Recent Uploads</h4>
+          {creatorManga.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-3 border border-border rounded-xl">No uploads yet.</p>
+          ) : (
+            creatorManga.slice(0, 5).map(item => (
+              <Link key={item.id} to={`/manhwa/${item.slug}`}
+                className="flex items-center justify-between border border-border rounded-xl px-4 py-3 hover:border-primary transition-colors">
+                <span className="text-sm font-medium">{item.title}</span>
+                <span className="text-xs text-muted-foreground">{(item.views || 0).toLocaleString()} views</span>
+              </Link>
+            ))
+          )}
+        </div>
+
+        <Link to="/dashboard"
+          className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+          <Upload className="w-4 h-4" /> Open Dashboard
+        </Link>
+      </div>
+    </motion.div>
+  );
+
+  // ─── LIBRARY ───
+  const renderLibrary = () => (
+    <motion.div key="library" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+      <SectionHeader onBack={() => setActiveSection('main')} title="My Library" />
+      <div className="px-4 py-6 space-y-3">
+        {libraryItems.length === 0 ? (
+          <div className="text-center py-12">
+            <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">Your library is empty</p>
+            <Link to="/explore" className="text-primary text-sm hover:underline mt-2 block">Browse manhwa →</Link>
+          </div>
+        ) : (
+          libraryItems.map((item: any) => (
+            <Link key={item.id} to={`/manhwa/${item.manga?.slug || ''}`}
+              className="flex items-center justify-between border border-border rounded-xl px-4 py-3 hover:border-primary transition-colors">
+              <span className="text-sm font-medium line-clamp-1">{item.manga?.title || 'Unknown'}</span>
+              <span className="text-xs text-muted-foreground">{item.manga?.status || ''}</span>
+            </Link>
+          ))
+        )}
+        <Link to="/library" className="block text-center text-primary text-sm hover:underline pt-2">View full library →</Link>
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className="min-h-screen pt-20 pb-24 bg-background">
+      <div className="max-w-lg mx-auto">
+        <AnimatePresence mode="wait">
+          {activeSection === 'main' && renderMain()}
+          {activeSection === 'edit' && renderEdit()}
+          {activeSection === 'social' && renderSocial()}
+          {activeSection === 'location' && renderLocation()}
+          {activeSection === 'security' && renderSecurity()}
+          {activeSection === 'creator' && renderCreator()}
+          {activeSection === 'library' && renderLibrary()}
+        </AnimatePresence>
       </div>
     </div>
   );
