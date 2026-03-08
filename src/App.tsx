@@ -35,7 +35,7 @@ import ContentGuidelines from "./pages/ContentGuidelines";
 import BlogListPage from "./pages/BlogListPage";
 import BlogDetailPage from "./pages/BlogDetailPage";
 import AdminBlogEditor from "./pages/AdminBlogEditor";
-import DiscoverPage from "./pages/DiscoverPage";
+
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 
