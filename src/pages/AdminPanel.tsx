@@ -19,14 +19,15 @@ const AdminPanel: React.FC = () => {
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [mangaRes, chapRes, usersRes, pendingRes, reportsRes] = await Promise.all([
+      const [mangaRes, chapRes, usersRes, pendingRes, reportsRes, pendingChapRes] = await Promise.all([
         supabase.from('manga').select('id', { count: 'exact', head: true }),
         supabase.from('chapters').select('id', { count: 'exact', head: true }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('manga').select('id', { count: 'exact', head: true }).eq('approval_status', 'PENDING'),
         supabase.from('reports' as any).select('id', { count: 'exact', head: true }).eq('status', 'PENDING'),
+        supabase.from('chapters').select('id', { count: 'exact', head: true }).eq('approval_status' as any, 'PENDING'),
       ]);
-      return { totalManga: mangaRes.count || 0, totalChapters: chapRes.count || 0, totalUsers: usersRes.count || 0, pending: pendingRes.count || 0, reports: (reportsRes as any).count || 0 };
+      return { totalManga: mangaRes.count || 0, totalChapters: chapRes.count || 0, totalUsers: usersRes.count || 0, pending: pendingRes.count || 0, reports: (reportsRes as any).count || 0, pendingChapters: pendingChapRes.count || 0 };
     },
     enabled: isAdmin,
   });
