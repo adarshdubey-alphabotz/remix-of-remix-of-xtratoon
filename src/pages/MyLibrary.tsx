@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import EmptyState from '@/components/EmptyState';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,7 +87,7 @@ const MyLibrary: React.FC = () => {
             {library.map((item: any) => (
               <Link key={item.id} to={`/manhwa/${item.slug}`} className="flex items-center gap-4 brutal-card p-4 group">
                 {item.cover ? (
-                  <img src={item.cover} alt="" className="w-12 h-16 object-cover flex-shrink-0 border border-foreground/20" />
+                  <img src={item.cover} alt={`${item.title} cover`} className="w-12 h-16 object-cover flex-shrink-0 border border-foreground/20" />
                 ) : (
                   <div className="w-12 h-16 bg-muted flex-shrink-0 border border-foreground/20" />
                 )}
@@ -98,14 +99,16 @@ const MyLibrary: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="brutal-card p-12 text-center">
-            <p className="text-muted-foreground">
-              {tab === 'liked' ? 'No liked manhwa yet. Like your favorites!' : 'No manhwa in this category yet.'}
-            </p>
-            <Link to="/browse" className="inline-flex items-center gap-1 text-primary text-sm font-semibold mt-2 hover:underline">
-              Browse manhwa <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
+          <EmptyState
+            type="library"
+            title={tab === 'liked' ? 'No liked manhwa yet' : 'Nothing here yet'}
+            subtitle={tab === 'liked' ? 'Like your favorites to see them here!' : 'Start reading and add manhwa to your collection.'}
+            action={
+              <Link to="/browse" className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline">
+                Browse manhwa <ChevronRight className="w-3 h-3" />
+              </Link>
+            }
+          />
         )}
       </div>
     </div>

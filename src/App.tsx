@@ -12,6 +12,7 @@ import AuthModal from "@/components/AuthModal";
 import PageTransition from "@/components/PageTransition";
 import SpotlightSearch from "@/components/SpotlightSearch";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import BanNotice from "@/components/BanNotice";
 import OnboardingModal from "@/components/OnboardingModal";
 import Index from "./pages/Index";
 import ManhwaDetail from "./pages/ManhwaDetail";
@@ -103,6 +104,7 @@ const AppLayout = () => (
   <>
     <AntiPiracy />
     <JsonLd />
+    <BanNotice />
     <Navbar />
     <AuthModal />
     <SpotlightSearch />

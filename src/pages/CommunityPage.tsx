@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
+import EmptyState from '@/components/EmptyState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -333,11 +334,11 @@ const CommunityPage: React.FC = () => {
           {isLoading ? (
             <div className="py-12 text-center text-muted-foreground text-sm">Loading posts...</div>
           ) : filteredPosts.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-muted-foreground text-sm">
-                {searchQuery ? 'No posts match your search.' : tab === 'following' ? 'No posts from creators you follow.' : 'No posts yet. Be the first!'}
-              </p>
-            </div>
+            <EmptyState
+              type="community"
+              title={searchQuery ? 'No posts match your search' : tab === 'following' ? 'No posts from creators you follow' : 'No posts yet'}
+              subtitle={searchQuery ? 'Try different keywords.' : tab === 'following' ? 'Follow some creators to see their posts here!' : 'Be the first to share something with the community!'}
+            />
           ) : (
             <div>
               {filteredPosts.map((post: any, i: number) => {

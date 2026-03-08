@@ -10,6 +10,8 @@ export interface Profile {
   avatar_url: string | null;
   bio: string | null;
   role_type: string;
+  is_banned: boolean;
+  banned_reason: string | null;
   created_at: string;
   updated_at: string;
 }

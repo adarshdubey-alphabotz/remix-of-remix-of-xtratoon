@@ -236,11 +236,15 @@ const Navbar: React.FC = () => {
             <div className="relative">
               <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground">
                 <Bell className="w-[18px] h-[18px]" />
-                {(isAdmin ? unreadCount : userUnreadCount) > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {(isAdmin ? unreadCount : userUnreadCount) > 9 ? '9+' : (isAdmin ? unreadCount : userUnreadCount)}
-                  </span>
-                )}
+                {(() => {
+                  const showAdminNotifs = isAdmin && adminMode;
+                  const count = showAdminNotifs ? unreadCount + userUnreadCount : userUnreadCount;
+                  return count > 0 ? (
+                    <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {count > 9 ? '9+' : count}
+                    </span>
+                  ) : null;
+                })()}
               </button>
               <AnimatePresence>
                 {notifOpen && (
@@ -253,8 +257,8 @@ const Navbar: React.FC = () => {
                     >
                       <div className="p-4 border-b border-border/50 flex items-center justify-between">
                         <h3 className="font-display text-lg tracking-wide">NOTIFICATIONS</h3>
-                        {((isAdmin && unreadCount > 0) || userUnreadCount > 0) && (
-                          <button onClick={() => { if (isAdmin) markAllRead(); markAllUserNotifsRead(); }} className="text-xs text-primary hover:underline">Mark all read</button>
+                        {(userUnreadCount > 0 || (isAdmin && adminMode && unreadCount > 0)) && (
+                          <button onClick={() => { if (isAdmin && adminMode) markAllRead(); markAllUserNotifsRead(); }} className="text-xs text-primary hover:underline">Mark all read</button>
                         )}
                       </div>
                       {/* User notifications */}
@@ -275,7 +279,7 @@ const Navbar: React.FC = () => {
                         </div>
                       )}
                       {/* Admin notifications */}
-                      {isAdmin && adminNotifications.length > 0 && (
+                      {isAdmin && adminMode && adminNotifications.length > 0 && (
                         <div className="divide-y divide-border/30">
                           {userNotifs.length > 0 && <div className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/30">Admin</div>}
                           {adminNotifications.map((n: any) => (
@@ -287,7 +291,7 @@ const Navbar: React.FC = () => {
                           ))}
                         </div>
                       )}
-                      {userNotifs.length === 0 && (!isAdmin || adminNotifications.length === 0) && (
+                      {userNotifs.length === 0 && (!(isAdmin && adminMode) || adminNotifications.length === 0) && (
                         <div className="p-4 text-sm text-muted-foreground">No new notifications</div>
                       )}
                     </motion.div>
@@ -316,32 +320,32 @@ const Navbar: React.FC = () => {
                        <div className="px-3 py-3 border-b border-border/30 mb-1">
                          <p className="text-sm font-bold text-foreground truncate">{profile?.display_name || profile?.username || user.email}</p>
                          {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
-                         <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">
-                           {profile?.role_type || 'reader'}
-                         </span>
-                       </div>
-                        <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>
-                        <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><BookOpen className="w-4 h-4" /> My Library</Link>
-                        {isPublisher && (
-                          <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
-                        )}
-                        {isAdmin && (
-                          <>
-                            <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
-                            <button
-                              onClick={() => setAdminMode(!adminMode)}
-                              className="flex items-center justify-between w-full px-3 py-2.5 text-sm hover:bg-primary/10 transition-all font-medium rounded-xl"
-                            >
-                              <span className="flex items-center gap-2.5">
-                                <Shield className="w-4 h-4" />
-                                {adminMode ? 'Admin Mode' : 'Creator Mode'}
-                              </span>
-                              <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
-                                <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
-                              </span>
-                            </button>
-                          </>
-                        )}
+                          <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">
+                            {isAdmin ? (adminMode ? '🛡️ Admin' : '✨ Creator') : (profile?.role_type || 'reader')}
+                          </span>
+                        </div>
+                         <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>
+                         <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><BookOpen className="w-4 h-4" /> My Library</Link>
+                         {(isPublisher || (isAdmin && !adminMode)) && (
+                           <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
+                         )}
+                         {isAdmin && adminMode && (
+                           <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                         )}
+                         {isAdmin && (
+                           <button
+                             onClick={() => setAdminMode(!adminMode)}
+                             className="flex items-center justify-between w-full px-3 py-2.5 text-sm hover:bg-primary/10 transition-all font-medium rounded-xl"
+                           >
+                             <span className="flex items-center gap-2.5">
+                               <Shield className="w-4 h-4" />
+                               {adminMode ? 'Switch to Creator' : 'Switch to Admin'}
+                             </span>
+                             <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                               <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                             </span>
+                           </button>
+                         )}
                         <div className="my-1 border-t border-border/30" />
                         <button onClick={handleLogout} disabled={logoutPending} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-destructive/10 transition-all w-full text-left text-destructive font-medium rounded-xl disabled:opacity-60"><LogOut className="w-4 h-4" /> {logoutPending ? 'Logging out...' : 'Logout'}</button>
                     </motion.div>
@@ -492,20 +496,18 @@ const Navbar: React.FC = () => {
                     </div>
                     <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
                     <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
-                    {isPublisher && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
+                    {(isPublisher || (isAdmin && !adminMode)) && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
+                    {isAdmin && adminMode && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
                     {isAdmin && (
-                      <>
-                        <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>
-                        <button
-                          onClick={() => setAdminMode(!adminMode)}
-                          className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl"
-                        >
-                          <span>{adminMode ? 'Admin Mode' : 'Creator Mode'}</span>
-                          <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
-                            <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
-                          </span>
-                        </button>
-                      </>
+                      <button
+                        onClick={() => setAdminMode(!adminMode)}
+                        className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl"
+                      >
+                        <span>{adminMode ? 'Switch to Creator' : 'Switch to Admin'}</span>
+                        <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                          <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                        </span>
+                      </button>
                     )}
                     <button onClick={handleLogout} disabled={logoutPending} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl disabled:opacity-60">{logoutPending ? 'Logging out...' : 'Logout'}</button>
                   </div>

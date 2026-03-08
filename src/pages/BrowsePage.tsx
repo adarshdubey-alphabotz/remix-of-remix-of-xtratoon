@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import EmptyState from '@/components/EmptyState';
 import { useSearchParams } from 'react-router-dom';
 import { Search, X, SlidersHorizontal, LayoutGrid, Columns3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -264,12 +265,14 @@ const BrowsePage: React.FC = () => {
             )}
 
             {!isLoading && mappedResults.length === 0 && (
-              <div className="text-center py-16">
-                <p className="text-muted-foreground">No manhwa found matching your filters.</p>
-                {activeFilters.length > 0 && (
-                  <button onClick={clearAllFilters} className="text-primary text-sm font-semibold mt-2 hover:underline">Clear all filters</button>
-                )}
-              </div>
+              <EmptyState
+                type="search"
+                title="No manhwa found"
+                subtitle="Try different keywords or clear your filters."
+                action={activeFilters.length > 0 ? (
+                  <button onClick={clearAllFilters} className="text-primary text-sm font-semibold hover:underline">Clear all filters</button>
+                ) : undefined}
+              />
             )}
           </div>
         </div>
