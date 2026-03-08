@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin } from 'lucide-react';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
