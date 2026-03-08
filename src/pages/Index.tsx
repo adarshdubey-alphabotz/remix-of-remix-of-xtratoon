@@ -290,6 +290,74 @@ const faqData = [
   { q: 'Can I publish content in any language?', a: 'Yes! Xtratoon supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.' },
 ];
 
+const TrendingBlogs: React.FC = () => {
+  const { data: blogs = [] } = useQuery({
+    queryKey: ['trending-blogs-home'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('blogs' as any)
+        .select('id, title, slug, thumbnail_url, description, views, created_at, is_faq, seo_keywords')
+        .eq('is_published', true)
+        .order('views', { ascending: false })
+        .limit(4);
+      return (data || []) as any[];
+    },
+    staleTime: 60000,
+  });
+
+  if (blogs.length === 0) return null;
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+      <ScrollReveal>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-2">From the Blog</p>
+            <h2 className="text-display text-3xl sm:text-5xl tracking-wider">
+              TRENDING <span className="text-primary">ARTICLES</span>
+            </h2>
+          </div>
+          <Link to="/blog" className="hidden sm:flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
+            View All <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </ScrollReveal>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {blogs.map((blog: any, i: number) => (
+          <motion.div key={blog.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}>
+            <Link to={`/blog/${blog.slug}`} className="group block rounded-2xl border border-border overflow-hidden bg-card hover:shadow-lg transition-shadow">
+              {blog.thumbnail_url ? (
+                <div className="aspect-video overflow-hidden">
+                  <img src={blog.thumbnail_url} alt={blog.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+              ) : (
+                <div className="aspect-video bg-primary/5 flex items-center justify-center">
+                  <span className="text-3xl font-display text-primary/15">BLOG</span>
+                </div>
+              )}
+              <div className="p-4">
+                {blog.is_faq && <span className="inline-block mb-1 px-2 py-0.5 text-[10px] font-bold uppercase bg-primary/10 text-primary rounded-full">FAQ</span>}
+                <h3 className="font-display text-sm tracking-wider group-hover:text-primary transition-colors line-clamp-2">{blog.title.toUpperCase()}</h3>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{blog.description}</p>
+                <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+                  <span>{blog.views || 0} views</span>
+                  <span>·</span>
+                  <span>{new Date(blog.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
+
+      <Link to="/blog" className="sm:hidden flex items-center justify-center gap-2 text-sm font-semibold text-primary hover:underline mt-6">
+        View All Articles <ArrowRight className="w-4 h-4" />
+      </Link>
+    </section>
+  );
+};
+
 const HomePage: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
