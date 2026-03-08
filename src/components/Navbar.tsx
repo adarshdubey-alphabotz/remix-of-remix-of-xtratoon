@@ -326,7 +326,21 @@ const Navbar: React.FC = () => {
                           <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
                         )}
                         {isAdmin && (
-                          <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                          <>
+                            <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                            <button
+                              onClick={() => setAdminMode(!adminMode)}
+                              className="flex items-center justify-between w-full px-3 py-2.5 text-sm hover:bg-primary/10 transition-all font-medium rounded-xl"
+                            >
+                              <span className="flex items-center gap-2.5">
+                                <Shield className="w-4 h-4" />
+                                {adminMode ? 'Admin Mode' : 'Creator Mode'}
+                              </span>
+                              <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                                <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                              </span>
+                            </button>
+                          </>
                         )}
                         <div className="my-1 border-t border-border/30" />
                         <button onClick={handleLogout} disabled={logoutPending} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-destructive/10 transition-all w-full text-left text-destructive font-medium rounded-xl disabled:opacity-60"><LogOut className="w-4 h-4" /> {logoutPending ? 'Logging out...' : 'Logout'}</button>
