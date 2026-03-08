@@ -1,13 +1,20 @@
 /**
  * Resolve a cover/image URL.
  * - If the value is already an HTTP(S) URL, return it directly.
- * - Otherwise treat it as a Telegram file_id and build the proxy URL.
- *   The proxy will 302-redirect to the CDN-cached copy.
+ * - Otherwise treat it as a Telegram file_id and return the direct
+ *   Supabase Storage CDN URL (pre-cached via precache-images function).
+ *   This avoids exposing the telegram-proxy endpoint in network requests.
  */
-const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const BUCKET = 'manga-images';
+
+function sanitizeFileId(fileId: string): string {
+  return fileId.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
 
 export function getImageUrl(fileIdOrUrl: string | null | undefined): string | null {
   if (!fileIdOrUrl) return null;
   if (fileIdOrUrl.startsWith('http')) return fileIdOrUrl;
-  return `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(fileIdOrUrl)}`;
+  // Direct CDN URL — no proxy, no file_id leak in network tab
+  return `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${sanitizeFileId(fileIdOrUrl)}`;
 }
