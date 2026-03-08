@@ -20,6 +20,7 @@ interface MangaItem {
   rating_average: number;
   created_at: string;
   is_featured: boolean;
+  creator_id: string;
 }
 
 const formatViews = (n: number) => {
@@ -92,7 +93,7 @@ const FeaturedHero: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => (
   </motion.div>
 );
 
-const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; badgeColor?: string }> = ({ manhwa, index, badge, badgeColor }) => (
+const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; badgeColor?: string; creatorName?: string }> = ({ manhwa, index, badge, badgeColor, creatorName }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
     transition={{ delay: index * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
     <Link to={`/manhwa/${manhwa.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
@@ -115,6 +116,7 @@ const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; ba
         </motion.div>
       </div>
       <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">{manhwa.title}</h3>
+      {creatorName && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">by {creatorName}</p>}
       <p className="text-xs text-muted-foreground mt-0.5">{(manhwa.genres || []).slice(0, 2).join(', ')}</p>
     </Link>
   </motion.div>
