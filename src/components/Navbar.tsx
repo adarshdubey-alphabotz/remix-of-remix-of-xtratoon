@@ -260,9 +260,14 @@ const Navbar: React.FC = () => {
 
           {/* Auth */}
           {user ? (
-            <div className="relative">
+          <div className="relative">
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 p-1.5 rounded-full hover:bg-muted/60 transition-all">
                 <div className="w-8 h-8 gradient-cover-1 rounded-full flex items-center justify-center text-xs font-bold text-foreground">{(profile?.username || profile?.display_name || user.email || 'U')[0].toUpperCase()}</div>
+                {userUnreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center">
+                    {userUnreadCount > 9 ? '9+' : userUnreadCount}
+                  </span>
+                )}
               </button>
               <AnimatePresence>
                 {userMenuOpen && (
