@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://glassy-ink-verse.lovable.app/</loc>
+    <loc>https://xtratoon.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://glassy-ink-verse.lovable.app/browse</loc>
+    <loc>https://xtratoon.com/browse</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://glassy-ink-verse.lovable.app/charts</loc>
+    <loc>https://xtratoon.com/charts</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glassy-ink-verse.lovable.app/blog</loc>
+    <loc>https://xtratoon.com/blog</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://glassy-ink-verse.lovable.app/community</loc>
+    <loc>https://xtratoon.com/community</loc>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://glassy-ink-verse.lovable.app/creators</loc>
+    <loc>https://xtratoon.com/creators</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -42,7 +42,7 @@ const BlogListPage: React.FC = () => {
         title="Blog — Manhwa News, Guides & FAQ"
         description="Read the latest Xtratoon blog posts — manhwa news, manga guides, FAQs, reading tips, and platform updates. Stay updated with Xtratoon."
         keywords="Xtratoon blog, xtratoons blog, manhwa blog, manga news, webtoon guides, manhwa FAQ, manga tips, Xtratoon news, Xtratoon updates, manhwa reading guide"
-        url="https://glassy-ink-verse.lovable.app/blog"
+        url="https://xtratoon.com/blog"
       />
       <div className="max-w-6xl mx-auto px-4">
         <ScrollReveal>

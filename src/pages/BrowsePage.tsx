@@ -144,7 +144,7 @@ const BrowsePage: React.FC = () => {
         title="Browse Manhwa, Manga & Webtoons"
         description="Browse and discover thousands of manhwa, manga, and webtoon series on Xtratoon. Filter by genre, rating, language and status. Read free Korean manhwa and Japanese manga online."
         keywords="browse manhwa, browse manga, manhwa list, manga list, webtoon list, read manhwa online, read manga online, Xtratoon browse, Korean manhwa, Japanese manga, free comics, manhwa genres"
-        url="https://glassy-ink-verse.lovable.app/browse"
+        url="https://xtratoon.com/browse"
       />
       <div className="max-w-7xl mx-auto px-4">
         <ScrollReveal>
