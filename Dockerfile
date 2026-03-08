@@ -1,12 +1,6 @@
 # ─── Build args for proxied backend ───
-# When deploying to VPS, the frontend calls /rest/, /auth/, /functions/
-# through nginx reverse proxy instead of hitting Supabase directly.
-#
-# This keeps the real backend URL hidden from browser DevTools.
-
-# For VPS deployment, set these in your .env.production:
-# VITE_SUPABASE_URL=https://xtratoon.com
-# (nginx proxies /rest/, /auth/, /functions/ to the real backend)
+# For VPS deployment: all Supabase traffic goes through nginx reverse proxy
+# so the real backend URL is never exposed to the browser.
 
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -14,8 +8,10 @@ COPY package.json package-lock.json* bun.lock* ./
 RUN npm install
 COPY . .
 
-# Override Supabase URL to use nginx proxy (hides real backend)
+# Build-time env vars — nginx proxies these paths to the real backend
 ENV VITE_SUPABASE_URL=https://xtratoon.com
+ENV VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55eW51aWdhYml3Zmd2d3ZqcnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTQ2MzcsImV4cCI6MjA4ODQ3MDYzN30.gEnvS07twhUS5i27SruCKy6G83GZrcbjENG2-ZBV_1g
+ENV VITE_SUPABASE_PROJECT_ID=nyynuigabiwfgvwvjrvh
 
 RUN npm run build
 
