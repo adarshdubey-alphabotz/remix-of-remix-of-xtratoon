@@ -141,6 +141,7 @@ export type Database = {
       }
       chapters: {
         Row: {
+          approval_status: string
           chapter_number: number
           created_at: string
           id: string
@@ -152,6 +153,7 @@ export type Database = {
           views: number | null
         }
         Insert: {
+          approval_status?: string
           chapter_number: number
           created_at?: string
           id?: string
@@ -163,6 +165,7 @@ export type Database = {
           views?: number | null
         }
         Update: {
+          approval_status?: string
           chapter_number?: number
           created_at?: string
           id?: string

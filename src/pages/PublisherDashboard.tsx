@@ -292,7 +292,7 @@ const PublisherDashboard: React.FC = () => {
       }
 
       const schedLabel = scheduledAt ? ` (scheduled for ${new Date(scheduledAt).toLocaleString()})` : '';
-      toast.success(`Chapter ${chapterNumber} uploaded!${schedLabel} (${result.pages_uploaded} pages)`);
+      toast.success(`Chapter ${chapterNumber} uploaded!${schedLabel} (${result.pages_uploaded} pages) — Admin will review before publishing.`);
       setPageFiles([]);
       setChapterTitle('');
       setChapterNumber(prev => prev + 1);
@@ -631,6 +631,12 @@ const PublisherDashboard: React.FC = () => {
                                     {new Date(scheduled).toLocaleDateString()} {new Date(scheduled).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                   </span>
                                 )}
+                                {(() => {
+                                  const approvalStatus = (ch as any).approval_status || 'APPROVED';
+                                  if (approvalStatus === 'PENDING') return <span className="px-2 py-0.5 text-[10px] font-bold border border-yellow-500/50 bg-yellow-500/10 text-yellow-600">PENDING</span>;
+                                  if (approvalStatus === 'REJECTED') return <span className="px-2 py-0.5 text-[10px] font-bold border border-destructive/50 bg-destructive/10 text-destructive">REJECTED</span>;
+                                  return <span className="px-2 py-0.5 text-[10px] font-bold border border-green-500/50 bg-green-500/10 text-green-600">APPROVED</span>;
+                                })()}
                               </div>
                               <span className="text-xs text-muted-foreground">
                                 {(ch as any).chapter_pages?.[0]?.count || 0} pages

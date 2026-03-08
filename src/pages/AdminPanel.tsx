@@ -19,14 +19,15 @@ const AdminPanel: React.FC = () => {
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [mangaRes, chapRes, usersRes, pendingRes, reportsRes] = await Promise.all([
+      const [mangaRes, chapRes, usersRes, pendingRes, reportsRes, pendingChapRes] = await Promise.all([
         supabase.from('manga').select('id', { count: 'exact', head: true }),
         supabase.from('chapters').select('id', { count: 'exact', head: true }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('manga').select('id', { count: 'exact', head: true }).eq('approval_status', 'PENDING'),
         supabase.from('reports' as any).select('id', { count: 'exact', head: true }).eq('status', 'PENDING'),
+        supabase.from('chapters' as any).select('id', { count: 'exact', head: true }).eq('approval_status', 'PENDING'),
       ]);
-      return { totalManga: mangaRes.count || 0, totalChapters: chapRes.count || 0, totalUsers: usersRes.count || 0, pending: pendingRes.count || 0, reports: (reportsRes as any).count || 0 };
+      return { totalManga: mangaRes.count || 0, totalChapters: chapRes.count || 0, totalUsers: usersRes.count || 0, pending: pendingRes.count || 0, reports: (reportsRes as any).count || 0, pendingChapters: pendingChapRes.count || 0 };
     },
     enabled: isAdmin,
   });
@@ -279,9 +280,33 @@ const AdminPanel: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-users'] });
   };
 
+  // Pending chapters
+  const { data: pendingChapters = [], isLoading: loadingPendingChapters } = useQuery({
+    queryKey: ['admin-pending-chapters'],
+    queryFn: async () => {
+      const { data } = await supabase.from('chapters' as any).select('*, manga(title, slug, creator_id)').eq('approval_status', 'PENDING').order('created_at', { ascending: false });
+      return (data || []) as any[];
+    },
+    enabled: isAdmin,
+  });
+
+  const updateChapterApproval = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from('chapters').update({ approval_status: status } as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Chapter status updated');
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-chapters'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { id: 'submissions', label: 'Submissions', icon: <FileText className="w-4 h-4" /> },
+    { id: 'submissions', label: 'Manga', icon: <FileText className="w-4 h-4" /> },
+    { id: 'chapter-reviews', label: 'Chapters', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" /> },
     { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
@@ -303,6 +328,7 @@ const AdminPanel: React.FC = () => {
                 {t.icon} {t.label}
                 {t.id === 'reports' && (stats?.reports || 0) > 0 && <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-destructive text-destructive-foreground font-bold">{stats?.reports}</span>}
                 {t.id === 'submissions' && (stats?.pending || 0) > 0 && <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-yellow-500 text-black font-bold">{stats?.pending}</span>}
+                {t.id === 'chapter-reviews' && (stats?.pendingChapters || 0) > 0 && <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-orange-500 text-white font-bold">{stats?.pendingChapters}</span>}
               </button>
             ))}
           </div>
@@ -317,7 +343,8 @@ const AdminPanel: React.FC = () => {
                   { label: 'Total Manhwa', value: stats?.totalManga ?? '—', color: 'text-foreground' },
                   { label: 'Total Users', value: stats?.totalUsers ?? '—', color: 'text-primary' },
                   { label: 'Total Chapters', value: stats?.totalChapters ?? '—', color: 'text-foreground' },
-                  { label: 'Pending Review', value: stats?.pending ?? '—', color: 'text-yellow-500' },
+                  { label: 'Pending Manga', value: stats?.pending ?? '—', color: 'text-yellow-500' },
+                  { label: 'Pending Chapters', value: stats?.pendingChapters ?? '—', color: 'text-orange-500' },
                   { label: 'Reports', value: stats?.reports ?? '—', color: 'text-destructive' },
                 ].map(s => (
                   <div key={s.label} className="brutal-card p-5">
@@ -355,6 +382,40 @@ const AdminPanel: React.FC = () => {
                         </tr>
                       ))}
                       {(!pendingManga || pendingManga.length === 0) && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No pending submissions 🎉</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'chapter-reviews' && (
+            <div>
+              <h2 className="text-display text-3xl mb-4 tracking-wider">CHAPTER REVIEWS</h2>
+              {loadingPendingChapters ? (
+                <div className="brutal-card p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" /></div>
+              ) : (
+                <div className="brutal-card overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
+                      <th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
+                    </tr></thead>
+                    <tbody>
+                      {pendingChapters.map((c: any) => (
+                        <tr key={c.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                          <td className="px-4 py-3 font-semibold">{c.manga?.title || '—'}</td>
+                          <td className="px-4 py-3">Ch. {c.chapter_number}</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{c.title || '—'}</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-1">
+                              <button onClick={() => updateChapterApproval.mutate({ id: c.id, status: 'APPROVED' })} className="p-1.5 border border-green-500 text-green-500 hover:bg-green-500/10" title="Approve"><Check className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => updateChapterApproval.mutate({ id: c.id, status: 'REJECTED' })} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Reject"><X className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {pendingChapters.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No chapters pending review 🎉</td></tr>}
                     </tbody>
                   </table>
                 </div>
