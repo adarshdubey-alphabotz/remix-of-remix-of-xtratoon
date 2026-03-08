@@ -275,8 +275,11 @@ export type Database = {
           content: string | null
           created_at: string
           creator_id: string
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           image_url: string | null
+          is_deleted: boolean
           likes_count: number
           replies_count: number
           telegram_message_id: number | null
@@ -287,8 +290,11 @@ export type Database = {
           content?: string | null
           created_at?: string
           creator_id: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           image_url?: string | null
+          is_deleted?: boolean
           likes_count?: number
           replies_count?: number
           telegram_message_id?: number | null
@@ -299,8 +305,11 @@ export type Database = {
           content?: string | null
           created_at?: string
           creator_id?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           image_url?: string | null
+          is_deleted?: boolean
           likes_count?: number
           replies_count?: number
           telegram_message_id?: number | null
