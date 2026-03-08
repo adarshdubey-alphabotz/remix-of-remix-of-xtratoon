@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search, Sparkles,
+  ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search, Sparkles, MessageSquare,
   Bell, Palette, Mail, Trash2, Pencil, BarChart3, Image, Upload, MapPin, Clock, Globe,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
