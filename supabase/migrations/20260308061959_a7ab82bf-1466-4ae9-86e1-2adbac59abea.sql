@@ -1,0 +1,1 @@
+ALTER TABLE public.community_posts ADD COLUMN IF NOT EXISTS views_count integer NOT NULL DEFAULT 0;

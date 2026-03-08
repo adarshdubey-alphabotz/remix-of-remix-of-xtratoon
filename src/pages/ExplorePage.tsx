@@ -4,7 +4,6 @@ import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Spar
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import GenreWheel from '@/components/GenreWheel';
 
 interface MangaItem {
   id: string;
@@ -176,7 +175,6 @@ const RankedItem: React.FC<{ manhwa: MangaItem; rank: number; index: number }> =
 
 const ExplorePage: React.FC = () => {
   const [activeGenre, setActiveGenre] = useState('All');
-  const [showWheel, setShowWheel] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
@@ -252,26 +250,8 @@ const ExplorePage: React.FC = () => {
                 </motion.button>
               );
             })}
-          </motion.div>
-          <button
-            onClick={() => setShowWheel(!showWheel)}
-            className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex-shrink-0 ${showWheel ? 'bg-primary text-primary-foreground border-primary' : 'border-border/40 text-muted-foreground hover:text-foreground'}`}
-          >
-            🎯 Wheel
-          </button>
+        </motion.div>
         </div>
-
-        {/* Genre Wheel */}
-        {showWheel && (
-          <motion.div
-            className="flex justify-center py-4 mb-4"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-          >
-            <GenreWheel genres={genres} activeGenre={activeGenre} onSelect={setActiveGenre} />
-          </motion.div>
-        )}
       </div>
 
       {isLoading ? (

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollowingIds } from '@/hooks/useFollow';
-import { Heart, MessageCircle, Send, ImagePlus, Trash2, User, Loader2, Search, Hash, X, Flag, TrendingUp } from 'lucide-react';
+import { Heart, MessageCircle, Send, ImagePlus, Trash2, User, Loader2, Search, Hash, X, Flag, TrendingUp, Eye } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -426,6 +426,10 @@ const CommunityPage: React.FC = () => {
                               <Heart className={`w-[18px] h-[18px] ${isLiked ? 'fill-primary' : ''}`} />
                               <span className="text-xs">{post.likes_count || 0}</span>
                             </button>
+                            <div className="flex items-center gap-1.5 p-2 text-muted-foreground">
+                              <Eye className="w-[18px] h-[18px]" />
+                              <span className="text-xs">{post.views_count || 0}</span>
+                            </div>
                           </div>
                         </div>
                       </div>

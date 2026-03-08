@@ -227,6 +227,7 @@ export type Database = {
           replies_count: number
           telegram_message_id: number | null
           updated_at: string
+          views_count: number
         }
         Insert: {
           content?: string | null
@@ -238,6 +239,7 @@ export type Database = {
           replies_count?: number
           telegram_message_id?: number | null
           updated_at?: string
+          views_count?: number
         }
         Update: {
           content?: string | null
@@ -249,6 +251,7 @@ export type Database = {
           replies_count?: number
           telegram_message_id?: number | null
           updated_at?: string
+          views_count?: number
         }
         Relationships: []
       }

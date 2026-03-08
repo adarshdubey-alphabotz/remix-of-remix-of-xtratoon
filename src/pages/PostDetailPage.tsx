@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Heart, MessageCircle, Send, Trash2, User, Flag, Loader2 } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Send, Trash2, User, Flag, Loader2, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -47,6 +47,16 @@ const PostDetailPage: React.FC = () => {
     },
     enabled: !!postId,
   });
+
+  // Increment view count on post detail visit
+  useEffect(() => {
+    if (!post?.id) return;
+    supabase
+      .from('community_posts' as any)
+      .update({ views_count: (post.views_count || 0) + 1 })
+      .eq('id', post.id)
+      .then(() => {});
+  }, [post?.id]);
 
   const { data: creator } = useQuery({
     queryKey: ['post-creator', post?.creator_id],
