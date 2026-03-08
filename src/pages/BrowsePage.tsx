@@ -250,7 +250,7 @@ const BrowsePage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 sm:gap-6">
-                {mappedResults.map((m, i) => <ManhwaCard key={m._id} manhwa={m as any} index={i} />)}
+                {mappedResults.map((m, i) => <ManhwaCard key={m.id} manhwa={m as any} index={i} />)}
               </div>
             )}
 
