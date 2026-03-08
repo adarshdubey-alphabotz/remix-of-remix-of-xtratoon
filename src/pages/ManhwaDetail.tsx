@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
 import CommentSection from '@/components/CommentSection';
+import SocialShareMenu from '@/components/SocialShareMenu';
 import { toast } from 'sonner';
 
 const formatViews = (n: number): string => {
@@ -222,6 +223,11 @@ const ManhwaDetail: React.FC = () => {
                 <MagneticButton>
                   <button onClick={handleToggleLike} className="btn-outline rounded-none text-sm"><Heart className={`w-4 h-4 ${isLiked ? 'fill-primary text-primary' : ''}`} /> {isLiked ? 'Liked' : 'Like'}</button>
                 </MagneticButton>
+                <SocialShareMenu
+                  title={manhwa.title}
+                  description={manhwa.description || undefined}
+                  coverUrl={coverUrl}
+                />
                 <MagneticButton>
                   <button onClick={() => setShowReport(true)} className="btn-outline rounded-none text-sm text-destructive border-destructive/30 hover:bg-destructive/5"><Flag className="w-4 h-4" /> Report</button>
                 </MagneticButton>
