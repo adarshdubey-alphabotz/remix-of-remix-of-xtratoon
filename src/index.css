@@ -353,3 +353,25 @@
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Blog content styles */
+.blog-content h1, .blog-content h2, .blog-content h3, .blog-content h4 {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  letter-spacing: 0.05em;
+  color: hsl(var(--foreground));
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+}
+.blog-content h2 { font-size: 1.75rem; border-bottom: 2px solid hsl(var(--border)); padding-bottom: 0.5rem; }
+.blog-content h3 { font-size: 1.35rem; }
+.blog-content p { color: hsl(var(--muted-foreground)); line-height: 1.8; margin-bottom: 1.25em; font-size: 0.95rem; }
+.blog-content a { color: hsl(var(--primary)); text-decoration: underline; }
+.blog-content ul, .blog-content ol { padding-left: 1.5em; margin-bottom: 1.25em; color: hsl(var(--muted-foreground)); }
+.blog-content li { margin-bottom: 0.5em; line-height: 1.7; }
+.blog-content blockquote { border-left: 4px solid hsl(var(--primary) / 0.3); padding: 1em 1.5em; margin: 1.5em 0; background: hsl(var(--muted) / 0.3); border-radius: 0.5rem; }
+.blog-content img { border-radius: 1rem; max-width: 100%; margin: 1.5em 0; }
+.blog-content code { background: hsl(var(--muted)); padding: 0.2em 0.5em; border-radius: 0.25rem; font-size: 0.85em; }
+.blog-content pre { background: hsl(var(--muted)); padding: 1.25em; border-radius: 0.75rem; overflow-x: auto; margin: 1.5em 0; }
+.blog-content .faq-item { margin-bottom: 1.5em; padding: 1.25em; border: 1px solid hsl(var(--border)); border-radius: 1rem; background: hsl(var(--card)); }
+.blog-content .faq-item h3 { margin-top: 0; color: hsl(var(--foreground)); font-size: 1.1rem; }
+.blog-content .faq-item p { margin-bottom: 0; }
