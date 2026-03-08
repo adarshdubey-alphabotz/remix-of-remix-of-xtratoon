@@ -1,25 +1,66 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { Manga } from '@/lib/utils/manga';
+import type { Tables } from '@/integrations/supabase/types';
 
-// Re-export types and utils for backward compatibility
-export type { Manga } from '@/lib/utils/manga';
-export { formatViews, getCoverGradient, resolveCoverUrl } from '@/lib/utils/manga';
+// Type alias for manga from Supabase
+export type Manga = Tables<'manga'> & {
+  profiles?: { username: string | null; display_name: string | null } | null;
+  chapters?: { chapter_number: number; created_at: string }[];
+};
+
+// Format view counts
+export const formatViews = (n: number | null | undefined): string => {
+  const num = n ?? 0;
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  return String(num);
+};
+
+// Default cover gradient when no cover image
+const coverGradients = [
+  'gradient-cover-1', 'gradient-cover-2', 'gradient-cover-3', 'gradient-cover-4',
+  'gradient-cover-5', 'gradient-cover-6', 'gradient-cover-7', 'gradient-cover-8',
+  'gradient-cover-9', 'gradient-cover-10',
+];
+
+export const getCoverGradient = (index: number) => coverGradients[index % coverGradients.length];
+
+// Helper to fetch manga with profile join
+async function fetchMangaWithProfile(query: any) {
+  const { data: mangaData, error } = await query;
+  if (error) throw error;
+  if (!mangaData || mangaData.length === 0) return [];
+
+  // Get creator IDs
+  const creatorIds = [...new Set(mangaData.map((m: any) => m.creator_id))];
+  
+  // Fetch profiles
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('user_id, username, display_name')
+    .in('user_id', creatorIds);
+
+  const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+
+  return mangaData.map((m: any) => ({
+    ...m,
+    profiles: profileMap.get(m.creator_id) || null,
+  })) as Manga[];
+}
 
 // ---- Manga Queries ----
 export const useFeaturedManga = () =>
   useQuery({
     queryKey: ['manga', 'featured'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)')
+        .select('*')
         .eq('is_featured', true)
         .eq('approval_status', 'approved')
         .order('updated_at', { ascending: false })
         .limit(10);
-      if (error) throw error;
-      return data as Manga[];
+      return fetchMangaWithProfile(query);
     },
   });
 
@@ -27,14 +68,13 @@ export const useLatestManga = (limit = 18) =>
   useQuery({
     queryKey: ['manga', 'latest', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)')
+        .select('*')
         .eq('approval_status', 'approved')
         .order('updated_at', { ascending: false })
         .limit(limit);
-      if (error) throw error;
-      return data as Manga[];
+      return fetchMangaWithProfile(query);
     },
   });
 
@@ -42,14 +82,13 @@ export const usePopularManga = (limit = 10) =>
   useQuery({
     queryKey: ['manga', 'popular', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)')
+        .select('*')
         .eq('approval_status', 'approved')
         .order('views', { ascending: false })
         .limit(limit);
-      if (error) throw error;
-      return data as Manga[];
+      return fetchMangaWithProfile(query);
     },
   });
 
@@ -57,14 +96,13 @@ export const useTrendingManga = (limit = 10) =>
   useQuery({
     queryKey: ['manga', 'trending', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)')
+        .select('*')
         .eq('approval_status', 'approved')
         .order('views', { ascending: false })
         .limit(limit);
-      if (error) throw error;
-      return data as Manga[];
+      return fetchMangaWithProfile(query);
     },
   });
 
@@ -72,14 +110,13 @@ export const useRisingManga = (limit = 10) =>
   useQuery({
     queryKey: ['manga', 'rising', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)')
+        .select('*')
         .eq('approval_status', 'approved')
         .order('created_at', { ascending: false })
         .limit(limit);
-      if (error) throw error;
-      return data as Manga[];
+      return fetchMangaWithProfile(query);
     },
   });
 
@@ -87,14 +124,13 @@ export const useMostFollowed = (limit = 10) =>
   useQuery({
     queryKey: ['manga', 'most-followed', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)')
+        .select('*')
         .eq('approval_status', 'approved')
         .order('bookmarks', { ascending: false })
         .limit(limit);
-      if (error) throw error;
-      return data as Manga[];
+      return fetchMangaWithProfile(query);
     },
   });
 
@@ -102,14 +138,13 @@ export const useMostLiked = (limit = 10) =>
   useQuery({
     queryKey: ['manga', 'most-liked', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)')
+        .select('*')
         .eq('approval_status', 'approved')
         .order('likes', { ascending: false })
         .limit(limit);
-      if (error) throw error;
-      return data as Manga[];
+      return fetchMangaWithProfile(query);
     },
   });
 
@@ -119,7 +154,7 @@ export const useSearchManga = (params: { page?: number; limit?: number; search?:
     queryFn: async () => {
       let query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)', { count: 'exact' })
+        .select('*', { count: 'exact' })
         .eq('approval_status', 'approved');
 
       if (params.search) {
@@ -150,8 +185,21 @@ export const useSearchManga = (params: { page?: number; limit?: number; search?:
       const { data, error, count } = await query;
       if (error) throw error;
 
+      // Fetch profiles for results
+      const creatorIds = [...new Set((data || []).map((m: any) => m.creator_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name')
+        .in('user_id', creatorIds);
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+
+      const manga = (data || []).map((m: any) => ({
+        ...m,
+        profiles: profileMap.get(m.creator_id) || null,
+      })) as Manga[];
+
       return {
-        manga: data as Manga[],
+        manga,
         total: count || 0,
         page,
         pages: Math.ceil((count || 0) / limit),
@@ -163,13 +211,32 @@ export const useMangaBySlug = (slug: string) =>
   useQuery({
     queryKey: ['manga', slug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: manga, error: mangaError } = await supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name), chapters(id, chapter_number, title, created_at, views, is_published)')
+        .select('*')
         .eq('slug', slug)
         .single();
-      if (error) throw error;
-      return data as Manga & { chapters: any[] };
+      if (mangaError) throw mangaError;
+
+      // Fetch profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name')
+        .eq('user_id', manga.creator_id)
+        .single();
+
+      // Fetch chapters
+      const { data: chapters } = await supabase
+        .from('chapters')
+        .select('id, chapter_number, title, created_at, views, is_published')
+        .eq('manga_id', manga.id)
+        .order('chapter_number', { ascending: false });
+
+      return {
+        ...manga,
+        profiles: profile || null,
+        chapters: chapters || [],
+      } as Manga & { chapters: any[] };
     },
     enabled: !!slug,
   });
@@ -190,11 +257,18 @@ export const useChapter = (mangaSlug: string, chapterNumber: number) =>
       // Then get chapter
       const { data: chapter, error: chapterError } = await supabase
         .from('chapters')
-        .select('*, chapter_pages(id, page_number, telegram_file_id)')
+        .select('*')
         .eq('manga_id', manga.id)
         .eq('chapter_number', chapterNumber)
         .single();
       if (chapterError) throw chapterError;
+
+      // Get chapter pages
+      const { data: pages } = await supabase
+        .from('chapter_pages')
+        .select('id, page_number, telegram_file_id')
+        .eq('chapter_id', chapter.id)
+        .order('page_number');
 
       // Get prev/next chapters
       const { data: chapters } = await supabase
@@ -209,6 +283,7 @@ export const useChapter = (mangaSlug: string, chapterNumber: number) =>
 
       return {
         ...chapter,
+        chapter_pages: pages || [],
         manga,
         prevChapter: currentIndex > 0 ? chapterNumbers[currentIndex - 1] : null,
         nextChapter: currentIndex < chapterNumbers.length - 1 ? chapterNumbers[currentIndex + 1] : null,
@@ -271,12 +346,24 @@ export const useHistory = () =>
 
       const { data, error } = await supabase
         .from('reading_history')
-        .select('*, manga(*), chapters:chapter_id(chapter_number)')
+        .select('*, manga(*)')
         .eq('user_id', user.id)
         .order('read_at', { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data;
+
+      // Get chapter info separately
+      const chapterIds = [...new Set((data || []).map(d => d.chapter_id))];
+      const { data: chapters } = await supabase
+        .from('chapters')
+        .select('id, chapter_number')
+        .in('id', chapterIds);
+      const chapterMap = new Map((chapters || []).map(c => [c.id, c]));
+
+      return (data || []).map(d => ({
+        ...d,
+        chapters: chapterMap.get(d.chapter_id) || null,
+      }));
     },
   });
 
@@ -347,7 +434,7 @@ export const useAdminManga = (params?: { page?: number; limit?: number; search?:
     queryFn: async () => {
       let query = supabase
         .from('manga')
-        .select('*, profiles:creator_id(username, display_name)', { count: 'exact' });
+        .select('*', { count: 'exact' });
 
       if (params?.search) {
         query = query.ilike('title', `%${params.search}%`);
@@ -364,7 +451,20 @@ export const useAdminManga = (params?: { page?: number; limit?: number; search?:
       const { data, error, count } = await query;
       if (error) throw error;
 
-      return { manga: data, total: count || 0 };
+      // Fetch profiles
+      const creatorIds = [...new Set((data || []).map((m: any) => m.creator_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name')
+        .in('user_id', creatorIds);
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+
+      const manga = (data || []).map((m: any) => ({
+        ...m,
+        profiles: profileMap.get(m.creator_id) || null,
+      }));
+
+      return { manga, total: count || 0 };
     },
   });
 
