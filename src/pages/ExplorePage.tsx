@@ -4,7 +4,6 @@ import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Spar
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import GenreWheel from '@/components/GenreWheel';
 
 interface MangaItem {
   id: string;
