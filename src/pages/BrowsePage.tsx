@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import EmptyState from '@/components/EmptyState';
 import { useSearchParams } from 'react-router-dom';
 import { Search, X, SlidersHorizontal, LayoutGrid, Columns3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
