@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search,
@@ -327,7 +328,10 @@ const ProfilePage: React.FC = () => {
               <Camera className="w-4 h-4" />
             </button>
           </div>
-          <h2 className="text-xl font-bold">{displayName || 'Set your name'}</h2>
+          <h2 className="text-xl font-bold inline-flex items-center gap-1.5">
+            {displayName || 'Set your name'}
+            {(profile as any)?.is_verified && <VerifiedBadge size="md" />}
+          </h2>
           <p className="text-sm text-muted-foreground">@{username || 'set-username'}</p>
           {username && (
             <button

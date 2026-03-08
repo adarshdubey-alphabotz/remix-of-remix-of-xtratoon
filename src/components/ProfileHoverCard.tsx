@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User, Users } from 'lucide-react';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useFollow } from '@/hooks/useFollow';
@@ -26,7 +27,7 @@ const ProfileHoverCard: React.FC<ProfileHoverCardProps> = ({ userId, username, c
     queryFn: async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('user_id, username, display_name, avatar_url, bio, role_type')
+        .select('user_id, username, display_name, avatar_url, bio, role_type, is_verified')
         .eq('user_id', userId)
         .single();
       return data;
@@ -79,8 +80,9 @@ const ProfileHoverCard: React.FC<ProfileHoverCardProps> = ({ userId, username, c
 
           {/* Name & username */}
           <Link to={profileLink} className="block">
-            <p className="text-sm font-bold text-foreground hover:underline leading-tight">
+            <p className="text-sm font-bold text-foreground hover:underline leading-tight inline-flex items-center gap-1">
               {p?.display_name || p?.username || 'User'}
+              {(p as any)?.is_verified && <VerifiedBadge size="sm" />}
             </p>
             {p?.username && (
               <p className="text-xs text-muted-foreground">@{p.username}</p>

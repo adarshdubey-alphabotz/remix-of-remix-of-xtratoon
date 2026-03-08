@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import ScrollReveal from '@/components/ScrollReveal';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
 import SharePostModal from '@/components/SharePostModal';
+import VerifiedBadge from '@/components/VerifiedBadge';
 
 const timeAgo = (date: string) => {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -117,7 +118,7 @@ const CommunityPage: React.FC = () => {
     queryKey: ['post-profiles', creatorIds],
     queryFn: async () => {
       if (creatorIds.length === 0) return [];
-      const { data } = await supabase.from('profiles').select('user_id, username, display_name, avatar_url').in('user_id', creatorIds);
+      const { data } = await supabase.from('profiles').select('user_id, username, display_name, avatar_url, is_verified').in('user_id', creatorIds);
       return data || [];
     },
     enabled: creatorIds.length > 0,
@@ -401,6 +402,7 @@ const CommunityPage: React.FC = () => {
                             <ProfileHoverCard userId={post.creator_id} username={creator?.username}>
                               <Link to={`/publisher/${creator?.username || ''}`} className="text-sm font-bold hover:underline truncate">{creator?.display_name || creator?.username || 'Creator'}</Link>
                             </ProfileHoverCard>
+                            {creator?.is_verified && <VerifiedBadge size="sm" />}
                             {creator?.username && <span className="text-xs text-muted-foreground truncate">@{creator.username}</span>}
                             <span className="text-xs text-muted-foreground">·</span>
                             <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo(post.created_at)}</span>

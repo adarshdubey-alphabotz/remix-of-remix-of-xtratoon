@@ -513,6 +513,7 @@ export type Database = {
           display_name: string | null
           id: string
           is_banned: boolean
+          is_verified: boolean
           profile_theme: string
           role_type: string
           social_links: Json | null
@@ -532,6 +533,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_banned?: boolean
+          is_verified?: boolean
           profile_theme?: string
           role_type?: string
           social_links?: Json | null
@@ -551,6 +553,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_banned?: boolean
+          is_verified?: boolean
           profile_theme?: string
           role_type?: string
           social_links?: Json | null
@@ -752,6 +755,7 @@ export type Database = {
           display_name: string | null
           id: string
           is_banned: boolean
+          is_verified: boolean
           profile_theme: string
           role_type: string
           social_links: Json | null

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail, BadgeCheck } from 'lucide-react';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
@@ -12,6 +13,8 @@ const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [confirmModal, setConfirmModal] = useState<{ id: string; action: string; type?: string } | null>(null);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [verifyUsername, setVerifyUsername] = useState('');
+  const [verifyLoading, setVerifyLoading] = useState(false);
 
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
@@ -234,6 +237,48 @@ const AdminPanel: React.FC = () => {
     return Math.max(0, days);
   };
 
+  // Verified users
+  const { data: verifiedUsers = [], refetch: refetchVerified } = useQuery({
+    queryKey: ['admin-verified-users'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('*').eq('is_verified', true).order('updated_at', { ascending: false });
+      return (data || []) as any[];
+    },
+    enabled: isAdmin,
+  });
+
+  const handleVerifyUser = async () => {
+    if (!verifyUsername.trim()) return;
+    setVerifyLoading(true);
+    const normalized = verifyUsername.trim().toLowerCase();
+    const { data: profile, error: fetchErr } = await supabase.from('profiles').select('user_id, username, display_name, is_verified').ilike('username', normalized).maybeSingle();
+    if (fetchErr || !profile) {
+      toast.error(profile ? fetchErr?.message : 'User not found');
+      setVerifyLoading(false);
+      return;
+    }
+    if ((profile as any).is_verified) {
+      toast.error('User is already verified');
+      setVerifyLoading(false);
+      return;
+    }
+    const { error } = await supabase.from('profiles').update({ is_verified: true } as any).eq('user_id', profile.user_id);
+    if (error) { toast.error(error.message); setVerifyLoading(false); return; }
+    toast.success(`@${normalized} is now verified! ✅`);
+    setVerifyUsername('');
+    setVerifyLoading(false);
+    refetchVerified();
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
+  const handleUnverifyUser = async (userId: string) => {
+    const { error } = await supabase.from('profiles').update({ is_verified: false } as any).eq('user_id', userId);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Verification removed');
+    refetchVerified();
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'submissions', label: 'Submissions', icon: <FileText className="w-4 h-4" /> },
@@ -241,6 +286,7 @@ const AdminPanel: React.FC = () => {
     { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
+    { id: 'verification', label: 'Verification', icon: <BadgeCheck className="w-4 h-4" /> },
     { id: 'blog', label: 'Blog', icon: <PenTool className="w-4 h-4" /> },
   ];
 
@@ -461,7 +507,7 @@ const AdminPanel: React.FC = () => {
                   <tbody>
                     {(allUsers || []).map((u: any) => (
                       <tr key={u.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
-                        <td className="px-4 py-3 font-semibold">{u.username || '—'}</td>
+                        <td className="px-4 py-3 font-semibold inline-flex items-center gap-1">{u.username || '—'} {u.is_verified && <VerifiedBadge size="sm" />}</td>
                         <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
                         <td className="px-4 py-3">
@@ -487,6 +533,78 @@ const AdminPanel: React.FC = () => {
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'verification' && (
+            <div>
+              <h2 className="text-display text-3xl mb-4 tracking-wider">VERIFICATION</h2>
+              <div className="brutal-card p-4 mb-4 flex items-start gap-3 border-l-4 border-primary">
+                <BadgeCheck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold">Official Account Verification</p>
+                  <p className="text-xs text-muted-foreground mt-1">Add a gold verification badge to official Xtratoon team accounts. This is different from the blue tick (coming soon) which will be for verified creators.</p>
+                </div>
+              </div>
+
+              {/* Add verification */}
+              <div className="brutal-card p-5 mb-6">
+                <h3 className="text-sm font-bold mb-3">Verify a User</h3>
+                <div className="flex gap-2">
+                  <input
+                    value={verifyUsername}
+                    onChange={e => setVerifyUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))}
+                    placeholder="Enter username..."
+                    className="flex-1 px-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                    onKeyDown={e => e.key === 'Enter' && handleVerifyUser()}
+                  />
+                  <button
+                    onClick={handleVerifyUser}
+                    disabled={verifyLoading || !verifyUsername.trim()}
+                    className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {verifyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BadgeCheck className="w-4 h-4" />}
+                    Verify
+                  </button>
+                </div>
+              </div>
+
+              {/* Verified users list */}
+              <div className="brutal-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
+                      <th className="px-4 py-3">User</th>
+                      <th className="px-4 py-3">Display Name</th>
+                      <th className="px-4 py-3">Role</th>
+                      <th className="px-4 py-3">Badge</th>
+                      <th className="px-4 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {verifiedUsers.map((u: any) => (
+                      <tr key={u.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                        <td className="px-4 py-3 font-semibold">@{u.username || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
+                        <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
+                        <td className="px-4 py-3"><VerifiedBadge size="md" /></td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleUnverifyUser(u.user_id)}
+                            className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10 rounded"
+                            title="Remove verification"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {verifiedUsers.length === 0 && (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No verified accounts yet</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>

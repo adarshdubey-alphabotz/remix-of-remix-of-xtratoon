@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin } from 'lucide-react';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,7 +16,7 @@ interface Comment {
   content: string;
   created_at: string;
   is_pinned?: boolean;
-  profile?: { username: string | null; display_name: string | null; avatar_url: string | null };
+  profile?: { username: string | null; display_name: string | null; avatar_url: string | null; is_verified?: boolean };
   replies?: Comment[];
 }
 
@@ -49,7 +50,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       const userIds = [...new Set(allComments.map((c: any) => c.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, username, display_name, avatar_url')
+        .select('user_id, username, display_name, avatar_url, is_verified')
         .in('user_id', userIds);
 
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
@@ -174,6 +175,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-semibold">{displayName}</span>
+              {comment.profile?.is_verified && <VerifiedBadge size="sm" />}
               <span className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleString()}</span>
             </div>
             <p className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap">{comment.content}</p>

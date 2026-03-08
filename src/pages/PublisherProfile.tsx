@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { Users, Eye, BookOpen, Calendar, MapPin, Clock, User, Heart, MessageCircle, Trash2, Send, Loader2, Link2, Check, Share2, ArrowLeft, Mail, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getImageUrl } from '@/lib/imageUrl';
@@ -312,8 +313,11 @@ const PublisherProfile: React.FC = () => {
 
         {/* Name & username */}
         <div className="mb-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">{displayName}</h1>
-          {profile.username && <p className="text-sm text-muted-foreground">@{profile.username}</p>}
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight inline-flex items-center gap-1.5">
+            {displayName}
+            {(profile as any).is_verified && <VerifiedBadge size="md" />}
+          </h1>
+          {profile.username && <p className={`text-sm ${ts.usernameCls}`}>@{profile.username}</p>}
         </div>
 
         {/* Bio */}
