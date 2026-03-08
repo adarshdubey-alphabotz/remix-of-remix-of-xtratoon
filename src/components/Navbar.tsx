@@ -499,6 +499,7 @@ const Navbar: React.FC = () => {
                     <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
                     {(isPublisher || (isAdmin && !adminMode)) && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
                     {isAdmin && adminMode && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
+                    {isAdmin && adminMode && <Link to="/admin/settings" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Settings</Link>}
                     {isAdmin && (
                       <button
                         onClick={() => setAdminMode(!adminMode)}
