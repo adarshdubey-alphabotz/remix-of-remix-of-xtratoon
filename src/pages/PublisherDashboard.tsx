@@ -616,17 +616,27 @@ const PublisherDashboard: React.FC = () => {
                         <div className="px-4 py-3 border-b-2 border-foreground">
                           <h3 className="font-bold text-sm">Existing Chapters ({chapters.length})</h3>
                         </div>
-                        {chapters.map(ch => (
-                          <div key={ch.id} className="flex items-center justify-between px-4 py-3 border-b border-foreground/10 text-sm">
-                            <div>
-                              <span className="font-mono text-muted-foreground mr-2">#{ch.chapter_number}</span>
-                              <span className="font-semibold">{ch.title || `Chapter ${ch.chapter_number}`}</span>
+                        {chapters.map(ch => {
+                          const scheduled = (ch as any).scheduled_at;
+                          const isScheduled = scheduled && !ch.is_published;
+                          return (
+                            <div key={ch.id} className="flex items-center justify-between px-4 py-3 border-b border-foreground/10 text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-muted-foreground mr-1">#{ch.chapter_number}</span>
+                                <span className="font-semibold">{ch.title || `Chapter ${ch.chapter_number}`}</span>
+                                {isScheduled && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-primary/10 text-primary rounded-full">
+                                    <Clock className="w-3 h-3" />
+                                    {new Date(scheduled).toLocaleDateString()} {new Date(scheduled).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {(ch as any).chapter_pages?.[0]?.count || 0} pages
+                              </span>
                             </div>
-                            <span className="text-xs text-muted-foreground">
-                              {(ch as any).chapter_pages?.[0]?.count || 0} pages
-                            </span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </>
