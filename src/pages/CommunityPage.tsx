@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import ScrollReveal from '@/components/ScrollReveal';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
 import SharePostModal from '@/components/SharePostModal';
+import VerifiedBadge from '@/components/VerifiedBadge';
 
 const timeAgo = (date: string) => {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
