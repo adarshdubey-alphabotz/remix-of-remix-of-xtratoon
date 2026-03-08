@@ -14,7 +14,7 @@ const allGenres = [
 ];
 
 const Navbar: React.FC = () => {
-  const { user, profile, logout, setShowAuthModal, setAuthTab, isAdmin, isPublisher } = useAuth();
+  const { user, profile, logout, setShowAuthModal, setAuthTab, isAdmin, isPublisher, adminMode, setAdminMode } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
