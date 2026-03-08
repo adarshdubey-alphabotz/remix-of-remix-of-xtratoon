@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { animeAvatarUrls } from '@/data/animeAvatarUrls';
 import AvatarPicker from '@/components/profile/AvatarPicker';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
