@@ -117,7 +117,7 @@ const CommunityPage: React.FC = () => {
     queryKey: ['post-profiles', creatorIds],
     queryFn: async () => {
       if (creatorIds.length === 0) return [];
-      const { data } = await supabase.from('profiles').select('user_id, username, display_name, avatar_url').in('user_id', creatorIds);
+      const { data } = await supabase.from('profiles').select('user_id, username, display_name, avatar_url, is_verified').in('user_id', creatorIds);
       return data || [];
     },
     enabled: creatorIds.length > 0,

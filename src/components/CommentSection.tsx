@@ -175,6 +175,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-semibold">{displayName}</span>
+              {comment.profile?.is_verified && <VerifiedBadge size="sm" />}
               <span className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleString()}</span>
             </div>
             <p className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap">{comment.content}</p>
