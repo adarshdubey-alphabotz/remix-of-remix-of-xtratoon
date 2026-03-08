@@ -174,6 +174,7 @@ const ManhwaDetail: React.FC = () => {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center pt-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   if (!manhwa) return <div className="min-h-screen flex items-center justify-center pt-16"><p className="text-muted-foreground">Manhwa not found</p></div>;
 
+  const pageUrl = `https://glassy-ink-verse.lovable.app/manhwa/${manhwa.slug}`;
   const allChapters = chapters || [];
   const visibleChapters = showAllChapters ? allChapters : allChapters.slice(0, 10);
   const firstChapter = allChapters.length > 0 ? allChapters[0] : null;
