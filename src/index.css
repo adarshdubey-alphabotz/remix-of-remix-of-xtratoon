@@ -83,6 +83,45 @@
     --shadow-card-hover: 0 12px 40px -4px hsla(var(--shadow-color) / 0.4);
     --shadow-sm: 0 2px 8px -2px hsla(var(--shadow-color) / 0.2);
   }
+
+  /* AMOLED: true black for OLED screens */
+  .amoled {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 343 100% 59%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 6%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 343 100% 59%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
+    --ring: 343 100% 59%;
+
+    --sidebar-background: 0 0% 2%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 343 100% 59%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 6%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 12%;
+    --sidebar-ring: 343 100% 59%;
+
+    --glass-bg: 0 0% 2% / 0.85;
+    --glass-border: 0 0% 100% / 0.05;
+    --shadow-color: 0 0% 0%;
+    --shadow-card: 0 4px 24px -4px hsla(var(--shadow-color) / 0.5);
+    --shadow-card-hover: 0 12px 40px -4px hsla(var(--shadow-color) / 0.6);
+    --shadow-sm: 0 2px 8px -2px hsla(var(--shadow-color) / 0.3);
+  }
 }
 
 @layer base {

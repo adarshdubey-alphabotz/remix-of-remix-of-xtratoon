@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import ScrollReveal from '@/components/ScrollReveal';
+import ProfileHoverCard from '@/components/ProfileHoverCard';
 
 const timeAgo = (date: string) => {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -357,22 +358,26 @@ const CommunityPage: React.FC = () => {
                     >
                       <div className="flex gap-3">
                         {/* Avatar */}
-                        <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
-                          {creator?.avatar_url ? (
-                            <img src={creator.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                              <User className="w-5 h-5 text-muted-foreground" />
-                            </div>
-                          )}
-                        </Link>
+                        <ProfileHoverCard userId={post.creator_id} username={creator?.username}>
+                          <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
+                            {creator?.avatar_url ? (
+                              <img src={creator.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                                <User className="w-5 h-5 text-muted-foreground" />
+                              </div>
+                            )}
+                          </Link>
+                        </ProfileHoverCard>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <Link to={`/publisher/${creator?.username || ''}`} className="text-sm font-bold hover:underline truncate">
-                              {creator?.display_name || creator?.username || 'Creator'}
-                            </Link>
+                            <ProfileHoverCard userId={post.creator_id} username={creator?.username}>
+                              <Link to={`/publisher/${creator?.username || ''}`} className="text-sm font-bold hover:underline truncate">
+                                {creator?.display_name || creator?.username || 'Creator'}
+                              </Link>
+                            </ProfileHoverCard>
                             {creator?.username && (
                               <span className="text-xs text-muted-foreground truncate">@{creator.username}</span>
                             )}

@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X } from 'lucide-react';
+import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 const allGenres = [
@@ -40,6 +40,9 @@ const PublisherDashboard: React.FC = () => {
   const [pageFiles, setPageFiles] = useState<File[]>([]);
   const [uploadingChapter, setUploadingChapter] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
   const pageInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch creator's manga
@@ -231,13 +234,19 @@ const PublisherDashboard: React.FC = () => {
 
     try {
       // Create chapter record first
+      const scheduledAt = scheduleEnabled && scheduledDate && scheduledTime
+        ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
+        : null;
+
       const { data: chapter, error: chapterError } = await supabase
         .from('chapters')
         .insert({
           manga_id: selectedMangaId,
           chapter_number: chapterNumber,
           title: chapterTitle || null,
-        })
+          is_published: !scheduledAt,
+          scheduled_at: scheduledAt,
+        } as any)
         .select()
         .single();
 
@@ -281,10 +290,14 @@ const PublisherDashboard: React.FC = () => {
         throw new Error(result.error || 'Upload failed');
       }
 
-      toast.success(`Chapter ${chapterNumber} uploaded! (${result.pages_uploaded} pages)`);
+      const schedLabel = scheduledAt ? ` (scheduled for ${new Date(scheduledAt).toLocaleString()})` : '';
+      toast.success(`Chapter ${chapterNumber} uploaded!${schedLabel} (${result.pages_uploaded} pages)`);
       setPageFiles([]);
       setChapterTitle('');
       setChapterNumber(prev => prev + 1);
+      setScheduleEnabled(false);
+      setScheduledDate('');
+      setScheduledTime('');
       queryClient.invalidateQueries({ queryKey: ['creator-chapters'] });
     } catch (err: any) {
       toast.error(err.message || 'Failed to upload chapter');
@@ -570,9 +583,30 @@ const PublisherDashboard: React.FC = () => {
                         )}
                       </div>
 
-                      <button type="submit" disabled={pageFiles.length === 0 || uploadingChapter} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                      {/* Schedule publish */}
+                      <div className="border border-border/40 rounded-lg p-4 space-y-3">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={scheduleEnabled} onChange={e => setScheduleEnabled(e.target.checked)} className="accent-primary" />
+                          <Clock className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold">Schedule for later</span>
+                        </label>
+                        {scheduleEnabled && (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-semibold block mb-1 text-muted-foreground">Date</label>
+                              <input type="date" value={scheduledDate} onChange={e => setScheduledDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 bg-background border border-border text-sm rounded-lg focus:outline-none focus:border-primary" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold block mb-1 text-muted-foreground">Time</label>
+                              <input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} className="w-full px-3 py-2 bg-background border border-border text-sm rounded-lg focus:outline-none focus:border-primary" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <button type="submit" disabled={pageFiles.length === 0 || uploadingChapter || (scheduleEnabled && (!scheduledDate || !scheduledTime))} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                         {uploadingChapter && <Loader2 className="w-4 h-4 animate-spin" />}
-                        {uploadingChapter ? `Uploading ${pageFiles.length} pages...` : `Upload Chapter ${chapterNumber}`}
+                        {uploadingChapter ? `Uploading ${pageFiles.length} pages...` : scheduleEnabled ? `Schedule Chapter ${chapterNumber}` : `Upload Chapter ${chapterNumber}`}
                       </button>
                     </form>
 
@@ -582,17 +616,27 @@ const PublisherDashboard: React.FC = () => {
                         <div className="px-4 py-3 border-b-2 border-foreground">
                           <h3 className="font-bold text-sm">Existing Chapters ({chapters.length})</h3>
                         </div>
-                        {chapters.map(ch => (
-                          <div key={ch.id} className="flex items-center justify-between px-4 py-3 border-b border-foreground/10 text-sm">
-                            <div>
-                              <span className="font-mono text-muted-foreground mr-2">#{ch.chapter_number}</span>
-                              <span className="font-semibold">{ch.title || `Chapter ${ch.chapter_number}`}</span>
+                        {chapters.map(ch => {
+                          const scheduled = (ch as any).scheduled_at;
+                          const isScheduled = scheduled && !ch.is_published;
+                          return (
+                            <div key={ch.id} className="flex items-center justify-between px-4 py-3 border-b border-foreground/10 text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-muted-foreground mr-1">#{ch.chapter_number}</span>
+                                <span className="font-semibold">{ch.title || `Chapter ${ch.chapter_number}`}</span>
+                                {isScheduled && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-primary/10 text-primary rounded-full">
+                                    <Clock className="w-3 h-3" />
+                                    {new Date(scheduled).toLocaleDateString()} {new Date(scheduled).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {(ch as any).chapter_pages?.[0]?.count || 0} pages
+                              </span>
                             </div>
-                            <span className="text-xs text-muted-foreground">
-                              {(ch as any).chapter_pages?.[0]?.count || 0} pages
-                            </span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </>

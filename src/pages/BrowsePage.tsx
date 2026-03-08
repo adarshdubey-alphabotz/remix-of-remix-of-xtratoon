@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, X, SlidersHorizontal } from 'lucide-react';
+import { Search, X, SlidersHorizontal, LayoutGrid, Columns3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import ManhwaCard from '@/components/ManhwaCard';
+import MasonryManhwaCard from '@/components/MasonryManhwaCard';
 import ScrollReveal from '@/components/ScrollReveal';
 
 const allGenres = [
@@ -21,6 +22,7 @@ const BrowsePage: React.FC = () => {
   const [status, setStatus] = useState<string>('All');
   const [sort, setSort] = useState<string>('Trending');
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'masonry'>('masonry');
 
   const { data: results = [], isLoading } = useQuery({
     queryKey: ['browse-manga', query, status, sort],
@@ -91,9 +93,19 @@ const BrowsePage: React.FC = () => {
     <div className="min-h-screen pt-24 pb-12 bg-background">
       <div className="max-w-7xl mx-auto px-4">
         <ScrollReveal>
-          <h1 className="text-display text-5xl sm:text-6xl mb-8 tracking-wider">
-            <span className="text-primary">BROWSE</span> & DISCOVER
-          </h1>
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-display text-5xl sm:text-6xl tracking-wider">
+              <span className="text-primary">BROWSE</span> & DISCOVER
+            </h1>
+            <div className="hidden sm:flex items-center gap-1 border border-border/40 rounded-xl p-1">
+              <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`} title="Grid view">
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button onClick={() => setViewMode('masonry')} className={`p-2 rounded-lg transition-all ${viewMode === 'masonry' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`} title="Masonry view">
+                <Columns3 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </ScrollReveal>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -158,9 +170,18 @@ const BrowsePage: React.FC = () => {
               {isLoading ? 'Loading...' : `${mappedResults.length} results`}
             </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 sm:gap-6">
-              {mappedResults.map((m, i) => <ManhwaCard key={m._id} manhwa={m as any} index={i} />)}
-            </div>
+            {viewMode === 'masonry' ? (
+              <div className="columns-2 sm:columns-3 md:columns-4 gap-4">
+                {mappedResults.map((m, i) => {
+                  const heights: Array<'tall' | 'medium' | 'short'> = ['tall', 'medium', 'short', 'medium'];
+                  return <MasonryManhwaCard key={m._id} manhwa={m as any} index={i} height={heights[i % 4]} />;
+                })}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 sm:gap-6">
+                {mappedResults.map((m, i) => <ManhwaCard key={m._id} manhwa={m as any} index={i} />)}
+              </div>
+            )}
 
             {!isLoading && mappedResults.length === 0 && (
               <div className="text-center py-16">
