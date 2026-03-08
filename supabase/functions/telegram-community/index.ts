@@ -6,6 +6,41 @@ const corsHeaders = {
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// Comprehensive profanity word list for filtering abusive language
+const PROFANITY_LIST = [
+  // Common English profanity
+  "fuck", "shit", "ass", "asshole", "bitch", "bastard", "damn", "dick", "pussy",
+  "cock", "cunt", "whore", "slut", "fag", "faggot", "nigger", "nigga", "retard",
+  "motherfucker", "bullshit", "goddamn", "piss", "crap", "twat", "wanker",
+  "douche", "douchebag", "jackass", "dipshit", "shithead", "dickhead",
+  // Slurs and hate speech
+  "kike", "spic", "chink", "gook", "wetback", "beaner", "tranny",
+  // Common variations/leetspeak
+  "f u c k", "s h i t", "b i t c h", "fck", "fuk", "fuq", "sht", "btch",
+  "a$$", "a55", "b!tch", "d!ck", "p*ssy", "f*ck", "sh*t",
+  // Sexual harassment
+  "rape", "molest",
+  // Death threats
+  "kill yourself", "kys", "die bitch", "go die",
+];
+
+function containsProfanity(text: string): { hasProfanity: boolean; matches: string[] } {
+  if (!text) return { hasProfanity: false, matches: [] };
+  const lower = text.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  const matches: string[] = [];
+
+  for (const word of PROFANITY_LIST) {
+    const cleanWord = word.replace(/[^a-z0-9\s]/g, '');
+    // Check as whole word or as part of the text
+    const regex = new RegExp(`\\b${cleanWord.replace(/\s+/g, '\\s*')}\\b`, 'i');
+    if (regex.test(lower) || lower.includes(cleanWord)) {
+      matches.push(word);
+    }
+  }
+
+  return { hasProfanity: matches.length > 0, matches };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,7 +70,22 @@ Deno.serve(async (req) => {
     const { data: profile } = await supabase.from("profiles").select("username, display_name, avatar_url").eq("user_id", userId).single();
     const displayName = profile?.display_name || profile?.username || "Anonymous";
 
-    const { action, post_id, content, image_url, reply_to_message_id } = await req.json();
+    const { action, post_id, reply_id, content, image_url } = await req.json();
+
+    // ─── Profanity check for content-based actions ───
+    if ((action === "create_post" || action === "reply") && content) {
+      const check = containsProfanity(content);
+      if (check.hasProfanity) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Your message contains inappropriate language. Please keep the community respectful.",
+            profanity_detected: true,
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
 
     if (action === "create_post") {
       let tgMessageId: number | null = null;
@@ -148,6 +198,52 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "delete_reply") {
+      if (!reply_id) throw new Error("reply_id required");
+
+      // Fetch the reply to check ownership
+      const { data: reply } = await supabase
+        .from("community_replies")
+        .select("user_id, post_id, telegram_message_id")
+        .eq("id", reply_id)
+        .single();
+
+      if (!reply) throw new Error("Reply not found");
+
+      // Check authorization: reply author, post owner, or admin
+      const isReplyAuthor = reply.user_id === userId;
+      let isPostOwner = false;
+      if (!isReplyAuthor) {
+        const { data: post } = await supabase
+          .from("community_posts")
+          .select("creator_id")
+          .eq("id", reply.post_id)
+          .single();
+        isPostOwner = post?.creator_id === userId;
+      }
+
+      if (!isReplyAuthor && !isPostOwner) {
+        const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+        if (!isAdmin) throw new Error("Not authorized to delete this reply");
+      }
+
+      // Delete from Telegram if possible
+      if (reply.telegram_message_id) {
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: COMMUNITY_CHANNEL_ID, message_id: reply.telegram_message_id }),
+        }).catch(() => {}); // Don't fail if TG delete fails
+      }
+
+      await supabase.from("community_replies").delete().eq("id", reply_id);
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "delete_post") {
       if (!post_id) throw new Error("post_id required");
 
@@ -181,7 +277,6 @@ Deno.serve(async (req) => {
     if (action === "report_post") {
       if (!post_id || !content) throw new Error("post_id and reason required");
 
-      // Create an admin notification for the report
       await supabase.from("admin_notifications").insert({
         type: "community_report",
         title: "Community Post Reported",
@@ -189,7 +284,6 @@ Deno.serve(async (req) => {
         reference_id: post_id,
       });
 
-      // Also send to Telegram for admin visibility
       await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

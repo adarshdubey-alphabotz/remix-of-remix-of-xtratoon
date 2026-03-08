@@ -29,7 +29,7 @@ const renderContent = (content: string) => {
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const { user, isAdmin, setShowAuthModal, setAuthTab } = useAuth();
+  const { user, isAdmin, profile, setShowAuthModal, setAuthTab } = useAuth();
   const queryClient = useQueryClient();
   const [replyContent, setReplyContent] = useState('');
   const [showReportModal, setShowReportModal] = useState(false);
@@ -151,6 +151,22 @@ const PostDetailPage: React.FC = () => {
     onSuccess: () => {
       toast.success('Post deleted');
       navigate('/community');
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const deleteReplyMutation = useMutation({
+    mutationFn: async (replyId: string) => {
+      const { data, error } = await supabase.functions.invoke('telegram-community', {
+        body: { action: 'delete_reply', reply_id: replyId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: () => {
+      toast.success('Reply deleted');
+      queryClient.invalidateQueries({ queryKey: ['community-replies', postId] });
+      queryClient.invalidateQueries({ queryKey: ['community-post', postId] });
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -278,8 +294,14 @@ const PostDetailPage: React.FC = () => {
         {/* Reply composer */}
         {user ? (
           <div className="px-4 py-3 border-b border-border/30 flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
-              <User className="w-4 h-4 text-muted-foreground" />
+            <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
             </div>
             <div className="flex-1 flex gap-2">
               <input
@@ -322,12 +344,15 @@ const PostDetailPage: React.FC = () => {
           ) : (
             replies.map((reply: any) => {
               const rp = replyProfileMap[reply.user_id];
+              const isReplyAuthor = user?.id === reply.user_id;
+              const canDeleteReply = isReplyAuthor || isOwner || isAdmin;
+
               return (
                 <motion.div
                   key={reply.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="px-4 py-3 border-b border-border/30 hover:bg-muted/10 transition-colors"
+                  className="px-4 py-3 border-b border-border/30 hover:bg-muted/10 transition-colors group"
                 >
                   <div className="flex gap-3">
                     <Link to={`/publisher/${rp?.username || ''}`} className="flex-shrink-0">
@@ -346,6 +371,16 @@ const PostDetailPage: React.FC = () => {
                         </Link>
                         {rp?.username && <span className="text-xs text-muted-foreground">@{rp.username}</span>}
                         <span className="text-xs text-muted-foreground">· {timeAgo(reply.created_at)}</span>
+                        <div className="flex-1" />
+                        {canDeleteReply && (
+                          <button
+                            onClick={() => { if (window.confirm('Delete this reply?')) deleteReplyMutation.mutate(reply.id); }}
+                            className="p-1 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                            title="Delete reply"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                       <p className="text-sm mt-1 leading-relaxed">{reply.content}</p>
                     </div>
