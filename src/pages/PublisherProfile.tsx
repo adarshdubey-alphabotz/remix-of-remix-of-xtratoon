@@ -167,6 +167,63 @@ const PublisherProfile: React.FC = () => {
   const hasSocials = socialLinks && Object.values(socialLinks).some(Boolean);
   const displayName = profile.display_name || profile.username || 'Creator';
   const profileUrl = `https://xtratoon.com/publisher/${profile.username}`;
+  const profileTheme = (profile as any).profile_theme || 'default';
+
+  // Theme-specific styles
+  const themeStyles = {
+    default: {
+      banner: 'bg-gradient-to-br from-muted to-muted-foreground/10',
+      bannerOverlay: 'bg-gradient-to-b from-transparent via-transparent to-background',
+      avatarBorder: 'border-background',
+      nameCls: 'text-foreground',
+      usernameCls: 'text-muted-foreground',
+      pageBg: 'bg-background',
+      tabIndicator: 'bg-primary',
+      accentGlow: '',
+    },
+    neon: {
+      banner: 'bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-400',
+      bannerOverlay: 'bg-gradient-to-b from-violet-900/30 via-transparent to-background',
+      avatarBorder: 'border-cyan-400 shadow-[0_0_20px_rgba(0,255,255,0.4)]',
+      nameCls: 'text-foreground',
+      usernameCls: 'text-violet-400',
+      pageBg: 'bg-background',
+      tabIndicator: 'bg-gradient-to-r from-violet-500 to-cyan-400',
+      accentGlow: 'after:absolute after:inset-0 after:bg-gradient-to-b after:from-violet-500/5 after:to-transparent after:pointer-events-none',
+    },
+    cyberpunk: {
+      banner: 'bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-700',
+      bannerOverlay: 'bg-gradient-to-b from-yellow-900/20 via-transparent to-background',
+      avatarBorder: 'border-yellow-400 shadow-[0_0_16px_rgba(250,204,21,0.4)]',
+      nameCls: 'text-foreground',
+      usernameCls: 'text-pink-400',
+      pageBg: 'bg-background',
+      tabIndicator: 'bg-gradient-to-r from-yellow-400 to-pink-500',
+      accentGlow: 'after:absolute after:inset-0 after:bg-gradient-to-b after:from-yellow-500/5 after:to-transparent after:pointer-events-none',
+    },
+    retro: {
+      banner: 'bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500',
+      bannerOverlay: 'bg-gradient-to-b from-orange-900/20 via-transparent to-background',
+      avatarBorder: 'border-orange-400 shadow-[0_0_16px_rgba(251,146,60,0.3)]',
+      nameCls: 'text-foreground',
+      usernameCls: 'text-rose-400',
+      pageBg: 'bg-background',
+      tabIndicator: 'bg-gradient-to-r from-orange-400 to-rose-500',
+      accentGlow: 'after:absolute after:inset-0 after:bg-gradient-to-b after:from-orange-500/5 after:to-transparent after:pointer-events-none',
+    },
+    anime: {
+      banner: 'bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300',
+      bannerOverlay: 'bg-gradient-to-b from-pink-200/20 via-transparent to-background',
+      avatarBorder: 'border-pink-400 shadow-[0_0_16px_rgba(244,114,182,0.3)]',
+      nameCls: 'text-foreground',
+      usernameCls: 'text-purple-400',
+      pageBg: 'bg-background',
+      tabIndicator: 'bg-gradient-to-r from-pink-400 to-purple-400',
+      accentGlow: 'after:absolute after:inset-0 after:bg-gradient-to-b after:from-pink-500/5 after:to-transparent after:pointer-events-none',
+    },
+  };
+
+  const ts = themeStyles[profileTheme as keyof typeof themeStyles] || themeStyles.default;
 
   const tabs: { key: TabKey; label: string; count?: number }[] = [
     { key: 'works', label: 'Works', count: creatorManga.length },
@@ -177,20 +234,19 @@ const PublisherProfile: React.FC = () => {
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen ${ts.pageBg} relative ${ts.accentGlow}`}>
       {/* Banner area */}
-      <div className="relative h-44 sm:h-56 lg:h-64 bg-muted overflow-hidden">
-        {/* Use first manga cover as banner if available */}
-        {creatorManga.length > 0 && creatorManga[0].cover_url ? (
+      <div className="relative h-44 sm:h-56 lg:h-64 overflow-hidden">
+        {creatorManga.length > 0 && creatorManga[0].cover_url && profileTheme === 'default' ? (
           <img
             src={getImageUrl(creatorManga[0].cover_url) || ''}
             alt=""
             className="w-full h-full object-cover opacity-60 blur-sm scale-105"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/10" />
+          <div className={`w-full h-full ${ts.banner}`} />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
+        <div className={`absolute inset-0 ${ts.bannerOverlay}`} />
 
         {/* Back button */}
         <button

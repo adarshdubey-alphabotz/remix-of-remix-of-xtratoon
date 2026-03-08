@@ -424,7 +424,7 @@ const ProfilePage: React.FC = () => {
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
           <SettingsRow icon={<Palette className="w-4 h-4" />} label="App Theme" value={theme.charAt(0).toUpperCase() + theme.slice(1)} onClick={cycleTheme} />
           <div className="h-px bg-border ml-16" />
-          <SettingsRow icon={<Palette className="w-4 h-4" />} label="Profile Skin" value={PROFILE_THEMES.find(t => t.key === profileTheme)?.label || 'Default'} onClick={() => setActiveSection('preferences')} />
+          <SettingsRow icon={<Palette className="w-4 h-4" />} label="Profile Skin" value={PROFILE_THEMES.find(t => t.key === profileTheme)?.label || 'Default'} onClick={() => setActiveSection('profile-theme')} />
           <div className="h-px bg-border ml-16" />
           <SettingsRow icon={<Bell className="w-4 h-4" />} label="Notifications" value={creatorAlerts ? 'On' : 'Off'} onClick={() => setCreatorAlerts(prev => !prev)} />
         </div>
