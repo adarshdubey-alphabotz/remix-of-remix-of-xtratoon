@@ -105,8 +105,8 @@ const BrowsePage: React.FC = () => {
     type: 'Manhwa',
     views: m.views || 0,
     ratingAverage: Number(m.rating_average) || 0,
-    author: '',
-    creator: undefined,
+    author: creatorMap[m.creator_id] || '',
+    creator: creatorMap[m.creator_id] ? { username: creatorMap[m.creator_id] } : undefined,
   }));
 
   const toggleGenre = (g: string) => {
