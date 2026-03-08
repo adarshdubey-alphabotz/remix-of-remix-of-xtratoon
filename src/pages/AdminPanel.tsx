@@ -280,9 +280,33 @@ const AdminPanel: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-users'] });
   };
 
+  // Pending chapters
+  const { data: pendingChapters = [], isLoading: loadingPendingChapters } = useQuery({
+    queryKey: ['admin-pending-chapters'],
+    queryFn: async () => {
+      const { data } = await supabase.from('chapters').select('*, manga(title, slug, creator_id)').eq('approval_status' as any, 'PENDING').order('created_at', { ascending: false });
+      return (data || []) as any[];
+    },
+    enabled: isAdmin,
+  });
+
+  const updateChapterApproval = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from('chapters').update({ approval_status: status } as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Chapter status updated');
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-chapters'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { id: 'submissions', label: 'Submissions', icon: <FileText className="w-4 h-4" /> },
+    { id: 'submissions', label: 'Manga', icon: <FileText className="w-4 h-4" /> },
+    { id: 'chapter-reviews', label: 'Chapters', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" /> },
     { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
