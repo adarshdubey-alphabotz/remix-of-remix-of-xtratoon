@@ -9,7 +9,7 @@ RUN npm install
 COPY . .
 
 # Build-time env vars — nginx proxies these paths to the real backend
-ENV VITE_SUPABASE_URL=https://xtratoon.com
+ENV VITE_SUPABASE_URL=http://69.197.168.220
 ENV VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55eW51aWdhYml3Zmd2d3ZqcnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTQ2MzcsImV4cCI6MjA4ODQ3MDYzN30.gEnvS07twhUS5i27SruCKy6G83GZrcbjENG2-ZBV_1g
 ENV VITE_SUPABASE_PROJECT_ID=nyynuigabiwfgvwvjrvh
 
