@@ -172,6 +172,7 @@ const AdminPanel: React.FC = () => {
     { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
+    { id: 'blog', label: 'Blog', icon: <PenTool className="w-4 h-4" /> },
   ];
 
   if (!isAdmin) return <div className="min-h-screen pt-24 flex items-center justify-center"><p className="text-muted-foreground">Access denied. Admin only.</p></div>;
