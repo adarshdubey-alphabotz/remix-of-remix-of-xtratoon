@@ -237,6 +237,48 @@ const AdminPanel: React.FC = () => {
     return Math.max(0, days);
   };
 
+  // Verified users
+  const { data: verifiedUsers = [], refetch: refetchVerified } = useQuery({
+    queryKey: ['admin-verified-users'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('*').eq('is_verified', true).order('updated_at', { ascending: false });
+      return (data || []) as any[];
+    },
+    enabled: isAdmin,
+  });
+
+  const handleVerifyUser = async () => {
+    if (!verifyUsername.trim()) return;
+    setVerifyLoading(true);
+    const normalized = verifyUsername.trim().toLowerCase();
+    const { data: profile, error: fetchErr } = await supabase.from('profiles').select('user_id, username, display_name, is_verified').ilike('username', normalized).maybeSingle();
+    if (fetchErr || !profile) {
+      toast.error(profile ? fetchErr?.message : 'User not found');
+      setVerifyLoading(false);
+      return;
+    }
+    if ((profile as any).is_verified) {
+      toast.error('User is already verified');
+      setVerifyLoading(false);
+      return;
+    }
+    const { error } = await supabase.from('profiles').update({ is_verified: true } as any).eq('user_id', profile.user_id);
+    if (error) { toast.error(error.message); setVerifyLoading(false); return; }
+    toast.success(`@${normalized} is now verified! ✅`);
+    setVerifyUsername('');
+    setVerifyLoading(false);
+    refetchVerified();
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
+  const handleUnverifyUser = async (userId: string) => {
+    const { error } = await supabase.from('profiles').update({ is_verified: false } as any).eq('user_id', userId);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Verification removed');
+    refetchVerified();
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'submissions', label: 'Submissions', icon: <FileText className="w-4 h-4" /> },
@@ -244,6 +286,7 @@ const AdminPanel: React.FC = () => {
     { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
+    { id: 'verification', label: 'Verification', icon: <BadgeCheck className="w-4 h-4" /> },
     { id: 'blog', label: 'Blog', icon: <PenTool className="w-4 h-4" /> },
   ];
 
