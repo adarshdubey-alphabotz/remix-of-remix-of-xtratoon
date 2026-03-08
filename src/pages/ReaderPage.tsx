@@ -564,7 +564,7 @@ const ReaderPage: React.FC = () => {
                         {([
                           { key: 'single' as DisplayMode, label: 'Single', icon: <Square className="w-5 h-5" />, desc: 'One page at a time' },
                           { key: 'strip' as DisplayMode, label: 'Strip', icon: <Rows3 className="w-5 h-5" />, desc: 'Vertical scroll' },
-                          { key: 'swipe' as DisplayMode, label: 'Swipe', icon: <Swatches className="w-5 h-5" />, desc: 'Swipe with page-turn' },
+                          { key: 'swipe' as DisplayMode, label: 'Swipe', icon: <GalleryHorizontalEnd className="w-5 h-5" />, desc: 'Swipe with page-turn' },
                         ]).map(mode => (
                           <button
                             key={mode.key}
