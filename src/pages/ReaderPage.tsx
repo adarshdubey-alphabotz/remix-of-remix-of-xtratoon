@@ -20,10 +20,12 @@ const ReaderPage: React.FC = () => {
   const [showChapterJumper, setShowChapterJumper] = useState(false);
   const imageCache = useRef<Map<string, HTMLImageElement>>(new Map());
   const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
+  const renderedPagesRef = useRef<Set<number>>(new Set());
   const [renderedPages, setRenderedPages] = useState<Set<number>>(new Set());
   const [errorPages, setErrorPages] = useState<Set<number>>(new Set());
-  const [loadingPagesSet, setLoadingPagesSet] = useState<Set<number>>(new Set());
+  const loadingRef = useRef<Set<number>>(new Set());
   const fullscreenRef = useRef<HTMLDivElement>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
@@ -59,7 +61,6 @@ const ReaderPage: React.FC = () => {
     enabled: !!chapterData,
   });
 
-  // All chapters for chapter jumper
   const { data: allChapters } = useQuery({
     queryKey: ['reader-all-chapters', manga?.id],
     queryFn: async () => {
@@ -84,10 +85,11 @@ const ReaderPage: React.FC = () => {
 
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
     const pageNum = pageData.page_number;
-    setLoadingPagesSet(prev => new Set(prev).add(pageNum));
+    if (loadingRef.current.has(pageNum) || renderedPagesRef.current.has(pageNum)) return;
+    loadingRef.current.add(pageNum);
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) { setLoadingPagesSet(prev => { const n = new Set(prev); n.delete(pageNum); return n; }); return; }
+    if (!ctx) { loadingRef.current.delete(pageNum); return; }
 
     const imgUrl = getImageUrl(pageData.telegram_file_id) || '';
     let img = imageCache.current.get(pageData.id);
@@ -97,12 +99,12 @@ const ReaderPage: React.FC = () => {
       try {
         await new Promise<void>((resolve, reject) => {
           img!.onload = () => resolve();
-          img!.onerror = () => reject(new Error('Failed to load'));
+          img!.onerror = () => reject(new Error('Failed'));
           img!.src = imgUrl;
         });
         imageCache.current.set(pageData.id, img);
       } catch {
-        setLoadingPagesSet(prev => { const n = new Set(prev); n.delete(pageNum); return n; });
+        loadingRef.current.delete(pageNum);
         setErrorPages(prev => new Set(prev).add(pageNum));
         return;
       }
@@ -126,9 +128,10 @@ const ReaderPage: React.FC = () => {
       ctx.restore();
     }
 
-    setLoadingPagesSet(prev => { const n = new Set(prev); n.delete(pageNum); return n; });
+    loadingRef.current.delete(pageNum);
+    renderedPagesRef.current.add(pageNum);
     setErrorPages(prev => { const n = new Set(prev); n.delete(pageNum); return n; });
-    setRenderedPages(prev => new Set(prev).add(pageNum));
+    setRenderedPages(new Set(renderedPagesRef.current));
   }, [user]);
 
   // Prefetch
@@ -138,7 +141,7 @@ const ReaderPage: React.FC = () => {
       const idx = currentPage + i;
       if (idx >= pages.length) break;
       const page = pages[idx];
-      if (renderedPages.has(page.page_number) || loadingPagesSet.has(page.page_number)) continue;
+      if (renderedPagesRef.current.has(page.page_number) || loadingRef.current.has(page.page_number)) continue;
       let canvas = canvasRefs.current.get(page.page_number);
       if (!canvas) {
         canvas = document.createElement('canvas');
@@ -146,7 +149,7 @@ const ReaderPage: React.FC = () => {
       }
       renderPageToCanvas(page, canvas);
     }
-  }, [currentPage, pages, renderedPages, loadingPagesSet, renderPageToCanvas]);
+  }, [currentPage, pages, renderPageToCanvas]);
 
   // Fullscreen on mount
   useEffect(() => {
@@ -154,28 +157,26 @@ const ReaderPage: React.FC = () => {
     if (el && el.requestFullscreen && !document.fullscreenElement) {
       el.requestFullscreen().catch(() => {});
     }
-    return () => {
-      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    };
+    return () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); };
   }, []);
 
-  // Keyboard navigation
+  // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (showPageJumper || showChapterJumper) return;
+      if (showPageJumper || showChapterJumper || isAnimating) return;
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goToPage(currentPage + 1, 1);
       else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goToPage(currentPage - 1, -1);
       else if (e.key === 'Escape') navigate(`/manhwa/${manga?.slug}`);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [currentPage, pages, showPageJumper, showChapterJumper, manga]);
+  });
 
-  const goToPage = (newPage: number, dir: number) => {
-    if (!pages || newPage < 0 || newPage >= pages.length) return;
+  const goToPage = useCallback((newPage: number, dir: number) => {
+    if (!pages || newPage < 0 || newPage >= pages.length || isAnimating) return;
     setDirection(dir);
     setCurrentPage(newPage);
-  };
+  }, [pages, isAnimating]);
 
   const jumpToPage = (idx: number) => {
     if (!pages || idx < 0 || idx >= pages.length) return;
@@ -184,26 +185,29 @@ const ReaderPage: React.FC = () => {
     setShowPageJumper(false);
   };
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = useCallback((_: any, info: PanInfo) => {
     const threshold = 50;
     if (info.offset.x < -threshold) goToPage(currentPage + 1, 1);
     else if (info.offset.x > threshold) goToPage(currentPage - 1, -1);
-  };
+  }, [currentPage, goToPage]);
 
-  const handleTap = (e: React.MouseEvent) => {
-    if (showPageJumper || showChapterJumper) return;
+  const handleTap = useCallback((e: React.MouseEvent) => {
+    if (showPageJumper || showChapterJumper || isAnimating) return;
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = e.clientX - rect.left;
     const third = rect.width / 3;
     if (x < third) goToPage(currentPage - 1, -1);
     else if (x > third * 2) goToPage(currentPage + 1, 1);
     else setShowNav(s => !s);
-  };
+  }, [currentPage, goToPage, showPageJumper, showChapterJumper, isAnimating]);
 
   const prevChapter = adjacentChapters?.prev;
   const nextChapter = adjacentChapters?.next;
   const totalPages = pages?.length || 0;
   const currentPageData = pages?.[currentPage];
+  const isPageReady = currentPageData ? renderedPages.has(currentPageData.page_number) : false;
+  const isPageError = currentPageData ? errorPages.has(currentPageData.page_number) : false;
+  const isPageLoading = currentPageData ? !isPageReady && !isPageError : false;
 
   if (isLoading || pagesLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
@@ -213,28 +217,24 @@ const ReaderPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><p className="text-white/50">Chapter not found</p></div>
   );
 
-  // Book page-turn variants with 3D curl effect
   const variants = {
     enter: (dir: number) => ({
-      x: dir > 0 ? '80%' : '-80%',
-      rotateY: dir > 0 ? -45 : 45,
-      opacity: 0,
-      scale: 0.85,
-      filter: 'brightness(0.6)',
+      x: dir > 0 ? '70%' : '-70%',
+      rotateY: dir > 0 ? -25 : 25,
+      opacity: 0.3,
+      scale: 0.92,
     }),
     center: {
       x: 0,
       rotateY: 0,
       opacity: 1,
       scale: 1,
-      filter: 'brightness(1)',
     },
     exit: (dir: number) => ({
-      x: dir > 0 ? '-60%' : '60%',
-      rotateY: dir > 0 ? 30 : -30,
+      x: dir > 0 ? '-50%' : '50%',
+      rotateY: dir > 0 ? 20 : -20,
       opacity: 0,
-      scale: 0.9,
-      filter: 'brightness(0.5)',
+      scale: 0.92,
     }),
   };
 
@@ -245,10 +245,10 @@ const ReaderPage: React.FC = () => {
       ref={fullscreenRef}
       className="fixed inset-0 bg-[#0a0a0a] z-[100] select-none flex flex-col"
       onContextMenu={e => e.preventDefault()}
-      style={{ WebkitUserSelect: 'none', userSelect: 'none', perspective: '1500px' } as React.CSSProperties}
+      style={{ WebkitUserSelect: 'none', userSelect: 'none', perspective: '1200px' } as React.CSSProperties}
     >
       <style>{`
-        .reader-canvas { -webkit-touch-callout: none; -webkit-user-select: none; pointer-events: none; }
+        .reader-canvas { -webkit-touch-callout: none; -webkit-user-select: none; pointer-events: none; will-change: transform; }
         @media print { .reader-swipe { display: none !important; } }
       `}</style>
 
@@ -259,7 +259,7 @@ const ReaderPage: React.FC = () => {
             initial={{ y: -60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -60, opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             className="absolute top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/10"
           >
             <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -268,7 +268,6 @@ const ReaderPage: React.FC = () => {
               </button>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-white truncate max-w-[120px]">{manga.title}</span>
-                {/* Chapter jumper button */}
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowChapterJumper(s => !s); setShowPageJumper(false); }}
                   className="px-3 py-1.5 border border-white/20 text-sm text-white rounded flex items-center gap-1.5 hover:bg-white/10 transition-colors"
@@ -276,48 +275,43 @@ const ReaderPage: React.FC = () => {
                   <Layers className="w-3.5 h-3.5" /> Ch. {chapterNum}
                 </button>
               </div>
-              <div className="flex items-center gap-1">
-                {/* Page jumper button */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowPageJumper(s => !s); setShowChapterJumper(false); }}
-                  className="p-2 text-white/70 hover:text-white transition-colors"
-                  title="Jump to page"
-                >
-                  <BookOpen className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowPageJumper(s => !s); setShowChapterJumper(false); }}
+                className="p-2 text-white/70 hover:text-white transition-colors"
+                title="Jump to page"
+              >
+                <BookOpen className="w-4 h-4" />
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Chapter jumper dropdown */}
+      {/* Chapter jumper */}
       <AnimatePresence>
         {showChapterJumper && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             className="absolute top-14 left-0 right-0 z-[60] bg-[#111]/95 backdrop-blur-lg border-b border-white/10 max-h-[60vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
             <div className="max-w-3xl mx-auto px-4 py-3">
               <p className="text-xs text-white/40 uppercase tracking-wider mb-3 font-medium">Jump to Chapter</p>
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+              <div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
                 {(allChapters || []).map(ch => (
                   <button
                     key={ch.chapter_number}
                     onClick={() => {
                       setShowChapterJumper(false);
-                      if (ch.chapter_number !== chapterNum) {
-                        navigate(`/read/${manga.slug}/chapter-${ch.chapter_number}`);
-                      }
+                      if (ch.chapter_number !== chapterNum) navigate(`/read/${manga.slug}/chapter-${ch.chapter_number}`);
                     }}
-                    className={`px-3 py-2.5 text-sm rounded-lg border transition-all ${
+                    className={`px-2 py-2 text-sm rounded-lg border transition-all ${
                       ch.chapter_number === chapterNum
-                        ? 'bg-primary text-primary-foreground border-primary font-bold scale-105'
-                        : 'border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
+                        ? 'bg-primary text-primary-foreground border-primary font-bold'
+                        : 'border-white/10 text-white/70 hover:bg-white/10'
                     }`}
                   >
                     {ch.chapter_number}
@@ -329,14 +323,14 @@ const ReaderPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Page jumper dropdown */}
+      {/* Page jumper */}
       <AnimatePresence>
         {showPageJumper && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             className="absolute top-14 left-0 right-0 z-[60] bg-[#111]/95 backdrop-blur-lg border-b border-white/10 max-h-[60vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
@@ -347,10 +341,10 @@ const ReaderPage: React.FC = () => {
                   <button
                     key={i}
                     onClick={() => jumpToPage(i)}
-                    className={`px-3 py-2.5 text-sm rounded-lg border transition-all ${
+                    className={`px-2 py-2 text-sm rounded-lg border transition-all ${
                       i === currentPage
-                        ? 'bg-primary text-primary-foreground border-primary font-bold scale-105'
-                        : 'border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
+                        ? 'bg-primary text-primary-foreground border-primary font-bold'
+                        : 'border-white/10 text-white/70 hover:bg-white/10'
                     }`}
                   >
                     {i + 1}
@@ -363,18 +357,10 @@ const ReaderPage: React.FC = () => {
       </AnimatePresence>
 
       {/* Main swipe area */}
-      <div
-        className="flex-1 relative overflow-hidden reader-swipe"
-        onClick={handleTap}
-      >
-        {/* Page shadow / fold effect overlay */}
-        <div className="absolute inset-0 pointer-events-none z-10"
-          style={{
-            background: 'linear-gradient(90deg, rgba(0,0,0,0.15) 0%, transparent 5%, transparent 95%, rgba(0,0,0,0.15) 100%)',
-          }}
-        />
-
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+      <div className="flex-1 relative overflow-hidden" onClick={handleTap}>
+        <AnimatePresence initial={false} custom={direction} mode="popLayout"
+          onExitComplete={() => setIsAnimating(false)}
+        >
           {!isEnd && currentPageData ? (
             <motion.div
               key={currentPageData.id}
@@ -383,39 +369,37 @@ const ReaderPage: React.FC = () => {
               initial="enter"
               animate="center"
               exit="exit"
+              onAnimationStart={() => setIsAnimating(true)}
+              onAnimationComplete={() => setIsAnimating(false)}
               transition={{
-                x: { type: 'spring', stiffness: 250, damping: 28 },
-                rotateY: { type: 'spring', stiffness: 200, damping: 25 },
-                opacity: { duration: 0.25 },
-                scale: { type: 'spring', stiffness: 300, damping: 30 },
-                filter: { duration: 0.3 },
+                x: { type: 'tween', duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
+                rotateY: { type: 'tween', duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
+                opacity: { duration: 0.2 },
+                scale: { duration: 0.25 },
               }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.12}
+              dragElastic={0.1}
               onDragEnd={handleDragEnd}
               className="absolute inset-0 flex items-center justify-center"
-              style={{ transformStyle: 'preserve-3d', transformOrigin: direction > 0 ? 'left center' : 'right center' }}
+              style={{ transformStyle: 'preserve-3d', willChange: 'transform, opacity' }}
             >
-              {/* Book spine shadow */}
-              <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/20 to-transparent pointer-events-none z-20" />
-              <div className="absolute inset-y-0 right-0 w-2 bg-gradient-to-l from-black/20 to-transparent pointer-events-none z-20" />
-
-              {renderedPages.has(currentPageData.page_number) ? (
+              {isPageReady ? (
                 <canvas
                   ref={el => {
                     if (el && canvasRefs.current.has(currentPageData.page_number)) {
                       const offscreen = canvasRefs.current.get(currentPageData.page_number)!;
-                      el.width = offscreen.width;
-                      el.height = offscreen.height;
+                      if (el.width !== offscreen.width || el.height !== offscreen.height) {
+                        el.width = offscreen.width;
+                        el.height = offscreen.height;
+                      }
                       const ctx = el.getContext('2d');
                       if (ctx) ctx.drawImage(offscreen, 0, 0);
                     }
                   }}
                   className="reader-canvas max-w-full max-h-full object-contain"
-                  style={{ backfaceVisibility: 'hidden' }}
                 />
-              ) : errorPages.has(currentPageData.page_number) ? (
+              ) : isPageError ? (
                 <div className="flex flex-col items-center gap-3">
                   <ImageIcon className="w-8 h-8 text-destructive/60" />
                   <p className="text-white/50 text-sm">Failed to load page {currentPageData.page_number}</p>
@@ -424,8 +408,13 @@ const ReaderPage: React.FC = () => {
                       e.stopPropagation();
                       imageCache.current.delete(currentPageData.id);
                       setErrorPages(prev => { const n = new Set(prev); n.delete(currentPageData.page_number); return n; });
-                      const canvas = canvasRefs.current.get(currentPageData.page_number);
-                      if (canvas) renderPageToCanvas(currentPageData, canvas);
+                      let canvas = canvasRefs.current.get(currentPageData.page_number);
+                      if (!canvas) {
+                        canvas = document.createElement('canvas');
+                        canvasRefs.current.set(currentPageData.page_number, canvas);
+                      }
+                      renderedPagesRef.current.delete(currentPageData.page_number);
+                      renderPageToCanvas(currentPageData, canvas);
                     }}
                     className="px-3 py-1.5 text-xs border border-primary/40 text-primary hover:bg-primary/10 transition-colors rounded"
                   >
@@ -433,20 +422,22 @@ const ReaderPage: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-3">
+                /* Loading state — same as old reader */
+                <div className="flex flex-col items-center justify-center gap-3">
                   <div className="relative">
                     <div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
                     <ImageIcon className="w-5 h-5 text-primary/60 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   </div>
-                  <p className="text-white/50 text-sm">Loading page {currentPageData.page_number}...</p>
+                  <p className="text-white/50 text-sm font-medium">Loading page {currentPageData.page_number}...</p>
+                  <p className="text-white/30 text-xs">Please wait, we're fetching the content</p>
                 </div>
               )}
             </motion.div>
           ) : isEnd ? (
             <motion.div
               key="end-screen"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               className="absolute inset-0 flex items-center justify-center"
             >
               <div className="text-center space-y-6 p-8">
@@ -463,10 +454,7 @@ const ReaderPage: React.FC = () => {
                     </Link>
                   )}
                 </div>
-                <button
-                  onClick={() => navigate(`/manhwa/${manga.slug}`)}
-                  className="text-sm text-white/40 hover:text-white/70 transition-colors"
-                >
+                <button onClick={() => navigate(`/manhwa/${manga.slug}`)} className="text-sm text-white/40 hover:text-white/70 transition-colors">
                   Back to manga page
                 </button>
               </div>
@@ -474,16 +462,12 @@ const ReaderPage: React.FC = () => {
           ) : null}
         </AnimatePresence>
 
-        {/* Tap zone hints */}
+        {/* Tap hints */}
         {showNav && totalPages > 0 && !showPageJumper && !showChapterJumper && (
           <div className="absolute inset-0 flex pointer-events-none">
-            <div className="w-1/3 flex items-center justify-center">
-              <ChevronLeft className="w-8 h-8 text-white/10" />
-            </div>
+            <div className="w-1/3 flex items-center justify-center"><ChevronLeft className="w-8 h-8 text-white/10" /></div>
             <div className="w-1/3" />
-            <div className="w-1/3 flex items-center justify-center">
-              <ChevronRight className="w-8 h-8 text-white/10" />
-            </div>
+            <div className="w-1/3 flex items-center justify-center"><ChevronRight className="w-8 h-8 text-white/10" /></div>
           </div>
         )}
       </div>
@@ -495,11 +479,10 @@ const ReaderPage: React.FC = () => {
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 60, opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             className="absolute bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-t border-white/10"
           >
             <div className="max-w-3xl mx-auto px-4 py-3">
-              {/* Page slider */}
               <div className="flex items-center gap-3">
                 <button
                   onClick={(e) => { e.stopPropagation(); goToPage(currentPage - 1, -1); }}
@@ -540,25 +523,15 @@ const ReaderPage: React.FC = () => {
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-
-              {/* Chapter quick nav */}
               <div className="flex items-center justify-center gap-4 mt-2">
                 {prevChapter != null && (
-                  <Link
-                    to={`/read/${manga.slug}/chapter-${prevChapter}`}
-                    className="text-[11px] text-white/50 hover:text-white flex items-center gap-1 transition-colors"
-                    onClick={e => e.stopPropagation()}
-                  >
+                  <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="text-[11px] text-white/50 hover:text-white flex items-center gap-1 transition-colors" onClick={e => e.stopPropagation()}>
                     <ChevronLeft className="w-3 h-3" /> Ch. {prevChapter}
                   </Link>
                 )}
                 <span className="text-[11px] text-primary font-bold">Chapter {chapterNum}</span>
                 {nextChapter != null && (
-                  <Link
-                    to={`/read/${manga.slug}/chapter-${nextChapter}`}
-                    className="text-[11px] text-white/50 hover:text-white flex items-center gap-1 transition-colors"
-                    onClick={e => e.stopPropagation()}
-                  >
+                  <Link to={`/read/${manga.slug}/chapter-${nextChapter}`} className="text-[11px] text-white/50 hover:text-white flex items-center gap-1 transition-colors" onClick={e => e.stopPropagation()}>
                     Ch. {nextChapter} <ChevronRight className="w-3 h-3" />
                   </Link>
                 )}
