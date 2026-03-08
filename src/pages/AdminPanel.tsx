@@ -284,7 +284,7 @@ const AdminPanel: React.FC = () => {
   const { data: pendingChapters = [], isLoading: loadingPendingChapters } = useQuery({
     queryKey: ['admin-pending-chapters'],
     queryFn: async () => {
-      const { data } = await supabase.from('chapters').select('*, manga(title, slug, creator_id)').eq('approval_status' as any, 'PENDING').order('created_at', { ascending: false });
+      const { data } = await supabase.from('chapters' as any).select('*, manga(title, slug, creator_id)').eq('approval_status', 'PENDING').order('created_at', { ascending: false });
       return (data || []) as any[];
     },
     enabled: isAdmin,
