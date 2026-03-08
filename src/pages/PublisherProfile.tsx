@@ -31,6 +31,7 @@ const PublisherProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'works' | 'posts'>('works');
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['publisher-profile', id],
