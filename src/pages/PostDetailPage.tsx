@@ -128,6 +128,9 @@ const PostDetailPage: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('telegram-community', {
         body: { action: 'reply', post_id: postId, content: replyContent.trim() },
       });
+      if (data?.profanity_detected) {
+        throw new Error('⚠️ Abusive language detected and blocked. You can\'t use inappropriate words here.');
+      }
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
     },
