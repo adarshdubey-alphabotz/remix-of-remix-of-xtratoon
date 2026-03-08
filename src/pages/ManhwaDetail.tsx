@@ -10,6 +10,7 @@ import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/Scroll
 import CommentSection from '@/components/CommentSection';
 import SocialShareMenu from '@/components/SocialShareMenu';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
+import DynamicMeta from '@/components/DynamicMeta';
 import { useDynamicTheme } from '@/hooks/useDynamicTheme';
 import { toast } from 'sonner';
 
