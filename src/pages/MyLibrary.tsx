@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import EmptyState from '@/components/EmptyState';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';

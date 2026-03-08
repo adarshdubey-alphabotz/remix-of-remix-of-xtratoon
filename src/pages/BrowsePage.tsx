@@ -264,12 +264,14 @@ const BrowsePage: React.FC = () => {
             )}
 
             {!isLoading && mappedResults.length === 0 && (
-              <div className="text-center py-16">
-                <p className="text-muted-foreground">No manhwa found matching your filters.</p>
-                {activeFilters.length > 0 && (
-                  <button onClick={clearAllFilters} className="text-primary text-sm font-semibold mt-2 hover:underline">Clear all filters</button>
-                )}
-              </div>
+              <EmptyState
+                type="search"
+                title="No manhwa found"
+                subtitle="Try different keywords or clear your filters."
+                action={activeFilters.length > 0 ? (
+                  <button onClick={clearAllFilters} className="text-primary text-sm font-semibold hover:underline">Clear all filters</button>
+                ) : undefined}
+              />
             )}
           </div>
         </div>
