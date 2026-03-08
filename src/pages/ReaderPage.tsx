@@ -191,6 +191,48 @@ const ReaderPage: React.FC = () => {
     return () => clearTimeout(autoHideTimerRef.current);
   }, [showNav, autoHideUI, showSettings, currentPage]);
 
+  // ── Auto-save reading progress ──
+  useEffect(() => {
+    if (!user || !manga || !chapterData || !pages || pages.length === 0) return;
+    const currentPageObj = pages[currentPage];
+    if (!currentPageObj) return;
+    
+    const timer = setTimeout(async () => {
+      await supabase.from('reading_history' as any).upsert(
+        {
+          user_id: user.id,
+          manga_id: manga.id,
+          chapter_id: chapterData.id,
+          page_number: currentPageObj.page_number,
+          read_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,manga_id,chapter_id' }
+      );
+    }, 1500); // Debounce 1.5s
+    return () => clearTimeout(timer);
+  }, [user, manga, chapterData, pages, currentPage]);
+
+  // ── Resume from saved progress ──
+  useEffect(() => {
+    if (!user || !manga || !chapterData || !pages || pages.length === 0) return;
+    (async () => {
+      const { data } = await supabase
+        .from('reading_history' as any)
+        .select('page_number')
+        .eq('user_id', user.id)
+        .eq('manga_id', manga.id)
+        .eq('chapter_id', chapterData.id)
+        .maybeSingle();
+      if (data?.page_number && data.page_number > 1) {
+        const idx = pages.findIndex((p: any) => p.page_number === data.page_number);
+        if (idx > 0) {
+          setCurrentPage(idx);
+          setDirection(1);
+        }
+      }
+    })();
+  }, [user?.id, manga?.id, chapterData?.id, pages?.length]);
+
   // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
