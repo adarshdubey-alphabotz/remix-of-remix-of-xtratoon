@@ -36,10 +36,7 @@ const FeaturedCard: React.FC<{ manhwa: Manga; index: number }> = ({ manhwa, inde
   const hasCover = !!manhwa.cover_url;
   const gradient = getCoverGradient(index);
   const rating = manhwa.rating_average ?? 0;
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const coverSrc = hasCover
-    ? (manhwa.cover_url!.startsWith('http') ? manhwa.cover_url : `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(manhwa.cover_url!)}`)
-    : '';
+  const coverSrc = hasCover ? (getImageUrl(manhwa.cover_url) || '') : '';
   return (
     <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.5 }}>
       <Link to={`/manhwa/${manhwa.slug}`} className="group block">
