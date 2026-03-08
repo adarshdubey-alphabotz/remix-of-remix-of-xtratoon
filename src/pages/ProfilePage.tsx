@@ -687,6 +687,80 @@ const ProfilePage: React.FC = () => {
     </motion.div>
   );
 
+  // ─── PROFILE THEME PICKER ───
+  const renderProfileTheme = () => (
+    <motion.div key="profile-theme" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+      <SectionHeader onBack={() => setActiveSection('main')} title="Profile Skin" />
+      <div className="px-4 py-6 space-y-4">
+        <p className="text-sm text-muted-foreground">Choose a visual theme for your public profile page. Others will see this when they visit your profile.</p>
+        <div className="space-y-3">
+          {PROFILE_THEMES.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setProfileTheme(t.key)}
+              className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all ${
+                profileTheme === t.key
+                  ? 'border-primary ring-2 ring-primary/30 bg-primary/5'
+                  : 'border-border hover:border-primary/40'
+              }`}
+            >
+              <div className={`w-14 h-14 rounded-xl ${t.preview} flex items-center justify-center text-2xl shrink-0`}>
+                {t.emoji}
+              </div>
+              <div className="text-left flex-1 min-w-0">
+                <p className="text-sm font-semibold">{t.label}</p>
+                <p className="text-xs text-muted-foreground">{t.desc}</p>
+              </div>
+              {profileTheme === t.key && (
+                <CheckCircle className="w-5 h-5 text-primary shrink-0" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Preview */}
+        <div className="mt-4">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Preview</p>
+          <div className={`rounded-2xl overflow-hidden border border-border ${
+            profileTheme === 'neon' ? 'bg-gradient-to-br from-violet-950 via-fuchsia-950 to-cyan-950' :
+            profileTheme === 'cyberpunk' ? 'bg-gradient-to-br from-yellow-500/20 via-pink-600/20 to-purple-900/20' :
+            profileTheme === 'retro' ? 'bg-gradient-to-br from-orange-400/20 via-rose-500/20 to-indigo-600/20' :
+            profileTheme === 'anime' ? 'bg-gradient-to-br from-pink-300/20 via-purple-300/20 to-blue-300/20' :
+            'bg-muted'
+          }`}>
+            <div className={`h-20 ${
+              profileTheme === 'neon' ? 'bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-400' :
+              profileTheme === 'cyberpunk' ? 'bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-700' :
+              profileTheme === 'retro' ? 'bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500' :
+              profileTheme === 'anime' ? 'bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300' :
+              'bg-gradient-to-br from-muted to-muted-foreground/10'
+            }`} />
+            <div className="px-4 pb-4 -mt-6">
+              <div className={`w-12 h-12 rounded-full border-2 mb-2 ${
+                profileTheme === 'neon' ? 'border-cyan-400 bg-violet-900' :
+                profileTheme === 'cyberpunk' ? 'border-yellow-400 bg-purple-900' :
+                profileTheme === 'retro' ? 'border-orange-400 bg-indigo-900' :
+                profileTheme === 'anime' ? 'border-pink-400 bg-purple-100' :
+                'border-background bg-muted'
+              } flex items-center justify-center text-lg`}>
+                {(displayName || 'U')[0].toUpperCase()}
+              </div>
+              <p className={`text-sm font-bold ${profileTheme === 'neon' ? 'text-cyan-300' : profileTheme === 'cyberpunk' ? 'text-yellow-300' : ''}`}>
+                {displayName || 'Your Name'}
+              </p>
+              <p className={`text-xs ${profileTheme === 'neon' ? 'text-violet-300' : 'text-muted-foreground'}`}>@{username || 'username'}</p>
+            </div>
+          </div>
+        </div>
+
+        <button onClick={handleSave} disabled={saving}
+          className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+          <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Theme'}
+        </button>
+      </div>
+    </motion.div>
+  );
+
   // ─── CREATOR STUDIO ───
   const renderCreator = () => (
     <motion.div key="creator" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
