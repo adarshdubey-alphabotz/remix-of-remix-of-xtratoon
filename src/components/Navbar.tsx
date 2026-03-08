@@ -201,16 +201,15 @@ const Navbar: React.FC = () => {
           {/* Divider */}
           <div className="w-px h-6 bg-border/40 mx-1" />
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="w-36 pl-9 pr-3 py-2 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:w-48 transition-all duration-300 rounded-full"
-            />
-          </form>
+          {/* Search — triggers ⌘K spotlight */}
+          <button
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            className="flex items-center gap-2 px-3 py-2 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
+          >
+            <Search className="w-4 h-4" />
+            <span className="hidden lg:inline">Search...</span>
+            <kbd className="hidden lg:inline-flex px-1.5 py-0.5 text-[9px] font-bold bg-muted rounded border border-border/50">⌘K</kbd>
+          </button>
 
           {/* Theme toggle */}
           <button onClick={toggleTheme} className="p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground" aria-label="Toggle theme" title={`Theme: ${theme}`}>
