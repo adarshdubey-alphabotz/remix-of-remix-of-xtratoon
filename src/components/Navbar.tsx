@@ -279,7 +279,7 @@ const Navbar: React.FC = () => {
                         </div>
                       )}
                       {/* Admin notifications */}
-                      {isAdmin && adminNotifications.length > 0 && (
+                      {isAdmin && adminMode && adminNotifications.length > 0 && (
                         <div className="divide-y divide-border/30">
                           {userNotifs.length > 0 && <div className="px-4 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/30">Admin</div>}
                           {adminNotifications.map((n: any) => (
