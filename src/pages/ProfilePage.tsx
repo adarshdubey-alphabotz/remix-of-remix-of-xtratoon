@@ -35,7 +35,15 @@ const timezones = [
 ];
 const currencies = ['USD','EUR','GBP','INR','BDT','JPY','KRW','CNY','BRL','CAD','AUD','NGN','PHP','IDR','MYR','THB','VND','PKR','EGP','ZAR','AED','SAR','TRY','SGD'];
 
-type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library';
+type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme';
+
+const PROFILE_THEMES = [
+  { key: 'default', label: 'Default', emoji: '🎨', preview: 'bg-gradient-to-br from-muted to-muted-foreground/10', desc: 'Clean & minimal' },
+  { key: 'neon', label: 'Neon Glow', emoji: '💜', preview: 'bg-gradient-to-br from-violet-900 via-fuchsia-900 to-cyan-900', desc: 'Electric purple & cyan glow' },
+  { key: 'cyberpunk', label: 'Cyberpunk', emoji: '🤖', preview: 'bg-gradient-to-br from-yellow-500 via-pink-600 to-purple-900', desc: 'Yellow & magenta, edgy vibes' },
+  { key: 'retro', label: 'Retro Wave', emoji: '📼', preview: 'bg-gradient-to-br from-orange-400 via-rose-500 to-indigo-600', desc: 'Warm sunset synthwave' },
+  { key: 'anime', label: 'Anime Pastel', emoji: '🌸', preview: 'bg-gradient-to-br from-pink-300 via-purple-300 to-blue-300', desc: 'Soft kawaii aesthetic' },
+];
 
 interface SocialLinks {
   telegram?: string;
