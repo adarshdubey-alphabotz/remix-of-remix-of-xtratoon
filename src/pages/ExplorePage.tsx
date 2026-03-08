@@ -175,7 +175,7 @@ const RankedItem: React.FC<{ manhwa: MangaItem; rank: number; index: number }> =
 
 const ExplorePage: React.FC = () => {
   const [activeGenre, setActiveGenre] = useState('All');
-  const [showWheel, setShowWheel] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
