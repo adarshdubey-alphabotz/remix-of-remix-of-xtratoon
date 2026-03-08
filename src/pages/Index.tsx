@@ -32,19 +32,23 @@ const XIcon = () => (
   </svg>
 );
 
-const FeaturedCard: React.FC<{ manhwa: ApiManga; index: number }> = ({ manhwa, index }) => {
-  const hasCover = !!manhwa.cover;
+const FeaturedCard: React.FC<{ manhwa: Manga; index: number }> = ({ manhwa, index }) => {
+  const hasCover = !!manhwa.cover_url;
   const gradient = getCoverGradient(index);
-  const rating = manhwa.ratingAverage ?? manhwa.rating ?? 0;
+  const rating = manhwa.rating_average ?? 0;
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const coverSrc = hasCover
+    ? (manhwa.cover_url!.startsWith('http') ? manhwa.cover_url : `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(manhwa.cover_url!)}`)
+    : '';
   return (
     <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.5 }}>
       <Link to={`/manhwa/${manhwa.slug}`} className="group block">
         <div className={`aspect-[2/3] ${!hasCover ? gradient : ''} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
-          {hasCover && <img src={manhwa.cover} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />}
+          {hasCover && <img src={coverSrc} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <h3 className="font-display text-lg text-white tracking-wide leading-tight group-hover:text-primary transition-colors">{manhwa.title}</h3>
-            <p className="text-xs text-white/70 mt-1">{manhwa.author || manhwa.creator?.username}</p>
+            <p className="text-xs text-white/70 mt-1">{manhwa.profiles?.username || manhwa.profiles?.display_name}</p>
             <div className="flex items-center gap-2 mt-2 text-[11px] text-white/60">
               <span className="flex items-center gap-1"><Star className="w-3 h-3 text-gold fill-gold" />{rating.toFixed(1)}</span>
               <span>·</span>
