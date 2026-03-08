@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, BookOpen, Heart, MessageCircle, Users, Info } from 'lucide-react';
+import { Bell, BookOpen, Heart, MessageCircle, Users, Info, Check, XCircle } from 'lucide-react';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +10,10 @@ const typeIcons: Record<string, React.ReactNode> = {
   new_post: <MessageCircle className="w-4 h-4 text-blue-500" />,
   new_follower: <Users className="w-4 h-4 text-green-500" />,
   like: <Heart className="w-4 h-4 text-pink-500" />,
+  manga_approved: <Check className="w-4 h-4 text-green-500" />,
+  chapter_approved: <Check className="w-4 h-4 text-green-500" />,
+  manga_rejected: <XCircle className="w-4 h-4 text-destructive" />,
+  chapter_rejected: <XCircle className="w-4 h-4 text-destructive" />,
 };
 
 interface Props {
