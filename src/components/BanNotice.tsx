@@ -15,10 +15,10 @@ const BanNotice: React.FC = () => {
         </div>
         <h1 className="font-display text-3xl tracking-wider mb-3">ACCOUNT SUSPENDED</h1>
         <p className="text-muted-foreground mb-2">Your account has been suspended for violating our community guidelines.</p>
-        {(profile as any).banned_reason && (
+        {profile.banned_reason && (
           <div className="brutal-card p-4 mb-4 text-left">
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Reason</p>
-            <p className="text-sm font-medium">{(profile as any).banned_reason}</p>
+            <p className="text-sm font-medium">{profile.banned_reason}</p>
           </div>
         )}
         <div className="brutal-card p-4 text-left border-l-4 border-primary">
