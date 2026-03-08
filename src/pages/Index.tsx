@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, Wallet, ShieldCheck, ChevronDown, HelpCircle } from 'lucide-react';
 import { motion, useScroll, useTransform, useMotionValueEvent, useInView, AnimatePresence } from 'framer-motion';
 import { formatViews, getCoverGradient, type Manga, useFeaturedManga, useLatestManga } from '@/hooks/useApi';
+import { getImageUrl } from '@/lib/imageUrl';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import MagneticButton from '@/components/MagneticButton';
@@ -36,10 +37,7 @@ const FeaturedCard: React.FC<{ manhwa: Manga; index: number }> = ({ manhwa, inde
   const hasCover = !!manhwa.cover_url;
   const gradient = getCoverGradient(index);
   const rating = manhwa.rating_average ?? 0;
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const coverSrc = hasCover
-    ? (manhwa.cover_url!.startsWith('http') ? manhwa.cover_url : `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(manhwa.cover_url!)}`)
-    : '';
+  const coverSrc = hasCover ? (getImageUrl(manhwa.cover_url) || '') : '';
   return (
     <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.5 }}>
       <Link to={`/manhwa/${manhwa.slug}`} className="group block">
@@ -444,7 +442,7 @@ const HomePage: React.FC = () => {
               <motion.div className="sm:hidden" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }}>
                 <Link to={`/manhwa/${featured.slug}`} className="block">
                   <div className={`aspect-[16/9] ${featured.cover_url ? '' : getCoverGradient(0)} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
-                    {featured.cover_url && <img src={featured.cover_url.startsWith('http') ? featured.cover_url : `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(featured.cover_url)}`} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+                    {featured.cover_url && <img src={getImageUrl(featured.cover_url) || ''} alt="" className="absolute inset-0 w-full h-full object-cover" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <h3 className="font-display text-xl text-white tracking-wide">{featured.title}</h3>

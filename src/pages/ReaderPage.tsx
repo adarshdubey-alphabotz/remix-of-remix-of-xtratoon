@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Maximize, Minimize, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 
@@ -61,13 +62,10 @@ const ReaderPage: React.FC = () => {
     enabled: !!manga,
   });
 
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const proxyUrl = `https://${projectId}.supabase.co/functions/v1/telegram-proxy`;
-
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const imgUrl = `${proxyUrl}?file_id=${encodeURIComponent(pageData.telegram_file_id)}`;
+    const imgUrl = getImageUrl(pageData.telegram_file_id) || '';
     let img = imageCache.current.get(pageData.id);
     if (!img) {
       img = new Image();
@@ -97,7 +95,7 @@ const ReaderPage: React.FC = () => {
       }
       ctx.restore();
     }
-  }, [proxyUrl, user]);
+  }, [user]);
 
   useEffect(() => {
     if (!pages || pages.length === 0) return;

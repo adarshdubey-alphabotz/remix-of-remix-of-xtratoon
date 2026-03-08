@@ -14,33 +14,34 @@ import SpotlightSearch from "@/components/SpotlightSearch";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BanNotice from "@/components/BanNotice";
 import OnboardingModal from "@/components/OnboardingModal";
-import Index from "./pages/Index";
-import ManhwaDetail from "./pages/ManhwaDetail";
-import ReaderPage from "./pages/ReaderPage";
-import BrowsePage from "./pages/BrowsePage";
-import TopChartsPage from "./pages/TopChartsPage";
-import PublisherProfile from "./pages/PublisherProfile";
-import PublisherDashboard from "./pages/PublisherDashboard";
-import AdminPanel from "./pages/AdminPanel";
-import MyLibrary from "./pages/MyLibrary";
-import ExplorePage from "./pages/ExplorePage";
-import ProfilePage from "./pages/ProfilePage";
-import SearchCreators from "./pages/SearchCreators";
-import CommunityPage from "./pages/CommunityPage";
-import PostDetailPage from "./pages/PostDetailPage";
-import MyPostsPage from "./pages/MyPostsPage";
-import BookmarksPage from "./pages/BookmarksPage";
-import ResetPassword from "./pages/ResetPassword";
-import TermsOfService from "./pages/TermsOfService";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import ContentGuidelines from "./pages/ContentGuidelines";
-import BlogListPage from "./pages/BlogListPage";
-import BlogDetailPage from "./pages/BlogDetailPage";
-import AdminBlogEditor from "./pages/AdminBlogEditor";
-import AdminSettings from "./pages/AdminSettings";
+import { lazy, Suspense, useEffect } from "react";
 
-import NotFound from "./pages/NotFound";
-import { useEffect } from "react";
+// Lazy-loaded route components — each becomes its own JS chunk
+const Index = lazy(() => import("./pages/Index"));
+const ManhwaDetail = lazy(() => import("./pages/ManhwaDetail"));
+const ReaderPage = lazy(() => import("./pages/ReaderPage"));
+const BrowsePage = lazy(() => import("./pages/BrowsePage"));
+const TopChartsPage = lazy(() => import("./pages/TopChartsPage"));
+const PublisherProfile = lazy(() => import("./pages/PublisherProfile"));
+const PublisherDashboard = lazy(() => import("./pages/PublisherDashboard"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const MyLibrary = lazy(() => import("./pages/MyLibrary"));
+const ExplorePage = lazy(() => import("./pages/ExplorePage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const SearchCreators = lazy(() => import("./pages/SearchCreators"));
+const CommunityPage = lazy(() => import("./pages/CommunityPage"));
+const PostDetailPage = lazy(() => import("./pages/PostDetailPage"));
+const MyPostsPage = lazy(() => import("./pages/MyPostsPage"));
+const BookmarksPage = lazy(() => import("./pages/BookmarksPage"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const ContentGuidelines = lazy(() => import("./pages/ContentGuidelines"));
+const BlogListPage = lazy(() => import("./pages/BlogListPage"));
+const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
+const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,12 @@ const ScrollToTop = () => {
   return null;
 };
 
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
 const AnimatedRoutes = () => {
   const location = useLocation();
   const { user, loading } = useAuth();
@@ -69,36 +76,38 @@ const AnimatedRoutes = () => {
     <>
       <ScrollToTop />
       <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition>{loading ? <div className="min-h-screen" /> : user ? <Navigate to="/home" replace /> : <Index />}</PageTransition>} />
-        <Route path="/manhwa/:id" element={<PageTransition><ManhwaDetail /></PageTransition>} />
-        <Route path="/read/:id/:chapter" element={<PageTransition><ReaderPage /></PageTransition>} />
-        <Route path="/browse" element={<PageTransition><BrowsePage /></PageTransition>} />
-        <Route path="/charts" element={<PageTransition><TopChartsPage /></PageTransition>} />
-        <Route path="/publisher/:id" element={<PageTransition><PublisherProfile /></PageTransition>} />
-        <Route path="/dashboard" element={<PageTransition><PublisherDashboard /></PageTransition>} />
-        <Route path="/admin" element={<PageTransition><AdminPanel /></PageTransition>} />
-        <Route path="/library" element={<PageTransition><MyLibrary /></PageTransition>} />
-        <Route path="/home" element={<PageTransition><ExplorePage /></PageTransition>} />
-        <Route path="/explore" element={<PageTransition><Navigate to="/home" replace /></PageTransition>} />
-        <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
-        <Route path="/settings" element={<PageTransition><ProfilePage /></PageTransition>} />
-        <Route path="/creators" element={<PageTransition><SearchCreators /></PageTransition>} />
-        <Route path="/community" element={<PageTransition><CommunityPage /></PageTransition>} />
-        <Route path="/community/post/:postId" element={<PageTransition><PostDetailPage /></PageTransition>} />
-        <Route path="/community/my-posts" element={<PageTransition><MyPostsPage /></PageTransition>} />
-        <Route path="/community/bookmarks" element={<PageTransition><BookmarksPage /></PageTransition>} />
-        <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
-        <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
-        <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
-        <Route path="/content-guidelines" element={<PageTransition><ContentGuidelines /></PageTransition>} />
-        <Route path="/blog" element={<PageTransition><BlogListPage /></PageTransition>} />
-        <Route path="/blog/:slug" element={<PageTransition><BlogDetailPage /></PageTransition>} />
-        <Route path="/admin/blog" element={<PageTransition><AdminBlogEditor /></PageTransition>} />
-        <Route path="/admin/settings" element={<PageTransition><AdminSettings /></PageTransition>} />
-        
-        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-      </Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageTransition>{loading ? <div className="min-h-screen" /> : user ? <Navigate to="/home" replace /> : <Index />}</PageTransition>} />
+          <Route path="/manhwa/:id" element={<PageTransition><ManhwaDetail /></PageTransition>} />
+          <Route path="/read/:id/:chapter" element={<PageTransition><ReaderPage /></PageTransition>} />
+          <Route path="/browse" element={<PageTransition><BrowsePage /></PageTransition>} />
+          <Route path="/charts" element={<PageTransition><TopChartsPage /></PageTransition>} />
+          <Route path="/publisher/:id" element={<PageTransition><PublisherProfile /></PageTransition>} />
+          <Route path="/dashboard" element={<PageTransition><PublisherDashboard /></PageTransition>} />
+          <Route path="/admin" element={<PageTransition><AdminPanel /></PageTransition>} />
+          <Route path="/library" element={<PageTransition><MyLibrary /></PageTransition>} />
+          <Route path="/home" element={<PageTransition><ExplorePage /></PageTransition>} />
+          <Route path="/explore" element={<PageTransition><Navigate to="/home" replace /></PageTransition>} />
+          <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+          <Route path="/settings" element={<PageTransition><ProfilePage /></PageTransition>} />
+          <Route path="/creators" element={<PageTransition><SearchCreators /></PageTransition>} />
+          <Route path="/community" element={<PageTransition><CommunityPage /></PageTransition>} />
+          <Route path="/community/post/:postId" element={<PageTransition><PostDetailPage /></PageTransition>} />
+          <Route path="/community/my-posts" element={<PageTransition><MyPostsPage /></PageTransition>} />
+          <Route path="/community/bookmarks" element={<PageTransition><BookmarksPage /></PageTransition>} />
+          <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+          <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
+          <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+          <Route path="/content-guidelines" element={<PageTransition><ContentGuidelines /></PageTransition>} />
+          <Route path="/blog" element={<PageTransition><BlogListPage /></PageTransition>} />
+          <Route path="/blog/:slug" element={<PageTransition><BlogDetailPage /></PageTransition>} />
+          <Route path="/admin/blog" element={<PageTransition><AdminBlogEditor /></PageTransition>} />
+          <Route path="/admin/settings" element={<PageTransition><AdminSettings /></PageTransition>} />
+          
+          <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+        </Routes>
+        </Suspense>
       </AnimatePresence>
     </>
   );

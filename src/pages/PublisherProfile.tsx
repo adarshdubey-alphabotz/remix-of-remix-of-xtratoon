@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Users, Eye, BookOpen, Calendar, MapPin, Clock, User, Heart, MessageCircle, Trash2, Send, Loader2, Link2, Check, Share2, ArrowLeft, Mail, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getImageUrl } from '@/lib/imageUrl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollow } from '@/hooks/useFollow';
@@ -182,7 +183,7 @@ const PublisherProfile: React.FC = () => {
         {/* Use first manga cover as banner if available */}
         {creatorManga.length > 0 && creatorManga[0].cover_url ? (
           <img
-            src={creatorManga[0].cover_url.startsWith('http') ? creatorManga[0].cover_url : `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(creatorManga[0].cover_url)}`}
+            src={getImageUrl(creatorManga[0].cover_url) || ''}
             alt=""
             className="w-full h-full object-cover opacity-60 blur-sm scale-105"
           />

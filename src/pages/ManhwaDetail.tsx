@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, Eye, Heart, Bookmark, ChevronRight, ArrowLeft, Play, Loader2, Flag, X, User } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { getImageUrl } from '@/lib/imageUrl';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import MagneticButton from '@/components/MagneticButton';
@@ -59,14 +60,7 @@ const ManhwaDetail: React.FC = () => {
     enabled: !!id,
   });
 
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const getCoverUrl = (manhwa: any) => {
-    if (!manhwa?.cover_url) return null;
-    if (manhwa.cover_url.startsWith('http')) return manhwa.cover_url;
-    return `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(manhwa.cover_url)}`;
-  };
-
-  const coverUrl = manhwa ? getCoverUrl(manhwa) : null;
+  const coverUrl = manhwa ? getImageUrl(manhwa.cover_url) : null;
 
   // Dynamic theme from cover art
   useDynamicTheme(coverUrl);

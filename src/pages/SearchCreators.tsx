@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getImageUrl } from '@/lib/imageUrl';
 import { Search, User, Users, BookOpen, Eye, UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -103,14 +104,9 @@ const SearchCreators: React.FC = () => {
       .eq('approval_status', 'APPROVED')
       .order('views', { ascending: false });
 
-    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-
     return creators.map((c, i) => {
       const manga = (allManga || []).filter(m => m.creator_id === c.user_id);
-      const topCovers = manga.slice(0, 3).map(m => {
-        if (!m.cover_url) return '';
-        return m.cover_url.startsWith('http') ? m.cover_url : `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(m.cover_url)}`;
-      }).filter(Boolean);
+      const topCovers = manga.slice(0, 3).map(m => getImageUrl(m.cover_url) || '').filter(Boolean);
       return {
         ...c,
         followerCount: followerResults[i]?.count || 0,

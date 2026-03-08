@@ -28,12 +28,8 @@ const formatViews = (n: number) => {
   return n.toString();
 };
 
-const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-const resolveCover = (url: string | null) => {
-  if (!url) return null;
-  if (url.startsWith('http')) return url;
-  return `https://${projectId}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(url)}`;
-};
+import { getImageUrl } from '@/lib/imageUrl';
+const resolveCover = getImageUrl;
 
 const genres = ['All', '⚔️ Fantasy', '🥊 Action', '💕 Romance', '🔬 Sci-Fi', '👻 Horror', '🎭 Drama', '😂 Comedy'];
 const genreMap: Record<string, string> = {
