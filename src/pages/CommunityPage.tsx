@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollowingIds } from '@/hooks/useFollow';
-import { Heart, MessageCircle, Send, ImagePlus, Trash2, User, Loader2, Search, Hash, X, Flag, TrendingUp } from 'lucide-react';
+import { Heart, MessageCircle, Send, ImagePlus, Trash2, User, Loader2, Search, Hash, X, Flag, TrendingUp, Eye } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
