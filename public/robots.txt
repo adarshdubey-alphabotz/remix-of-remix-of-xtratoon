@@ -1,8 +1,10 @@
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -13,4 +15,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://inkstone-glass.lovable.app/sitemap.xml
+Sitemap: https://glassy-ink-verse.lovable.app/sitemap.xml
