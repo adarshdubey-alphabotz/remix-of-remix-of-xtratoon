@@ -124,7 +124,6 @@ const Navbar: React.FC = () => {
               ? '0 8px 40px -8px hsla(0, 0%, 0%, 0.15), inset 0 1px 0 0 hsla(0, 0%, 100%, 0.1)'
               : '0 4px 20px -4px hsla(0, 0%, 0%, 0.08)',
           }}
-          }}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
