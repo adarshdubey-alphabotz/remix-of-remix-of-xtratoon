@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const BanNotice: React.FC = () => {
   const { profile } = useAuth();
 
-  if (!profile || !(profile as any).is_banned) return null;
+  if (!profile || !profile.is_banned) return null;
 
   return (
     <div className="fixed inset-0 z-[200] bg-background flex items-center justify-center p-4">
