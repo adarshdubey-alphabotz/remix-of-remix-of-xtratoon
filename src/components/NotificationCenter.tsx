@@ -49,6 +49,8 @@ const NotificationCenter: React.FC<Props> = ({
       markRead(n.id);
       onClose();
       if (n.type === 'new_chapter' && n.reference_id) navigate(`/manhwa/${n.reference_id}`);
+      else if ((n.type === 'manga_approved' || n.type === 'chapter_approved') && n.reference_id) navigate(`/manhwa/${n.reference_id}`);
+      else if ((n.type === 'manga_rejected' || n.type === 'chapter_rejected')) navigate('/dashboard');
       else if (n.type === 'new_post' && n.reference_id) navigate('/community');
     }
   };
