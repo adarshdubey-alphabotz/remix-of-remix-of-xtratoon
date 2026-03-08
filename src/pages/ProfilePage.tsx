@@ -133,6 +133,7 @@ const ProfilePage: React.FC = () => {
     setTimezone(p.timezone || '');
     setCurrency(p.currency || '');
     setSocialLinks(p.social_links || {});
+    setProfileTheme(p.profile_theme || 'default');
   }, [profile]);
 
   const availableCountries = continent ? (countriesByContinent[continent] || []) : [];
