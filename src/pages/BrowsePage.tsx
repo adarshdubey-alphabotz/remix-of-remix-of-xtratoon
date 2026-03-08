@@ -245,7 +245,7 @@ const BrowsePage: React.FC = () => {
               <div className="columns-2 sm:columns-3 md:columns-4 gap-4">
                 {mappedResults.map((m, i) => {
                   const heights: Array<'tall' | 'medium' | 'short'> = ['tall', 'medium', 'short', 'medium'];
-                  return <MasonryManhwaCard key={m._id} manhwa={m as any} index={i} height={heights[i % 4]} />;
+                  return <MasonryManhwaCard key={m.id} manhwa={m as any} index={i} height={heights[i % 4]} />;
                 })}
               </div>
             ) : (
