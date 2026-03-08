@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Maximize, Minimize, Loader2 } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Maximize, Minimize, Loader2, ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +16,8 @@ const ReaderPage: React.FC = () => {
   const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
   const imageCache = useRef<Map<string, HTMLImageElement>>(new Map());
   const fullscreenRef = useRef<HTMLDivElement>(null);
+  const [pageLoadState, setPageLoadState] = useState<Map<number, 'loading' | 'done' | 'error'>>(new Map());
+  const [loadStartTime] = useState(Date.now());
 
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
@@ -65,17 +67,26 @@ const ReaderPage: React.FC = () => {
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Mark loading
+    setPageLoadState(prev => new Map(prev).set(pageData.page_number, 'loading'));
+
     const imgUrl = getImageUrl(pageData.telegram_file_id) || '';
     let img = imageCache.current.get(pageData.id);
     if (!img) {
       img = new Image();
       img.crossOrigin = 'anonymous';
-      await new Promise<void>((resolve, reject) => {
-        img!.onload = () => resolve();
-        img!.onerror = () => reject(new Error('Failed to load image'));
-        img!.src = imgUrl;
-      });
-      imageCache.current.set(pageData.id, img);
+      try {
+        await new Promise<void>((resolve, reject) => {
+          img!.onload = () => resolve();
+          img!.onerror = () => reject(new Error('Failed to load image'));
+          img!.src = imgUrl;
+        });
+        imageCache.current.set(pageData.id, img);
+      } catch {
+        setPageLoadState(prev => new Map(prev).set(pageData.page_number, 'error'));
+        return;
+      }
     }
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
@@ -95,6 +106,8 @@ const ReaderPage: React.FC = () => {
       }
       ctx.restore();
     }
+
+    setPageLoadState(prev => new Map(prev).set(pageData.page_number, 'done'));
   }, [user]);
 
   useEffect(() => {
@@ -132,6 +145,29 @@ const ReaderPage: React.FC = () => {
 
   const prevChapter = adjacentChapters?.prev;
   const nextChapter = adjacentChapters?.next;
+
+  // Calculate loading stats
+  const totalPages = pages?.length || 0;
+  const loadedPages = Array.from(pageLoadState.values()).filter(s => s === 'done').length;
+  const isAnyLoading = totalPages > 0 && loadedPages < totalPages;
+
+  // Estimate time: ~2s for first (uncached), ~0.3s for cached, per page
+  const getEstimatedTime = () => {
+    const remaining = totalPages - loadedPages;
+    if (remaining <= 0) return null;
+    const elapsed = (Date.now() - loadStartTime) / 1000;
+    if (loadedPages > 0) {
+      const avgPerPage = elapsed / loadedPages;
+      const est = Math.ceil(avgPerPage * remaining);
+      if (est <= 1) return '~1 second';
+      if (est <= 5) return `~${est} seconds`;
+      return `~${Math.ceil(est / 5) * 5} seconds`;
+    }
+    // Initial estimate before any loaded
+    const est = remaining * 2;
+    if (est <= 5) return '~5 seconds';
+    return `~${Math.ceil(est / 5) * 5} seconds`;
+  };
 
   if (isLoading || loadingPages) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
@@ -197,9 +233,56 @@ const ReaderPage: React.FC = () => {
         )}
 
         {pages && pages.length > 0 ? (
-          pages.map(page => (
-            <canvas key={page.id} ref={el => { if (el) canvasRefs.current.set(page.page_number, el); }} className="reader-canvas w-full" />
-          ))
+          pages.map(page => {
+            const state = pageLoadState.get(page.page_number);
+            const isPageLoading = !state || state === 'loading';
+            const isPageError = state === 'error';
+
+            return (
+              <div key={page.id} className="relative">
+                {/* Loading overlay per page */}
+                {isPageLoading && (
+                  <div className="flex flex-col items-center justify-center py-24 gap-3">
+                    <div className="relative">
+                      <div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+                      <ImageIcon className="w-5 h-5 text-primary/60 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="text-white/50 text-sm font-medium">Loading page {page.page_number}...</p>
+                    <p className="text-white/30 text-xs">Please wait, we're fetching the content</p>
+                    {getEstimatedTime() && (
+                      <p className="text-primary/60 text-xs">This may take {getEstimatedTime()}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Error state */}
+                {isPageError && (
+                  <div className="flex flex-col items-center justify-center py-24 gap-3">
+                    <ImageIcon className="w-8 h-8 text-destructive/60" />
+                    <p className="text-white/50 text-sm">Failed to load page {page.page_number}</p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const canvas = canvasRefs.current.get(page.page_number);
+                        if (canvas) {
+                          imageCache.current.delete(page.id);
+                          renderPageToCanvas(page, canvas);
+                        }
+                      }}
+                      className="px-3 py-1.5 text-xs border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+
+                <canvas
+                  ref={el => { if (el) canvasRefs.current.set(page.page_number, el); }}
+                  className={`reader-canvas w-full ${isPageLoading || isPageError ? 'hidden' : ''}`}
+                />
+              </div>
+            );
+          })
         ) : (
           <div className="text-center py-20 text-white/30">No pages available for this chapter.</div>
         )}
@@ -221,17 +304,24 @@ const ReaderPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom nav - hidden in fullscreen */}
+      {/* Bottom progress bar */}
       {showNav && !isFullscreen && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-t border-white/10">
           <div className="max-w-3xl mx-auto px-4 py-3">
             <div className="flex items-center gap-3">
               {prevChapter != null && <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="p-2 text-white/70 hover:text-white"><ChevronLeft className="w-4 h-4" /></Link>}
               <div className="flex-1">
-                <div className="h-1.5 bg-white/10 overflow-hidden"><div className="h-full bg-primary transition-all" style={{ width: '100%' }} /></div>
+                <div className="h-1.5 bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-500"
+                    style={{ width: totalPages > 0 ? `${(loadedPages / totalPages) * 100}%` : '0%' }}
+                  />
+                </div>
                 <div className="flex justify-between mt-1">
                   <span className="text-[10px] text-white/40">Ch. {chapterNum}</span>
-                  <span className="text-[10px] text-white/40">{pages?.length || 0} pages</span>
+                  <span className="text-[10px] text-white/40">
+                    {isAnyLoading ? `Loading ${loadedPages}/${totalPages} pages...` : `${totalPages} pages`}
+                  </span>
                 </div>
               </div>
               {nextChapter != null && <Link to={`/read/${manga.slug}/chapter-${nextChapter}`} className="p-2 text-white/70 hover:text-white"><ChevronRight className="w-4 h-4" /></Link>}
