@@ -37,6 +37,8 @@ interface AuthContextType {
   setAuthTab: (tab: 'login' | 'signup') => void;
   isAdmin: boolean;
   isPublisher: boolean;
+  adminMode: boolean;
+  setAdminMode: (mode: boolean) => void;
 }
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
@@ -69,6 +71,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPublisher, setIsPublisher] = useState(false);
+  const [adminMode, setAdminMode] = useState(() => {
+    try { return localStorage.getItem('xtratoon-admin-mode') === 'true'; } catch { return true; }
+  });
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
@@ -432,6 +437,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setAuthTab,
         isAdmin,
         isPublisher,
+        adminMode: isAdmin ? adminMode : false,
+        setAdminMode: (mode: boolean) => {
+          setAdminMode(mode);
+          try { localStorage.setItem('xtratoon-admin-mode', String(mode)); } catch {}
+        },
       }}
     >
       {children}

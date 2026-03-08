@@ -227,7 +227,7 @@ const PostDetailPage: React.FC = () => {
           <div className="flex gap-3 mb-4">
             <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
               {creator?.avatar_url ? (
-                <img src={creator.avatar_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                <img src={creator.avatar_url} className="w-12 h-12 rounded-full object-cover" alt={`${creator.display_name || creator.username || 'Creator'}'s avatar`} />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                   <User className="w-6 h-6 text-muted-foreground" />
@@ -252,7 +252,7 @@ const PostDetailPage: React.FC = () => {
           {/* Post image */}
           {post.image_url && (
             <div className="rounded-2xl overflow-hidden border border-border/30 mb-4">
-              <img src={post.image_url} alt="" className="w-full object-contain max-h-[600px]" />
+              <img src={post.image_url} alt={`Post image by ${creator?.display_name || creator?.username || 'creator'}`} className="w-full object-contain max-h-[600px]" />
             </div>
           )}
 
@@ -309,7 +309,7 @@ const PostDetailPage: React.FC = () => {
           <div className="px-4 py-3 border-b border-border/30 flex gap-3">
             <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden">
               {profile?.avatar_url ? (
-                <img src={profile.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                <img src={profile.avatar_url} className="w-8 h-8 rounded-full object-cover" alt={`${profile.display_name || 'Your'} avatar`} />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                   <User className="w-4 h-4 text-muted-foreground" />

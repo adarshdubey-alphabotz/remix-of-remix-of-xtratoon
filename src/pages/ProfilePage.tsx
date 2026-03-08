@@ -86,7 +86,7 @@ const SectionHeader: React.FC<{ onBack: () => void; title: string }> = ({ onBack
 );
 
 const ProfilePage: React.FC = () => {
-  const { user, profile, loading, updateProfile, changePassword, refreshProfile, logout, deleteAccount, isPublisher } = useAuth();
+  const { user, profile, loading, updateProfile, changePassword, refreshProfile, logout, deleteAccount, isPublisher, isAdmin, adminMode, setAdminMode } = useAuth();
   const { theme, toggleTheme, cycleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -376,6 +376,24 @@ const ProfilePage: React.FC = () => {
             </>
           )}
         </div>
+
+        {/* Admin Mode Toggle */}
+        {isAdmin && (
+          <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setAdminMode(!adminMode)}>
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Shield className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Mode Switch</p>
+                <p className="text-xs text-muted-foreground">{adminMode ? 'Currently in Admin Mode' : 'Currently in Creator Mode'}</p>
+              </div>
+              <span className={`w-10 h-5 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                <span className="w-4 h-4 bg-background rounded-full mx-0.5 shadow-sm" />
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Preferences */}
         <div className="rounded-2xl border border-border bg-card overflow-hidden">

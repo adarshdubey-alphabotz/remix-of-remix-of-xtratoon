@@ -14,7 +14,7 @@ const allGenres = [
 ];
 
 const Navbar: React.FC = () => {
-  const { user, profile, logout, setShowAuthModal, setAuthTab, isAdmin, isPublisher } = useAuth();
+  const { user, profile, logout, setShowAuthModal, setAuthTab, isAdmin, isPublisher, adminMode, setAdminMode } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -326,7 +326,21 @@ const Navbar: React.FC = () => {
                           <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
                         )}
                         {isAdmin && (
-                          <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                          <>
+                            <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                            <button
+                              onClick={() => setAdminMode(!adminMode)}
+                              className="flex items-center justify-between w-full px-3 py-2.5 text-sm hover:bg-primary/10 transition-all font-medium rounded-xl"
+                            >
+                              <span className="flex items-center gap-2.5">
+                                <Shield className="w-4 h-4" />
+                                {adminMode ? 'Admin Mode' : 'Creator Mode'}
+                              </span>
+                              <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                                <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                              </span>
+                            </button>
+                          </>
                         )}
                         <div className="my-1 border-t border-border/30" />
                         <button onClick={handleLogout} disabled={logoutPending} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-destructive/10 transition-all w-full text-left text-destructive font-medium rounded-xl disabled:opacity-60"><LogOut className="w-4 h-4" /> {logoutPending ? 'Logging out...' : 'Logout'}</button>
@@ -479,7 +493,20 @@ const Navbar: React.FC = () => {
                     <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
                     <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
                     {isPublisher && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
-                    {isAdmin && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
+                    {isAdmin && (
+                      <>
+                        <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>
+                        <button
+                          onClick={() => setAdminMode(!adminMode)}
+                          className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl"
+                        >
+                          <span>{adminMode ? 'Admin Mode' : 'Creator Mode'}</span>
+                          <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                            <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                          </span>
+                        </button>
+                      </>
+                    )}
                     <button onClick={handleLogout} disabled={logoutPending} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl disabled:opacity-60">{logoutPending ? 'Logging out...' : 'Logout'}</button>
                   </div>
                 )}

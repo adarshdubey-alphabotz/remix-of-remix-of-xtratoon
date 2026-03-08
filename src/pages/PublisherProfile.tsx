@@ -151,7 +151,7 @@ const PublisherProfile: React.FC = () => {
           <div className="brutal-card p-6 sm:p-8 mb-8">
             <div className="flex flex-col sm:flex-row items-start gap-6">
               {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-24 h-24 rounded-full object-cover border-2 border-foreground flex-shrink-0" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }} />
+                <img src={profile.avatar_url} alt={`${profile.display_name || profile.username || 'Creator'}'s avatar`} className="w-24 h-24 rounded-full object-cover border-2 border-foreground flex-shrink-0" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }} />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-primary/20 flex-shrink-0 border-2 border-foreground flex items-center justify-center text-2xl font-bold" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }}>
                   <User className="w-10 h-10 text-primary" />
@@ -376,7 +376,7 @@ const PublisherProfile: React.FC = () => {
                       <p className="text-xs text-muted-foreground mb-2">{timeAgo(post.created_at)}</p>
                       {post.content && <p className="text-sm whitespace-pre-wrap mb-2">{post.content}</p>}
                       {post.image_url && (
-                        <img src={post.image_url} alt="" className="w-full rounded-xl object-cover max-h-[500px]" loading="lazy" />
+                        <img src={post.image_url} alt={`Post by ${profile.display_name || profile.username || 'creator'}`} className="w-full rounded-xl object-cover max-h-[500px]" loading="lazy" />
                       )}
                     </div>
                     <div className="flex items-center gap-4 px-4 py-3 border-t border-border/30">
@@ -410,7 +410,7 @@ const PublisherProfile: React.FC = () => {
                                 return (
                                   <div key={reply.id} className="flex gap-2">
                                     <div className="w-7 h-7 rounded-full bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                      {rp?.avatar_url ? <img src={rp.avatar_url} className="w-7 h-7 rounded-full object-cover" alt="" /> : <User className="w-3.5 h-3.5 text-muted-foreground" />}
+                                      {rp?.avatar_url ? <img src={rp.avatar_url} className="w-7 h-7 rounded-full object-cover" alt={`${rp.display_name || rp.username || 'User'}'s avatar`} /> : <User className="w-3.5 h-3.5 text-muted-foreground" />}
                                     </div>
                                     <div>
                                       <span className="text-xs font-bold">{rp?.display_name || rp?.username || 'User'}</span>

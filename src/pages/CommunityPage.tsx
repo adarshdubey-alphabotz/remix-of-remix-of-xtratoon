@@ -268,7 +268,7 @@ const CommunityPage: React.FC = () => {
               <div className="flex gap-3">
                 <div className="flex-shrink-0">
                   {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                    <img src={profile.avatar_url} className="w-10 h-10 rounded-full object-cover" alt={`${profile.display_name || profile.username || 'Your'} avatar`} />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                       <User className="w-5 h-5 text-primary" />
@@ -286,7 +286,7 @@ const CommunityPage: React.FC = () => {
                   />
                   {imagePreview && (
                     <div className="relative mt-2 rounded-2xl overflow-hidden border border-border/30">
-                      <img src={imagePreview} alt="Preview" className="w-full max-h-72 object-cover" />
+                      <img src={imagePreview} alt="Upload preview" className="w-full max-h-72 object-cover" />
                       <button onClick={removeImage} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all">
                         <X className="w-4 h-4" />
                       </button>
@@ -361,7 +361,7 @@ const CommunityPage: React.FC = () => {
                         <ProfileHoverCard userId={post.creator_id} username={creator?.username}>
                           <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
                             {creator?.avatar_url ? (
-                              <img src={creator.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                              <img src={creator.avatar_url} className="w-10 h-10 rounded-full object-cover" alt={`${creator.display_name || creator.username || 'Creator'}'s avatar`} />
                             ) : (
                               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                                 <User className="w-5 h-5 text-muted-foreground" />
@@ -401,7 +401,7 @@ const CommunityPage: React.FC = () => {
 
                           {post.image_url && (
                             <div className="mt-3 rounded-2xl overflow-hidden border border-border/30">
-                              <img src={post.image_url} alt="" className="w-full max-h-[400px] object-cover" loading="lazy" />
+                              <img src={post.image_url} alt={`Post by ${creator?.display_name || creator?.username || 'creator'}`} className="w-full max-h-[400px] object-cover" loading="lazy" />
                             </div>
                           )}
 

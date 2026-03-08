@@ -342,7 +342,7 @@ const PublisherDashboard: React.FC = () => {
             <div className="flex items-center gap-3 mb-4 pb-4 border-b-2 border-foreground">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold border border-foreground overflow-hidden">
                 {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                  <img src={profile.avatar_url} alt={`${profile.display_name || 'Creator'}'s avatar`} className="w-full h-full object-cover" />
                 ) : (
                   profile?.display_name?.[0]?.toUpperCase() || 'C'
                 )}

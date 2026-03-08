@@ -69,7 +69,7 @@ const ProfileHoverCard: React.FC<ProfileHoverCardProps> = ({ userId, username, c
           {/* Avatar */}
           <Link to={profileLink} className="block w-14 h-14 rounded-full border-2 border-background overflow-hidden mb-2">
             {p?.avatar_url ? (
-              <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+              <img src={p.avatar_url} alt={`${p.display_name || p.username || 'User'}'s avatar`} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-muted flex items-center justify-center">
                 <User className="w-6 h-6 text-muted-foreground" />
