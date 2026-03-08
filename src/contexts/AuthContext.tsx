@@ -71,6 +71,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPublisher, setIsPublisher] = useState(false);
+  const [adminMode, setAdminMode] = useState(() => {
+    try { return localStorage.getItem('xtratoon-admin-mode') === 'true'; } catch { return true; }
+  });
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
