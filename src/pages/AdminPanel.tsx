@@ -360,6 +360,15 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'blog' && (
+            <div>
+              <h2 className="text-display text-3xl mb-4 tracking-wider">BLOG MANAGER</h2>
+              <Link to="/admin/blog" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl text-sm font-semibold">
+                <PenTool className="w-4 h-4" /> Open Blog Editor
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
