@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import AuthModal from "@/components/AuthModal";
 import PageTransition from "@/components/PageTransition";
+import SpotlightSearch from "@/components/SpotlightSearch";
 import Index from "./pages/Index";
 import ManhwaDetail from "./pages/ManhwaDetail";
 import ReaderPage from "./pages/ReaderPage";
@@ -88,6 +89,7 @@ const AppLayout = () => (
     <JsonLd />
     <Navbar />
     <AuthModal />
+    <SpotlightSearch />
     <AnimatedRoutes />
     <Footer />
   </>

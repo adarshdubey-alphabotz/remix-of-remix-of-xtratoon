@@ -12,6 +12,9 @@ const allGenres = [
   'Mystery', 'Horror', 'Slice of Life', 'Adventure', 'Historical', 'School',
 ];
 
+const languages = ['All', 'Korean', 'Japanese', 'Chinese', 'English'];
+const ratingOptions = ['All', '4+ Stars', '3+ Stars', '2+ Stars'];
+
 const BrowsePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const initialGenre = searchParams.get('genre');
@@ -21,11 +24,13 @@ const BrowsePage: React.FC = () => {
   const [selectedGenres, setSelectedGenres] = useState<string[]>(initialGenre ? [initialGenre] : []);
   const [status, setStatus] = useState<string>('All');
   const [sort, setSort] = useState<string>('Trending');
+  const [language, setLanguage] = useState<string>('All');
+  const [ratingFilter, setRatingFilter] = useState<string>('All');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'masonry'>('masonry');
 
   const { data: results = [], isLoading } = useQuery({
-    queryKey: ['browse-manga', query, status, sort],
+    queryKey: ['browse-manga', query, status, sort, language],
     queryFn: async () => {
       let q = supabase
         .from('manga')
@@ -38,13 +43,17 @@ const BrowsePage: React.FC = () => {
       if (status !== 'All') {
         q = q.eq('status', status.toUpperCase());
       }
+      if (language !== 'All') {
+        q = q.eq('language', language);
+      }
 
       if (sort === 'Rating') q = q.order('rating_average', { ascending: false });
       else if (sort === 'Views') q = q.order('views', { ascending: false });
       else if (sort === 'New') q = q.order('created_at', { ascending: false });
-      else q = q.order('views', { ascending: false }); // Trending = views
+      else if (sort === 'Likes') q = q.order('likes', { ascending: false });
+      else q = q.order('views', { ascending: false });
 
-      q = q.limit(40);
+      q = q.limit(60);
 
       const { data, error } = await q;
       if (error) throw error;
@@ -53,11 +62,17 @@ const BrowsePage: React.FC = () => {
   });
 
   const filtered = useMemo(() => {
-    if (!selectedGenres.length) return results;
-    return results.filter(m => (m.genres || []).some((g: string) => selectedGenres.includes(g)));
-  }, [results, selectedGenres]);
+    let list = results;
+    if (selectedGenres.length > 0) {
+      list = list.filter(m => (m.genres || []).some((g: string) => selectedGenres.includes(g)));
+    }
+    if (ratingFilter !== 'All') {
+      const minRating = parseInt(ratingFilter);
+      list = list.filter(m => Number(m.rating_average || 0) >= minRating);
+    }
+    return list;
+  }, [results, selectedGenres, ratingFilter]);
 
-  // Map DB manga to ManhwaCard format
   const mappedResults = filtered.map(m => ({
     _id: m.id,
     slug: m.slug,
@@ -80,12 +95,24 @@ const BrowsePage: React.FC = () => {
   const removeFilter = (type: string, value: string) => {
     if (type === 'genre') setSelectedGenres(prev => prev.filter(x => x !== value));
     if (type === 'status') setStatus('All');
+    if (type === 'language') setLanguage('All');
+    if (type === 'rating') setRatingFilter('All');
     if (type === 'query') setQuery('');
+  };
+
+  const clearAllFilters = () => {
+    setSelectedGenres([]);
+    setStatus('All');
+    setLanguage('All');
+    setRatingFilter('All');
+    setQuery('');
   };
 
   const activeFilters = [
     ...selectedGenres.map(g => ({ type: 'genre', value: g })),
     ...(status !== 'All' ? [{ type: 'status', value: status }] : []),
+    ...(language !== 'All' ? [{ type: 'language', value: language }] : []),
+    ...(ratingFilter !== 'All' ? [{ type: 'rating', value: ratingFilter }] : []),
     ...(query ? [{ type: 'query', value: `"${query}"` }] : []),
   ];
 
@@ -110,10 +137,10 @@ const BrowsePage: React.FC = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center gap-2 px-4 py-2 border-2 border-foreground text-sm font-semibold" style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}>
-            <SlidersHorizontal className="w-4 h-4" /> Filters
+            <SlidersHorizontal className="w-4 h-4" /> Filters {activeFilters.length > 0 && `(${activeFilters.length})`}
           </button>
 
-          <aside className={`lg:w-64 flex-shrink-0 space-y-6 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          <aside className={`lg:w-64 flex-shrink-0 space-y-5 ${showFilters ? 'block' : 'hidden lg:block'}`}>
             <div className="brutal-card p-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -144,9 +171,31 @@ const BrowsePage: React.FC = () => {
             </div>
 
             <div className="brutal-card p-4">
+              <h3 className="font-display text-lg tracking-wider mb-3">LANGUAGE</h3>
+              <div className="space-y-1">
+                {languages.map(l => (
+                  <button key={l} onClick={() => setLanguage(l)} className={`block w-full text-left px-3 py-1.5 text-sm font-medium transition-colors ${language === l ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="brutal-card p-4">
+              <h3 className="font-display text-lg tracking-wider mb-3">RATING</h3>
+              <div className="space-y-1">
+                {ratingOptions.map(r => (
+                  <button key={r} onClick={() => setRatingFilter(r)} className={`block w-full text-left px-3 py-1.5 text-sm font-medium transition-colors ${ratingFilter === r ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}`}>
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="brutal-card p-4">
               <h3 className="font-display text-lg tracking-wider mb-3">SORT BY</h3>
               <div className="space-y-1">
-                {['Trending', 'Rating', 'New', 'Views'].map(s => (
+                {['Trending', 'Rating', 'New', 'Views', 'Likes'].map(s => (
                   <button key={s} onClick={() => setSort(s)} className={`block w-full text-left px-3 py-1.5 text-sm font-medium transition-colors ${sort === s ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}`}>
                     {s}
                   </button>
@@ -157,12 +206,15 @@ const BrowsePage: React.FC = () => {
 
           <div className="flex-1">
             {activeFilters.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap items-center gap-2 mb-4">
                 {activeFilters.map((f, i) => (
                   <button key={i} onClick={() => removeFilter(f.type, f.value)} className="flex items-center gap-1 px-3 py-1 text-xs border-2 border-primary bg-primary/5 text-primary font-semibold">
                     {f.value} <X className="w-3 h-3" />
                   </button>
                 ))}
+                <button onClick={clearAllFilters} className="text-xs text-muted-foreground hover:text-destructive font-medium ml-1">
+                  Clear all
+                </button>
               </div>
             )}
 
@@ -186,6 +238,9 @@ const BrowsePage: React.FC = () => {
             {!isLoading && mappedResults.length === 0 && (
               <div className="text-center py-16">
                 <p className="text-muted-foreground">No manhwa found matching your filters.</p>
+                {activeFilters.length > 0 && (
+                  <button onClick={clearAllFilters} className="text-primary text-sm font-semibold mt-2 hover:underline">Clear all filters</button>
+                )}
               </div>
             )}
           </div>
