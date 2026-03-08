@@ -191,6 +191,12 @@ const ManhwaDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-16 bg-background">
+      <DynamicMeta
+        title={manhwa.title}
+        description={manhwa.description || `Read ${manhwa.title} on Xtratoon`}
+        image={coverUrl || undefined}
+        url={pageUrl}
+      />
       {/* Parallax Hero */}
       <div ref={heroRef} className="relative h-72 sm:h-80 lg:h-[420px] overflow-hidden">
         {/* Layer 1: Background image with parallax */}
