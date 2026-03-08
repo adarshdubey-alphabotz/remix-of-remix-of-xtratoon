@@ -292,7 +292,7 @@ const PublisherDashboard: React.FC = () => {
       }
 
       const schedLabel = scheduledAt ? ` (scheduled for ${new Date(scheduledAt).toLocaleString()})` : '';
-      toast.success(`Chapter ${chapterNumber} uploaded!${schedLabel} (${result.pages_uploaded} pages)`);
+      toast.success(`Chapter ${chapterNumber} uploaded!${schedLabel} (${result.pages_uploaded} pages) — Admin will review before publishing.`);
       setPageFiles([]);
       setChapterTitle('');
       setChapterNumber(prev => prev + 1);
