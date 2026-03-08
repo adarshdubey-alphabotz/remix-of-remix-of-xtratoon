@@ -4,6 +4,8 @@ import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, 
 import { motion, useScroll, useTransform, useMotionValueEvent, useInView, AnimatePresence } from 'framer-motion';
 import { formatViews, getCoverGradient, type ApiManga } from '@/lib/api';
 import { useFeaturedManga, useLatestManga } from '@/hooks/useApi';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal from '@/components/ScrollReveal';
 import { AvatarCircles } from '@/components/ui/avatar-circles';
