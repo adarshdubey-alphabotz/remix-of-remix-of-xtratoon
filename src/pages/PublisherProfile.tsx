@@ -162,7 +162,21 @@ const PublisherProfile: React.FC = () => {
                     <h1 className="text-display text-4xl sm:text-5xl mb-1 tracking-wider">
                       {(profile.display_name || profile.username || 'Creator').toUpperCase()}
                     </h1>
-                    {profile.username && <p className="text-sm text-muted-foreground mb-2">@{profile.username}</p>}
+                     {profile.username && <p className="text-sm text-muted-foreground mb-1">@{profile.username}</p>}
+                     {profile.username && (
+                       <button
+                         onClick={() => {
+                           navigator.clipboard.writeText(`https://xtratoon.com/publisher/${profile.username}`);
+                           setLinkCopied(true);
+                           toast.success('Profile link copied!');
+                           setTimeout(() => setLinkCopied(false), 2000);
+                         }}
+                         className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors mb-2 group"
+                       >
+                         {linkCopied ? <Check className="w-3 h-3 text-green-500" /> : <Link2 className="w-3 h-3" />}
+                         <span className="group-hover:underline">xtratoon.com/publisher/{profile.username}</span>
+                       </button>
+                     )}
                   </div>
                   {!isOwnProfile && (
                     <button
