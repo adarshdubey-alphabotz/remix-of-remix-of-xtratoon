@@ -223,7 +223,7 @@ const ReaderPage: React.FC = () => {
         .eq('manga_id', manga.id)
         .eq('chapter_id', chapterData.id)
         .maybeSingle();
-      if (data?.page_number && data.page_number > 1) {
+      if ((data as any)?.page_number && (data as any).page_number > 1) {
         const idx = pages.findIndex((p: any) => p.page_number === data.page_number);
         if (idx > 0) {
           setCurrentPage(idx);
