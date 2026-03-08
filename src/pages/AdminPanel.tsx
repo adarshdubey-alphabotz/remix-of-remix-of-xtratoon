@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminPanel: React.FC = () => {
@@ -127,10 +127,48 @@ const AdminPanel: React.FC = () => {
     setConfirmModal(null);
   };
 
+  // Fetch community posts for admin
+  const { data: communityPosts = [] } = useQuery({
+    queryKey: ['admin-community-posts'],
+    queryFn: async () => {
+      const { data } = await supabase.from('community_posts' as any).select('*').order('created_at', { ascending: false }).limit(50);
+      return (data || []) as any[];
+    },
+    enabled: isAdmin,
+  });
+
+  const communityCreatorIds = [...new Set(communityPosts.map((p: any) => p.creator_id))];
+  const { data: communityProfiles = [] } = useQuery({
+    queryKey: ['admin-community-profiles', communityCreatorIds],
+    queryFn: async () => {
+      if (communityCreatorIds.length === 0) return [];
+      const { data } = await supabase.from('profiles').select('user_id, username, display_name').in('user_id', communityCreatorIds);
+      return data || [];
+    },
+    enabled: communityCreatorIds.length > 0,
+  });
+  const communityProfileMap = Object.fromEntries(communityProfiles.map((p: any) => [p.user_id, p]));
+
+  const deleteCommunityPost = useMutation({
+    mutationFn: async (postId: string) => {
+      const { data, error } = await supabase.functions.invoke('telegram-community', {
+        body: { action: 'delete_post', post_id: postId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: () => {
+      toast.success('Community post deleted');
+      queryClient.invalidateQueries({ queryKey: ['admin-community-posts'] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'submissions', label: 'Submissions', icon: <FileText className="w-4 h-4" /> },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" /> },
+    { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
   ];
@@ -230,6 +268,37 @@ const AdminPanel: React.FC = () => {
                       </tr>
                     ))}
                     {(!reports || reports.length === 0) && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No reports 🎉</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'community' && (
+            <div>
+              <h2 className="text-display text-3xl mb-4 tracking-wider">COMMUNITY POSTS</h2>
+              <div className="brutal-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
+                    <th className="px-4 py-3">Creator</th><th className="px-4 py-3">Content</th><th className="px-4 py-3">Likes</th><th className="px-4 py-3">Replies</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Actions</th>
+                  </tr></thead>
+                  <tbody>
+                    {communityPosts.map((p: any) => {
+                      const cp = communityProfileMap[p.creator_id];
+                      return (
+                        <tr key={p.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                          <td className="px-4 py-3 font-semibold">{cp?.display_name || cp?.username || '—'}</td>
+                          <td className="px-4 py-3 text-xs max-w-[200px] truncate">{p.content || '(image only)'}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{p.likes_count}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{p.replies_count}</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
+                          <td className="px-4 py-3">
+                            <button onClick={() => deleteCommunityPost.mutate(p.id)} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {communityPosts.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No community posts 🎉</td></tr>}
                   </tbody>
                 </table>
               </div>

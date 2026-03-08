@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollowingIds } from '@/hooks/useFollow';
-import { Heart, MessageCircle, Send, ImagePlus, Trash2, User, Loader2, Search, Hash, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Heart, MessageCircle, Send, ImagePlus, Trash2, User, Loader2, Search, Hash, X, Flag, TrendingUp } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import ScrollReveal from '@/components/ScrollReveal';
@@ -17,7 +17,6 @@ const timeAgo = (date: string) => {
   return `${Math.floor(seconds / 86400)}d ago`;
 };
 
-// Render content with clickable hashtags
 const renderContent = (content: string) => {
   const parts = content.split(/(#\w+)/g);
   return parts.map((part, i) =>
@@ -30,15 +29,14 @@ const renderContent = (content: string) => {
 };
 
 const CommunityPage: React.FC = () => {
-  const { user, profile, isPublisher, setShowAuthModal, setAuthTab } = useAuth();
+  const { user, profile, isPublisher, isAdmin, setShowAuthModal, setAuthTab } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { data: followingIds = [] } = useFollowingIds();
   const [tab, setTab] = useState<'for-you' | 'following'>('for-you');
   const [newContent, setNewContent] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [expandedPost, setExpandedPost] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +77,6 @@ const CommunityPage: React.FC = () => {
     },
     enabled: creatorIds.length > 0,
   });
-
   const profileMap = Object.fromEntries(profiles.map((p: any) => [p.user_id, p]));
 
   // Fetch likes for current user
@@ -97,43 +94,27 @@ const CommunityPage: React.FC = () => {
     enabled: !!user && posts.length > 0,
   });
 
-  // Fetch replies for expanded post
-  const { data: replies = [] } = useQuery({
-    queryKey: ['community-replies', expandedPost],
-    queryFn: async () => {
-      if (!expandedPost) return [];
-      const { data } = await supabase
-        .from('community_replies' as any)
-        .select('*')
-        .eq('post_id', expandedPost)
-        .order('created_at', { ascending: true });
-      return (data || []) as any[];
-    },
-    enabled: !!expandedPost,
-  });
-
-  const replyCreatorIds = [...new Set(replies.map((r: any) => r.user_id))];
-  const { data: replyProfiles = [] } = useQuery({
-    queryKey: ['reply-profiles', replyCreatorIds],
-    queryFn: async () => {
-      if (replyCreatorIds.length === 0) return [];
-      const { data } = await supabase
-        .from('profiles')
-        .select('user_id, username, display_name, avatar_url')
-        .in('user_id', replyCreatorIds);
-      return data || [];
-    },
-    enabled: replyCreatorIds.length > 0,
-  });
-  const replyProfileMap = Object.fromEntries(replyProfiles.map((p: any) => [p.user_id, p]));
+  // Extract trending hashtags from posts
+  const trendingHashtags = useMemo(() => {
+    const hashtagCount: Record<string, number> = {};
+    posts.forEach((p: any) => {
+      if (!p.content) return;
+      const matches = p.content.match(/#\w+/g);
+      if (matches) matches.forEach((tag: string) => {
+        const lower = tag.toLowerCase();
+        hashtagCount[lower] = (hashtagCount[lower] || 0) + 1;
+      });
+    });
+    return Object.entries(hashtagCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([tag, count]) => ({ tag, count }));
+  }, [posts]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('Image must be under 10MB');
-        return;
-      }
+      if (file.size > 10 * 1024 * 1024) { toast.error('Image must be under 10MB'); return; }
       setSelectedImage(file);
       setImagePreview(URL.createObjectURL(file));
     }
@@ -159,23 +140,12 @@ const CommunityPage: React.FC = () => {
     }
   };
 
-  // Create post mutation
   const createPost = useMutation({
     mutationFn: async () => {
       if (!newContent.trim() && !selectedImage) throw new Error('Write something or add an image');
       setIsUploading(true);
-
       let imageUrl: string | null = null;
-
-      // If there's an image, upload it via telegram-upload to the community channel
       if (selectedImage) {
-        const formData = new FormData();
-        formData.append('type', 'community_image');
-        formData.append('cover', selectedImage);
-        formData.append('manga_id', 'community');
-
-        // For community images, we'll send the image URL directly
-        // Convert to base64 data URL for the telegram-community function
         const reader = new FileReader();
         const dataUrl = await new Promise<string>((resolve) => {
           reader.onload = () => resolve(reader.result as string);
@@ -183,7 +153,6 @@ const CommunityPage: React.FC = () => {
         });
         imageUrl = dataUrl;
       }
-
       const { data, error } = await supabase.functions.invoke('telegram-community', {
         body: { action: 'create_post', content: newContent.trim(), image_url: imageUrl },
       });
@@ -198,13 +167,9 @@ const CommunityPage: React.FC = () => {
       toast.success('Post shared!');
       queryClient.invalidateQueries({ queryKey: ['community-posts'] });
     },
-    onError: (err: any) => {
-      setIsUploading(false);
-      toast.error(err.message);
-    },
+    onError: (err: any) => { setIsUploading(false); toast.error(err.message); },
   });
 
-  // Like mutation
   const likeMutation = useMutation({
     mutationFn: async (postId: string) => {
       if (!user) throw new Error('Login required');
@@ -221,27 +186,6 @@ const CommunityPage: React.FC = () => {
     },
   });
 
-  // Reply mutation
-  const replyMutation = useMutation({
-    mutationFn: async (postId: string) => {
-      if (!replyContent.trim()) throw new Error('Reply cannot be empty');
-      const { data, error } = await supabase.functions.invoke('telegram-community', {
-        body: { action: 'reply', post_id: postId, content: replyContent.trim() },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
-    },
-    onSuccess: () => {
-      setReplyContent('');
-      toast.success('Reply sent!');
-      queryClient.invalidateQueries({ queryKey: ['community-replies'] });
-      queryClient.invalidateQueries({ queryKey: ['community-posts'] });
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
-
-  // Delete post
   const deletePost = useMutation({
     mutationFn: async (postId: string) => {
       const { data, error } = await supabase.functions.invoke('telegram-community', {
@@ -257,7 +201,6 @@ const CommunityPage: React.FC = () => {
     onError: (err: any) => toast.error(err.message),
   });
 
-  // Filter posts by search
   const filteredPosts = searchQuery.trim()
     ? posts.filter((p: any) => {
         const q = searchQuery.toLowerCase();
@@ -272,330 +215,256 @@ const CommunityPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-xl mx-auto border-x border-border/30 min-h-screen">
-        {/* Sticky header */}
-        <div className="sticky top-0 z-40 border-b border-border/30" style={{
-          background: 'hsla(var(--background) / 0.85)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }}>
-          <div className="px-4 pt-20 pb-0">
-            <h1 className="text-display text-xl tracking-wider mb-3">COMMUNITY</h1>
+      <div className="max-w-5xl mx-auto flex">
+        {/* Main feed */}
+        <div className="flex-1 max-w-xl mx-auto border-x border-border/30 min-h-screen">
+          {/* Sticky header */}
+          <div className="sticky top-0 z-40 border-b border-border/30" style={{
+            background: 'hsla(var(--background) / 0.85)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+          }}>
+            <div className="px-4 pt-20 pb-0">
+              <h1 className="text-display text-xl tracking-wider mb-3">COMMUNITY</h1>
+            </div>
+            <div className="flex">
+              {(['for-you', 'following'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`flex-1 py-3 text-sm font-semibold transition-all relative ${
+                    tab === t ? 'text-foreground' : 'text-muted-foreground hover:bg-muted/30'
+                  }`}
+                >
+                  {t === 'for-you' ? 'For you' : 'Following'}
+                  {tab === t && (
+                    <motion.div layoutId="community-tab" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-1 bg-primary rounded-full" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex">
-            {(['for-you', 'following'] as const).map(t => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`flex-1 py-3 text-sm font-semibold transition-all relative ${
-                  tab === t ? 'text-foreground' : 'text-muted-foreground hover:bg-muted/30'
-                }`}
-              >
-                {t === 'for-you' ? 'For you' : 'Following'}
-                {tab === t && (
-                  <motion.div
-                    layoutId="community-tab"
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-1 bg-primary rounded-full"
+          {/* Search bar */}
+          <div className="px-4 py-3 border-b border-border/30">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search posts, creators, #hashtags..."
+                className="w-full pl-10 pr-4 py-2.5 bg-muted/40 rounded-full text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Create post composer (publishers only) */}
+          {isPublisher && user && (
+            <div className="px-4 py-4 border-b border-border/30">
+              <div className="flex gap-3">
+                <div className="flex-shrink-0">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="w-5 h-5 text-primary" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <textarea
+                    ref={textareaRef}
+                    value={newContent}
+                    onChange={e => setNewContent(e.target.value)}
+                    placeholder="What's happening?"
+                    rows={2}
+                    className="w-full bg-transparent text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none leading-relaxed"
                   />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Search bar */}
-        <div className="px-4 py-3 border-b border-border/30">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search posts, creators, #hashtags..."
-              className="w-full pl-10 pr-4 py-2.5 bg-muted/40 rounded-full text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-            />
-          </div>
-        </div>
-
-        {/* Create post composer (publishers only) */}
-        {isPublisher && user && (
-          <div className="px-4 py-4 border-b border-border/30">
-            <div className="flex gap-3">
-              {/* Avatar */}
-              <div className="flex-shrink-0">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-primary" />
-                  </div>
-                )}
-              </div>
-
-              {/* Composer */}
-              <div className="flex-1 min-w-0">
-                <textarea
-                  ref={textareaRef}
-                  value={newContent}
-                  onChange={e => setNewContent(e.target.value)}
-                  placeholder="What's happening?"
-                  rows={2}
-                  className="w-full bg-transparent text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none leading-relaxed"
-                />
-
-                {/* Image preview */}
-                {imagePreview && (
-                  <div className="relative mt-2 rounded-2xl overflow-hidden border border-border/30">
-                    <img src={imagePreview} alt="Preview" className="w-full max-h-72 object-cover" />
+                  {imagePreview && (
+                    <div className="relative mt-2 rounded-2xl overflow-hidden border border-border/30">
+                      <img src={imagePreview} alt="Preview" className="w-full max-h-72 object-cover" />
+                      <button onClick={removeImage} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  <div className="h-px bg-border/30 my-3" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
+                      <button onClick={() => fileInputRef.current?.click()} className="p-2 rounded-full hover:bg-primary/10 text-primary transition-all" title="Add photo">
+                        <ImagePlus className="w-5 h-5" />
+                      </button>
+                      <button onClick={insertHashtag} className="p-2 rounded-full hover:bg-primary/10 text-primary transition-all" title="Add hashtag">
+                        <Hash className="w-5 h-5" />
+                      </button>
+                    </div>
                     <button
-                      onClick={removeImage}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all"
+                      onClick={() => createPost.mutate()}
+                      disabled={createPost.isPending || isUploading || (!newContent.trim() && !selectedImage)}
+                      className="px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-all"
                     >
-                      <X className="w-4 h-4" />
+                      {createPost.isPending || isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
                     </button>
                   </div>
-                )}
-
-                {/* Divider */}
-                <div className="h-px bg-border/30 my-3" />
-
-                {/* Actions */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageSelect}
-                      className="hidden"
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="p-2 rounded-full hover:bg-primary/10 text-primary transition-all"
-                      title="Add photo"
-                    >
-                      <ImagePlus className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={insertHashtag}
-                      className="p-2 rounded-full hover:bg-primary/10 text-primary transition-all"
-                      title="Add hashtag"
-                    >
-                      <Hash className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => createPost.mutate()}
-                    disabled={createPost.isPending || isUploading || (!newContent.trim() && !selectedImage)}
-                    className="px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-all"
-                  >
-                    {createPost.isPending || isUploading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      'Post'
-                    )}
-                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Not logged in prompt */}
-        {!user && (
-          <div className="px-4 py-6 border-b border-border/30 text-center">
-            <p className="text-muted-foreground text-sm mb-3">Join the conversation</p>
-            <button
-              onClick={() => { setAuthTab('signup'); setShowAuthModal(true); }}
-              className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all"
-            >
-              Sign up
-            </button>
-          </div>
-        )}
-
-        {/* Posts feed */}
-        {isLoading ? (
-          <div className="py-12 text-center text-muted-foreground text-sm">Loading posts...</div>
-        ) : filteredPosts.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-muted-foreground text-sm">
-              {searchQuery ? 'No posts match your search.' : tab === 'following' ? 'No posts from creators you follow.' : 'No posts yet. Be the first!'}
-            </p>
-            {tab === 'following' && !searchQuery && (
-              <button onClick={() => setTab('for-you')} className="text-primary text-sm mt-2 hover:underline">
-                Explore all posts →
+          {/* Not logged in prompt */}
+          {!user && (
+            <div className="px-4 py-6 border-b border-border/30 text-center">
+              <p className="text-muted-foreground text-sm mb-3">Join the conversation</p>
+              <button
+                onClick={() => { setAuthTab('signup'); setShowAuthModal(true); }}
+                className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all"
+              >
+                Sign up
               </button>
-            )}
-          </div>
-        ) : (
-          <div>
-            {filteredPosts.map((post: any, i: number) => {
-              const creator = profileMap[post.creator_id];
-              const isLiked = userLikes.includes(post.id);
-              const isOwner = user?.id === post.creator_id;
+            </div>
+          )}
 
-              return (
-                <ScrollReveal key={post.id} delay={i * 0.03}>
-                  <article className="px-4 py-3 border-b border-border/30 hover:bg-muted/20 transition-colors">
-                    <div className="flex gap-3">
-                      {/* Avatar */}
-                      <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
-                        {creator?.avatar_url ? (
-                          <img src={creator.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                            <User className="w-5 h-5 text-muted-foreground" />
-                          </div>
-                        )}
-                      </Link>
+          {/* Posts feed */}
+          {isLoading ? (
+            <div className="py-12 text-center text-muted-foreground text-sm">Loading posts...</div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-muted-foreground text-sm">
+                {searchQuery ? 'No posts match your search.' : tab === 'following' ? 'No posts from creators you follow.' : 'No posts yet. Be the first!'}
+              </p>
+            </div>
+          ) : (
+            <div>
+              {filteredPosts.map((post: any, i: number) => {
+                const creator = profileMap[post.creator_id];
+                const isLiked = userLikes.includes(post.id);
+                const isOwner = user?.id === post.creator_id;
+                const canDelete = isOwner || isAdmin;
 
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        {/* Header row */}
-                        <div className="flex items-center gap-2">
-                          <Link to={`/publisher/${creator?.username || ''}`} className="text-sm font-bold hover:underline truncate">
-                            {creator?.display_name || creator?.username || 'Creator'}
-                          </Link>
-                          {creator?.username && (
-                            <span className="text-xs text-muted-foreground truncate">@{creator.username}</span>
+                return (
+                  <ScrollReveal key={post.id} delay={i * 0.03}>
+                    <article
+                      className="px-4 py-3 border-b border-border/30 hover:bg-muted/20 transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        // Don't navigate if clicking buttons/links
+                        if ((e.target as HTMLElement).closest('button, a')) return;
+                        navigate(`/community/post/${post.id}`);
+                      }}
+                    >
+                      <div className="flex gap-3">
+                        {/* Avatar */}
+                        <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
+                          {creator?.avatar_url ? (
+                            <img src={creator.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                              <User className="w-5 h-5 text-muted-foreground" />
+                            </div>
                           )}
-                          <span className="text-xs text-muted-foreground">·</span>
-                          <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo(post.created_at)}</span>
-                          <div className="flex-1" />
-                          {isOwner && (
+                        </Link>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Link to={`/publisher/${creator?.username || ''}`} className="text-sm font-bold hover:underline truncate">
+                              {creator?.display_name || creator?.username || 'Creator'}
+                            </Link>
+                            {creator?.username && (
+                              <span className="text-xs text-muted-foreground truncate">@{creator.username}</span>
+                            )}
+                            <span className="text-xs text-muted-foreground">·</span>
+                            <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo(post.created_at)}</span>
+                            <div className="flex-1" />
+                            {canDelete && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete this post?')) deletePost.mutate(post.id); }}
+                                className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                                title="Delete post"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          {post.content && (
+                            <p className="text-sm mt-1 whitespace-pre-wrap leading-relaxed">{renderContent(post.content)}</p>
+                          )}
+
+                          {post.image_url && (
+                            <div className="mt-3 rounded-2xl overflow-hidden border border-border/30">
+                              <img src={post.image_url} alt="" className="w-full max-h-[400px] object-cover" loading="lazy" />
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-6 mt-3 -ml-2">
                             <button
-                              onClick={() => deletePost.mutate(post.id)}
-                              className="p-1 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                              onClick={(e) => { e.stopPropagation(); navigate(`/community/post/${post.id}`); }}
+                              className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <MessageCircle className="w-[18px] h-[18px]" />
+                              <span className="text-xs">{post.replies_count || 0}</span>
                             </button>
-                          )}
-                        </div>
-
-                        {/* Post text */}
-                        {post.content && (
-                          <p className="text-sm mt-1 whitespace-pre-wrap leading-relaxed">{renderContent(post.content)}</p>
-                        )}
-
-                        {/* Post image */}
-                        {post.image_url && (
-                          <div className="mt-3 rounded-2xl overflow-hidden border border-border/30">
-                            <img
-                              src={post.image_url}
-                              alt=""
-                              className="w-full max-h-[400px] object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        )}
-
-                        {/* Action buttons */}
-                        <div className="flex items-center gap-6 mt-3 -ml-2">
-                          <button
-                            onClick={() => setExpandedPost(expandedPost === post.id ? null : post.id)}
-                            className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all group"
-                          >
-                            <MessageCircle className="w-[18px] h-[18px]" />
-                            <span className="text-xs">{post.replies_count || 0}</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (!user) { setAuthTab('login'); setShowAuthModal(true); return; }
-                              likeMutation.mutate(post.id);
-                            }}
-                            className={`flex items-center gap-1.5 p-2 rounded-full transition-all ${
-                              isLiked ? 'text-primary' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-                            }`}
-                          >
-                            <Heart className={`w-[18px] h-[18px] ${isLiked ? 'fill-primary' : ''}`} />
-                            <span className="text-xs">{post.likes_count || 0}</span>
-                          </button>
-                        </div>
-
-                        {/* Replies section */}
-                        <AnimatePresence>
-                          {expandedPost === post.id && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden mt-2"
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!user) { setAuthTab('login'); setShowAuthModal(true); return; }
+                                likeMutation.mutate(post.id);
+                              }}
+                              className={`flex items-center gap-1.5 p-2 rounded-full transition-all ${
+                                isLiked ? 'text-primary' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                              }`}
                             >
-                              <div className="space-y-3 border-l-2 border-border/40 pl-4 ml-2">
-                                {replies.length === 0 ? (
-                                  <p className="text-xs text-muted-foreground py-2">No replies yet</p>
-                                ) : (
-                                  replies.map((reply: any) => {
-                                    const rp = replyProfileMap[reply.user_id];
-                                    return (
-                                      <div key={reply.id} className="flex gap-2 py-1">
-                                        <div className="w-6 h-6 rounded-full bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                          {rp?.avatar_url ? (
-                                            <img src={rp.avatar_url} className="w-6 h-6 rounded-full object-cover" alt="" />
-                                          ) : (
-                                            <User className="w-3 h-3 text-muted-foreground" />
-                                          )}
-                                        </div>
-                                        <div className="min-w-0">
-                                          <div className="flex items-center gap-1.5">
-                                            <span className="text-xs font-bold">{rp?.display_name || rp?.username || 'User'}</span>
-                                            <span className="text-[10px] text-muted-foreground">{timeAgo(reply.created_at)}</span>
-                                          </div>
-                                          <p className="text-sm mt-0.5">{reply.content}</p>
-                                        </div>
-                                      </div>
-                                    );
-                                  })
-                                )}
-                              </div>
-
-                              {/* Reply input */}
-                              {user ? (
-                                <div className="flex gap-2 mt-3">
-                                  <input
-                                    value={replyContent}
-                                    onChange={e => setReplyContent(e.target.value)}
-                                    placeholder="Post your reply..."
-                                    className="flex-1 text-sm bg-muted/30 rounded-full px-4 py-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
-                                    onKeyDown={e => {
-                                      if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        replyMutation.mutate(post.id);
-                                      }
-                                    }}
-                                  />
-                                  <button
-                                    onClick={() => replyMutation.mutate(post.id)}
-                                    disabled={replyMutation.isPending || !replyContent.trim()}
-                                    className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-50"
-                                  >
-                                    <Send className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => { setAuthTab('login'); setShowAuthModal(true); }}
-                                  className="text-xs text-primary hover:underline mt-2"
-                                >
-                                  Log in to reply
-                                </button>
-                              )}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                              <Heart className={`w-[18px] h-[18px] ${isLiked ? 'fill-primary' : ''}`} />
+                              <span className="text-xs">{post.likes_count || 0}</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                </ScrollReveal>
-              );
-            })}
-          </div>
-        )}
+                    </article>
+                  </ScrollReveal>
+                );
+              })}
+            </div>
+          )}
 
-        {/* Bottom spacer for mobile nav */}
-        <div className="h-24" />
+          <div className="h-24" />
+        </div>
+
+        {/* Right sidebar - Trending hashtags (hidden on mobile) */}
+        <aside className="hidden lg:block w-72 flex-shrink-0 px-4 pt-24 sticky top-0 h-screen overflow-y-auto">
+          {/* Trending Hashtags */}
+          {trendingHashtags.length > 0 && (
+            <div className="rounded-2xl border border-border/30 bg-card/50 p-4 mb-4">
+              <h3 className="text-display text-base tracking-wider mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" /> TRENDING
+              </h3>
+              <div className="space-y-2.5">
+                {trendingHashtags.map(({ tag, count }) => (
+                  <button
+                    key={tag}
+                    onClick={() => setSearchQuery(tag)}
+                    className="block w-full text-left hover:bg-muted/30 rounded-lg px-2 py-1.5 transition-colors"
+                  >
+                    <span className="text-sm font-semibold text-primary">{tag}</span>
+                    <span className="block text-xs text-muted-foreground">{count} {count === 1 ? 'post' : 'posts'}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Who to follow */}
+          <div className="rounded-2xl border border-border/30 bg-card/50 p-4">
+            <h3 className="text-display text-base tracking-wider mb-3">DISCOVER</h3>
+            <Link
+              to="/creators"
+              className="block w-full text-center py-2.5 rounded-full border border-primary/30 text-primary text-sm font-semibold hover:bg-primary/10 transition-colors"
+            >
+              Search Creators
+            </Link>
+          </div>
+        </aside>
       </div>
     </div>
   );

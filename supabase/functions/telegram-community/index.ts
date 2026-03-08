@@ -38,11 +38,9 @@ Deno.serve(async (req) => {
     const { action, post_id, content, image_url, reply_to_message_id } = await req.json();
 
     if (action === "create_post") {
-      // Send post to Telegram
       let tgMessageId: number | null = null;
 
       if (image_url) {
-        // Send photo with caption
         const tgRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -69,7 +67,6 @@ Deno.serve(async (req) => {
         if (tgData.ok) tgMessageId = tgData.result.message_id;
       }
 
-      // Insert into DB
       const { data: post, error: insertError } = await supabase
         .from("community_posts")
         .insert({
@@ -83,7 +80,6 @@ Deno.serve(async (req) => {
 
       if (insertError) throw new Error(insertError.message);
 
-      // Notify followers
       const { data: followers } = await supabase
         .from("follows")
         .select("follower_id")
@@ -109,7 +105,6 @@ Deno.serve(async (req) => {
     if (action === "reply") {
       if (!post_id || !content) throw new Error("post_id and content required");
 
-      // Get the post's telegram_message_id for reply
       const { data: post } = await supabase
         .from("community_posts")
         .select("telegram_message_id, creator_id")
@@ -163,12 +158,10 @@ Deno.serve(async (req) => {
         .single();
 
       if (post && post.creator_id !== userId) {
-        // Check admin
         const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
         if (!isAdmin) throw new Error("Not authorized");
       }
 
-      // Delete from Telegram
       if (post?.telegram_message_id) {
         await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteMessage`, {
           method: "POST",
@@ -178,6 +171,34 @@ Deno.serve(async (req) => {
       }
 
       await supabase.from("community_posts").delete().eq("id", post_id);
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "report_post") {
+      if (!post_id || !content) throw new Error("post_id and reason required");
+
+      // Create an admin notification for the report
+      await supabase.from("admin_notifications").insert({
+        type: "community_report",
+        title: "Community Post Reported",
+        message: `User ${displayName} reported a community post. Reason: ${content}`,
+        reference_id: post_id,
+      });
+
+      // Also send to Telegram for admin visibility
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: COMMUNITY_CHANNEL_ID,
+          text: `🚨 POST REPORTED\n👤 By: ${displayName}\n📝 Reason: ${content}\n🔗 Post ID: ${post_id}`,
+          parse_mode: "HTML",
+        }),
+      });
 
       return new Response(
         JSON.stringify({ success: true }),
