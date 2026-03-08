@@ -221,6 +221,7 @@ const ProfilePage: React.FC = () => {
       timezone: timezone || null,
       currency: currency || null,
       social_links: socialLinks,
+      profile_theme: profileTheme,
     } as any).eq('user_id', user.id);
     if (updateErr) {
       if (updateErr.code === '23505') setError('Username already taken');
