@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollowingIds } from '@/hooks/useFollow';
-import { Heart, MessageCircle, Send, Image, Trash2, User, Loader2 } from 'lucide-react';
+import { Heart, MessageCircle, Send, ImagePlus, Trash2, User, Loader2, Search, Hash, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -17,16 +17,32 @@ const timeAgo = (date: string) => {
   return `${Math.floor(seconds / 86400)}d ago`;
 };
 
+// Render content with clickable hashtags
+const renderContent = (content: string) => {
+  const parts = content.split(/(#\w+)/g);
+  return parts.map((part, i) =>
+    part.startsWith('#') ? (
+      <span key={i} className="text-primary font-semibold hover:underline cursor-pointer">{part}</span>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  );
+};
+
 const CommunityPage: React.FC = () => {
   const { user, profile, isPublisher, setShowAuthModal, setAuthTab } = useAuth();
   const queryClient = useQueryClient();
   const { data: followingIds = [] } = useFollowingIds();
-  const [tab, setTab] = useState<'following' | 'discover'>('following');
+  const [tab, setTab] = useState<'for-you' | 'following'>('for-you');
   const [newContent, setNewContent] = useState('');
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const [showCreate, setShowCreate] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Fetch posts
   const { data: posts = [], isLoading } = useQuery({
@@ -111,12 +127,65 @@ const CommunityPage: React.FC = () => {
   });
   const replyProfileMap = Object.fromEntries(replyProfiles.map((p: any) => [p.user_id, p]));
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Image must be under 10MB');
+        return;
+      }
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const insertHashtag = () => {
+    if (textareaRef.current) {
+      const start = textareaRef.current.selectionStart;
+      const before = newContent.slice(0, start);
+      const after = newContent.slice(start);
+      setNewContent(before + '#' + after);
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        textareaRef.current?.setSelectionRange(start + 1, start + 1);
+      }, 0);
+    }
+  };
+
   // Create post mutation
   const createPost = useMutation({
     mutationFn: async () => {
-      if (!newContent.trim() && !newImageUrl.trim()) throw new Error('Content required');
+      if (!newContent.trim() && !selectedImage) throw new Error('Write something or add an image');
+      setIsUploading(true);
+
+      let imageUrl: string | null = null;
+
+      // If there's an image, upload it via telegram-upload to the community channel
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append('type', 'community_image');
+        formData.append('cover', selectedImage);
+        formData.append('manga_id', 'community');
+
+        // For community images, we'll send the image URL directly
+        // Convert to base64 data URL for the telegram-community function
+        const reader = new FileReader();
+        const dataUrl = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(selectedImage);
+        });
+        imageUrl = dataUrl;
+      }
+
       const { data, error } = await supabase.functions.invoke('telegram-community', {
-        body: { action: 'create_post', content: newContent.trim(), image_url: newImageUrl.trim() || null },
+        body: { action: 'create_post', content: newContent.trim(), image_url: imageUrl },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -124,12 +193,15 @@ const CommunityPage: React.FC = () => {
     },
     onSuccess: () => {
       setNewContent('');
-      setNewImageUrl('');
-      setShowCreate(false);
+      removeImage();
+      setIsUploading(false);
       toast.success('Post shared!');
       queryClient.invalidateQueries({ queryKey: ['community-posts'] });
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: any) => {
+      setIsUploading(false);
+      toast.error(err.message);
+    },
   });
 
   // Like mutation
@@ -185,243 +257,345 @@ const CommunityPage: React.FC = () => {
     onError: (err: any) => toast.error(err.message),
   });
 
-  return (
-    <div className="min-h-screen pt-24 pb-32 bg-background">
-      <div className="max-w-2xl mx-auto px-4">
-        <h1 className="text-display text-4xl tracking-wider mb-6">COMMUNITY</h1>
+  // Filter posts by search
+  const filteredPosts = searchQuery.trim()
+    ? posts.filter((p: any) => {
+        const q = searchQuery.toLowerCase();
+        const creator = profileMap[p.creator_id];
+        return (
+          p.content?.toLowerCase().includes(q) ||
+          creator?.username?.toLowerCase().includes(q) ||
+          creator?.display_name?.toLowerCase().includes(q)
+        );
+      })
+    : posts;
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(['following', 'discover'] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                tab === t ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {t === 'following' ? 'Following' : 'Discover'}
-            </button>
-          ))}
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-xl mx-auto border-x border-border/30 min-h-screen">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-40 border-b border-border/30" style={{
+          background: 'hsla(var(--background) / 0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}>
+          <div className="px-4 pt-20 pb-0">
+            <h1 className="text-display text-xl tracking-wider mb-3">COMMUNITY</h1>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex">
+            {(['for-you', 'following'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`flex-1 py-3 text-sm font-semibold transition-all relative ${
+                  tab === t ? 'text-foreground' : 'text-muted-foreground hover:bg-muted/30'
+                }`}
+              >
+                {t === 'for-you' ? 'For you' : 'Following'}
+                {tab === t && (
+                  <motion.div
+                    layoutId="community-tab"
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-1 bg-primary rounded-full"
+                  />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Create post (publishers only) */}
+        {/* Search bar */}
+        <div className="px-4 py-3 border-b border-border/30">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search posts, creators, #hashtags..."
+              className="w-full pl-10 pr-4 py-2.5 bg-muted/40 rounded-full text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Create post composer (publishers only) */}
         {isPublisher && user && (
-          <div className="mb-6">
-            {!showCreate ? (
-              <button
-                onClick={() => setShowCreate(true)}
-                className="w-full p-4 rounded-2xl border border-border/50 bg-card text-muted-foreground text-left text-sm hover:border-primary/30 transition-all"
-              >
-                Share something with your followers...
-              </button>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-4 rounded-2xl border border-border/50 bg-card space-y-3"
-              >
+          <div className="px-4 py-4 border-b border-border/30">
+            <div className="flex gap-3">
+              {/* Avatar */}
+              <div className="flex-shrink-0">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="w-5 h-5 text-primary" />
+                  </div>
+                )}
+              </div>
+
+              {/* Composer */}
+              <div className="flex-1 min-w-0">
                 <textarea
+                  ref={textareaRef}
                   value={newContent}
                   onChange={e => setNewContent(e.target.value)}
-                  placeholder="What's on your mind?"
-                  rows={3}
-                  className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none"
+                  placeholder="What's happening?"
+                  rows={2}
+                  className="w-full bg-transparent text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none leading-relaxed"
                 />
-                <div className="flex items-center gap-2">
-                  <Image className="w-4 h-4 text-muted-foreground" />
-                  <input
-                    value={newImageUrl}
-                    onChange={e => setNewImageUrl(e.target.value)}
-                    placeholder="Image URL (optional)"
-                    className="flex-1 text-xs bg-muted/30 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
-                  />
-                </div>
+
+                {/* Image preview */}
+                {imagePreview && (
+                  <div className="relative mt-2 rounded-2xl overflow-hidden border border-border/30">
+                    <img src={imagePreview} alt="Preview" className="w-full max-h-72 object-cover" />
+                    <button
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Divider */}
+                <div className="h-px bg-border/30 my-3" />
+
+                {/* Actions */}
                 <div className="flex items-center justify-between">
-                  <button onClick={() => setShowCreate(false)} className="text-xs text-muted-foreground hover:text-foreground">
-                    Cancel
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-2 rounded-full hover:bg-primary/10 text-primary transition-all"
+                      title="Add photo"
+                    >
+                      <ImagePlus className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={insertHashtag}
+                      className="p-2 rounded-full hover:bg-primary/10 text-primary transition-all"
+                      title="Add hashtag"
+                    >
+                      <Hash className="w-5 h-5" />
+                    </button>
+                  </div>
                   <button
                     onClick={() => createPost.mutate()}
-                    disabled={createPost.isPending || (!newContent.trim() && !newImageUrl.trim())}
-                    className="btn-accent text-xs px-5 py-2 rounded-full disabled:opacity-50"
+                    disabled={createPost.isPending || isUploading || (!newContent.trim() && !selectedImage)}
+                    className="px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-all"
                   >
-                    {createPost.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Post'}
+                    {createPost.isPending || isUploading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Post'
+                    )}
                   </button>
                 </div>
-              </motion.div>
-            )}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Posts */}
+        {/* Not logged in prompt */}
+        {!user && (
+          <div className="px-4 py-6 border-b border-border/30 text-center">
+            <p className="text-muted-foreground text-sm mb-3">Join the conversation</p>
+            <button
+              onClick={() => { setAuthTab('signup'); setShowAuthModal(true); }}
+              className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all"
+            >
+              Sign up
+            </button>
+          </div>
+        )}
+
+        {/* Posts feed */}
         {isLoading ? (
-          <div className="text-center py-12 text-muted-foreground">Loading posts...</div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-2">
-              {tab === 'following' ? 'No posts from creators you follow yet.' : 'No community posts yet.'}
+          <div className="py-12 text-center text-muted-foreground text-sm">Loading posts...</div>
+        ) : filteredPosts.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-muted-foreground text-sm">
+              {searchQuery ? 'No posts match your search.' : tab === 'following' ? 'No posts from creators you follow.' : 'No posts yet. Be the first!'}
             </p>
-            {tab === 'following' && (
-              <button onClick={() => setTab('discover')} className="text-primary text-sm hover:underline">
-                Discover creators →
+            {tab === 'following' && !searchQuery && (
+              <button onClick={() => setTab('for-you')} className="text-primary text-sm mt-2 hover:underline">
+                Explore all posts →
               </button>
             )}
           </div>
         ) : (
-          <div className="space-y-4">
-            {posts.map((post: any, i: number) => {
+          <div>
+            {filteredPosts.map((post: any, i: number) => {
               const creator = profileMap[post.creator_id];
               const isLiked = userLikes.includes(post.id);
               const isOwner = user?.id === post.creator_id;
 
               return (
-                <ScrollReveal key={post.id} delay={i * 0.05}>
-                  <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
-                    {/* Header */}
-                    <div className="flex items-center gap-3 p-4 pb-2">
+                <ScrollReveal key={post.id} delay={i * 0.03}>
+                  <article className="px-4 py-3 border-b border-border/30 hover:bg-muted/20 transition-colors">
+                    <div className="flex gap-3">
+                      {/* Avatar */}
                       <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
                         {creator?.avatar_url ? (
                           <img src={creator.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="w-5 h-5 text-primary" />
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                            <User className="w-5 h-5 text-muted-foreground" />
                           </div>
                         )}
                       </Link>
+
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <Link to={`/publisher/${creator?.username || ''}`} className="text-sm font-bold hover:text-primary transition-colors">
-                          {creator?.display_name || creator?.username || 'Creator'}
-                        </Link>
-                        <p className="text-xs text-muted-foreground">{timeAgo(post.created_at)}</p>
-                      </div>
-                      {isOwner && (
-                        <button
-                          onClick={() => deletePost.mutate(post.id)}
-                          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    {post.content && (
-                      <p className="px-4 pb-2 text-sm whitespace-pre-wrap">{post.content}</p>
-                    )}
-
-                    {/* Image */}
-                    {post.image_url && (
-                      <div className="px-4 pb-2">
-                        <img
-                          src={post.image_url}
-                          alt=""
-                          className="w-full rounded-xl object-cover max-h-[500px]"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-4 px-4 py-3 border-t border-border/30">
-                      <button
-                        onClick={() => {
-                          if (!user) { setAuthTab('login'); setShowAuthModal(true); return; }
-                          likeMutation.mutate(post.id);
-                        }}
-                        className={`flex items-center gap-1.5 text-sm transition-colors ${
-                          isLiked ? 'text-primary' : 'text-muted-foreground hover:text-primary'
-                        }`}
-                      >
-                        <Heart className={`w-4 h-4 ${isLiked ? 'fill-primary' : ''}`} />
-                        <span>{post.likes_count || 0}</span>
-                      </button>
-                      <button
-                        onClick={() => setExpandedPost(expandedPost === post.id ? null : post.id)}
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>{post.replies_count || 0}</span>
-                      </button>
-                    </div>
-
-                    {/* Replies section */}
-                    <AnimatePresence>
-                      {expandedPost === post.id && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="border-t border-border/30 overflow-hidden"
-                        >
-                          <div className="p-4 space-y-3 max-h-60 overflow-y-auto">
-                            {replies.length === 0 ? (
-                              <p className="text-xs text-muted-foreground">No replies yet</p>
-                            ) : (
-                              replies.map((reply: any) => {
-                                const rp = replyProfileMap[reply.user_id];
-                                return (
-                                  <div key={reply.id} className="flex gap-2">
-                                    <div className="w-7 h-7 rounded-full bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                      {rp?.avatar_url ? (
-                                        <img src={rp.avatar_url} className="w-7 h-7 rounded-full object-cover" alt="" />
-                                      ) : (
-                                        <User className="w-3.5 h-3.5 text-muted-foreground" />
-                                      )}
-                                    </div>
-                                    <div>
-                                      <span className="text-xs font-bold">{rp?.display_name || rp?.username || 'User'}</span>
-                                      <span className="text-xs text-muted-foreground ml-2">{timeAgo(reply.created_at)}</span>
-                                      <p className="text-sm mt-0.5">{reply.content}</p>
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
-
-                          {/* Reply input */}
-                          {user ? (
-                            <div className="px-4 pb-3 flex gap-2">
-                              <input
-                                value={replyContent}
-                                onChange={e => setReplyContent(e.target.value)}
-                                placeholder="Write a reply..."
-                                className="flex-1 text-sm bg-muted/30 rounded-full px-4 py-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    replyMutation.mutate(post.id);
-                                  }
-                                }}
-                              />
-                              <button
-                                onClick={() => replyMutation.mutate(post.id)}
-                                disabled={replyMutation.isPending || !replyContent.trim()}
-                                className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-50"
-                              >
-                                <Send className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="px-4 pb-3">
-                              <button
-                                onClick={() => { setAuthTab('login'); setShowAuthModal(true); }}
-                                className="text-xs text-primary hover:underline"
-                              >
-                                Log in to reply
-                              </button>
-                            </div>
+                        {/* Header row */}
+                        <div className="flex items-center gap-2">
+                          <Link to={`/publisher/${creator?.username || ''}`} className="text-sm font-bold hover:underline truncate">
+                            {creator?.display_name || creator?.username || 'Creator'}
+                          </Link>
+                          {creator?.username && (
+                            <span className="text-xs text-muted-foreground truncate">@{creator.username}</span>
                           )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                          <span className="text-xs text-muted-foreground">·</span>
+                          <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo(post.created_at)}</span>
+                          <div className="flex-1" />
+                          {isOwner && (
+                            <button
+                              onClick={() => deletePost.mutate(post.id)}
+                              className="p-1 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Post text */}
+                        {post.content && (
+                          <p className="text-sm mt-1 whitespace-pre-wrap leading-relaxed">{renderContent(post.content)}</p>
+                        )}
+
+                        {/* Post image */}
+                        {post.image_url && (
+                          <div className="mt-3 rounded-2xl overflow-hidden border border-border/30">
+                            <img
+                              src={post.image_url}
+                              alt=""
+                              className="w-full max-h-[400px] object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-6 mt-3 -ml-2">
+                          <button
+                            onClick={() => setExpandedPost(expandedPost === post.id ? null : post.id)}
+                            className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all group"
+                          >
+                            <MessageCircle className="w-[18px] h-[18px]" />
+                            <span className="text-xs">{post.replies_count || 0}</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (!user) { setAuthTab('login'); setShowAuthModal(true); return; }
+                              likeMutation.mutate(post.id);
+                            }}
+                            className={`flex items-center gap-1.5 p-2 rounded-full transition-all ${
+                              isLiked ? 'text-primary' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                            }`}
+                          >
+                            <Heart className={`w-[18px] h-[18px] ${isLiked ? 'fill-primary' : ''}`} />
+                            <span className="text-xs">{post.likes_count || 0}</span>
+                          </button>
+                        </div>
+
+                        {/* Replies section */}
+                        <AnimatePresence>
+                          {expandedPost === post.id && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden mt-2"
+                            >
+                              <div className="space-y-3 border-l-2 border-border/40 pl-4 ml-2">
+                                {replies.length === 0 ? (
+                                  <p className="text-xs text-muted-foreground py-2">No replies yet</p>
+                                ) : (
+                                  replies.map((reply: any) => {
+                                    const rp = replyProfileMap[reply.user_id];
+                                    return (
+                                      <div key={reply.id} className="flex gap-2 py-1">
+                                        <div className="w-6 h-6 rounded-full bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                          {rp?.avatar_url ? (
+                                            <img src={rp.avatar_url} className="w-6 h-6 rounded-full object-cover" alt="" />
+                                          ) : (
+                                            <User className="w-3 h-3 text-muted-foreground" />
+                                          )}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-xs font-bold">{rp?.display_name || rp?.username || 'User'}</span>
+                                            <span className="text-[10px] text-muted-foreground">{timeAgo(reply.created_at)}</span>
+                                          </div>
+                                          <p className="text-sm mt-0.5">{reply.content}</p>
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                )}
+                              </div>
+
+                              {/* Reply input */}
+                              {user ? (
+                                <div className="flex gap-2 mt-3">
+                                  <input
+                                    value={replyContent}
+                                    onChange={e => setReplyContent(e.target.value)}
+                                    placeholder="Post your reply..."
+                                    className="flex-1 text-sm bg-muted/30 rounded-full px-4 py-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                    onKeyDown={e => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        replyMutation.mutate(post.id);
+                                      }
+                                    }}
+                                  />
+                                  <button
+                                    onClick={() => replyMutation.mutate(post.id)}
+                                    disabled={replyMutation.isPending || !replyContent.trim()}
+                                    className="p-2 rounded-full bg-primary text-primary-foreground disabled:opacity-50"
+                                  >
+                                    <Send className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => { setAuthTab('login'); setShowAuthModal(true); }}
+                                  className="text-xs text-primary hover:underline mt-2"
+                                >
+                                  Log in to reply
+                                </button>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </article>
                 </ScrollReveal>
               );
             })}
           </div>
         )}
+
+        {/* Bottom spacer for mobile nav */}
+        <div className="h-24" />
       </div>
     </div>
   );
