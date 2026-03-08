@@ -206,6 +206,28 @@ const ExplorePage: React.FC = () => {
   });
 
   const manga = allManga || [];
+
+  // Fetch creator profiles for all manga
+  const creatorIds = [...new Set(manga.map(m => m.creator_id).filter(Boolean))];
+  const { data: creatorProfiles } = useQuery({
+    queryKey: ['explore-creators', creatorIds.join(',')],
+    queryFn: async () => {
+      if (creatorIds.length === 0) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name')
+        .in('user_id', creatorIds);
+      return data || [];
+    },
+    enabled: creatorIds.length > 0,
+    staleTime: 60000,
+  });
+
+  const creatorMap: Record<string, string> = {};
+  (creatorProfiles || []).forEach(p => {
+    creatorMap[p.user_id] = p.display_name || p.username || 'Unknown';
+  });
+
   const featured = manga.find(m => m.is_featured) || manga[0];
   const topByViews = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
   const recentlyAdded = manga.slice(0, 8);
