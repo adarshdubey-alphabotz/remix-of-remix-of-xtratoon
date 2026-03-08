@@ -347,6 +347,9 @@ const Navbar: React.FC = () => {
             </span>
           </Link>
           <div className="flex items-center gap-1">
+            <Link to="/search-creators" className="p-2 rounded-full hover:bg-muted/60 transition-all text-muted-foreground" aria-label="Search creators">
+              <Search className="w-4 h-4" />
+            </Link>
             <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-muted/60 transition-all text-muted-foreground" aria-label="Toggle theme">
               {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
