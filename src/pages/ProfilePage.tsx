@@ -360,19 +360,33 @@ const ProfilePage: React.FC = () => {
           <SettingsRow icon={<MapPin className="w-4 h-4" />} label="Location & Currency" value={location || 'Not set'} onClick={() => setActiveSection('location')} />
         </div>
 
-        {/* Navigation */}
+        {/* Navigation — context-aware based on admin/creator mode */}
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
-          <SettingsRow icon={<BookOpen className="w-4 h-4" />} label="My Library" value={`${libraryItems.length} items`} onClick={() => setActiveSection('library')} />
-          <div className="h-px bg-border ml-16" />
-          <SettingsRow icon={<MessageSquare className="w-4 h-4" />} label="My Posts" onClick={() => navigate('/community/my-posts')} />
-          <div className="h-px bg-border ml-16" />
-          <SettingsRow icon={<Search className="w-4 h-4" />} label="Creator Search" onClick={() => navigate('/creators')} />
-          {isCreator && (
+          {isAdmin && adminMode ? (
             <>
+              <SettingsRow icon={<Shield className="w-4 h-4" />} label="Admin Panel" value="Manage submissions, users & reports" onClick={() => navigate('/admin')} />
               <div className="h-px bg-border ml-16" />
-              <SettingsRow icon={<LayoutDashboard className="w-4 h-4" />} label="Creator Dashboard" onClick={() => navigate('/dashboard')} />
+              <SettingsRow icon={<Shield className="w-4 h-4" />} label="Admin Settings" value="Site overview, moderation & security" onClick={() => navigate('/admin/settings')} />
               <div className="h-px bg-border ml-16" />
-              <SettingsRow icon={<BarChart3 className="w-4 h-4" />} label="Creator Studio" value={`${creatorStats.totalUploads} uploads · ${creatorStats.totalViews.toLocaleString()} views`} onClick={() => setActiveSection('creator')} />
+              <SettingsRow icon={<MessageSquare className="w-4 h-4" />} label="Community Manager" value="Moderate posts & comments" onClick={() => navigate('/admin')} />
+              <div className="h-px bg-border ml-16" />
+              <SettingsRow icon={<Bell className="w-4 h-4" />} label="Admin Notifications" onClick={() => navigate('/admin/settings')} />
+            </>
+          ) : (
+            <>
+              <SettingsRow icon={<BookOpen className="w-4 h-4" />} label="My Library" value={`${libraryItems.length} items`} onClick={() => setActiveSection('library')} />
+              <div className="h-px bg-border ml-16" />
+              <SettingsRow icon={<MessageSquare className="w-4 h-4" />} label="My Posts" onClick={() => navigate('/community/my-posts')} />
+              <div className="h-px bg-border ml-16" />
+              <SettingsRow icon={<Search className="w-4 h-4" />} label="Creator Search" onClick={() => navigate('/creators')} />
+              {isCreator && (
+                <>
+                  <div className="h-px bg-border ml-16" />
+                  <SettingsRow icon={<LayoutDashboard className="w-4 h-4" />} label="Creator Dashboard" onClick={() => navigate('/dashboard')} />
+                  <div className="h-px bg-border ml-16" />
+                  <SettingsRow icon={<BarChart3 className="w-4 h-4" />} label="Creator Studio" value={`${creatorStats.totalUploads} uploads · ${creatorStats.totalViews.toLocaleString()} views`} onClick={() => setActiveSection('creator')} />
+                </>
+              )}
             </>
           )}
         </div>
