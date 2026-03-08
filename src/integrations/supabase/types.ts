@@ -44,6 +44,60 @@ export type Database = {
         }
         Relationships: []
       }
+      blogs: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          description: string | null
+          id: string
+          is_faq: boolean
+          is_published: boolean
+          seo_description: string | null
+          seo_keywords: string[] | null
+          seo_title: string | null
+          slug: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          author_id: string
+          content?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_faq?: boolean
+          is_published?: boolean
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          slug: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_faq?: boolean
+          is_published?: boolean
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          slug?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
+      }
       chapter_pages: {
         Row: {
           chapter_id: string

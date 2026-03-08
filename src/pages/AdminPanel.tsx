@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool } from 'lucide-react';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const AdminPanel: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -171,6 +172,7 @@ const AdminPanel: React.FC = () => {
     { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
+    { id: 'blog', label: 'Blog', icon: <PenTool className="w-4 h-4" /> },
   ];
 
   if (!isAdmin) return <div className="min-h-screen pt-24 flex items-center justify-center"><p className="text-muted-foreground">Access denied. Admin only.</p></div>;
@@ -356,6 +358,15 @@ const AdminPanel: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'blog' && (
+            <div>
+              <h2 className="text-display text-3xl mb-4 tracking-wider">BLOG MANAGER</h2>
+              <Link to="/admin/blog" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl text-sm font-semibold">
+                <PenTool className="w-4 h-4" /> Open Blog Editor
+              </Link>
             </div>
           )}
         </div>
