@@ -1,5 +1,9 @@
 {
   "rewrites": [
+    {
+      "source": "/api/img",
+      "destination": "https://lpozkutezttxiwafhwul.supabase.co/functions/v1/telegram-proxy"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
