@@ -91,6 +91,7 @@ const AnimatedRoutes = () => {
         <Route path="/blog" element={<PageTransition><BlogListPage /></PageTransition>} />
         <Route path="/blog/:slug" element={<PageTransition><BlogDetailPage /></PageTransition>} />
         <Route path="/admin/blog" element={<PageTransition><AdminBlogEditor /></PageTransition>} />
+        <Route path="/discover" element={<PageTransition><DiscoverPage /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
       </AnimatePresence>
