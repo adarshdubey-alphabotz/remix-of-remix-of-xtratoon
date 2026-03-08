@@ -31,9 +31,9 @@ function containsProfanity(text: string): { hasProfanity: boolean; matches: stri
 
   for (const word of PROFANITY_LIST) {
     const cleanWord = word.replace(/[^a-z0-9\s]/g, '');
-    // Check as whole word or as part of the text
+    // Only match whole words to avoid false positives (e.g. "analysis" matching "anal")
     const regex = new RegExp(`\\b${cleanWord.replace(/\s+/g, '\\s*')}\\b`, 'i');
-    if (regex.test(lower) || lower.includes(cleanWord)) {
+    if (regex.test(lower)) {
       matches.push(word);
     }
   }
