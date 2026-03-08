@@ -36,6 +36,7 @@ import ContentGuidelines from "./pages/ContentGuidelines";
 import BlogListPage from "./pages/BlogListPage";
 import BlogDetailPage from "./pages/BlogDetailPage";
 import AdminBlogEditor from "./pages/AdminBlogEditor";
+import AdminSettings from "./pages/AdminSettings";
 
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
@@ -92,6 +93,7 @@ const AnimatedRoutes = () => {
         <Route path="/blog" element={<PageTransition><BlogListPage /></PageTransition>} />
         <Route path="/blog/:slug" element={<PageTransition><BlogDetailPage /></PageTransition>} />
         <Route path="/admin/blog" element={<PageTransition><AdminBlogEditor /></PageTransition>} />
+        <Route path="/admin/settings" element={<PageTransition><AdminSettings /></PageTransition>} />
         
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>

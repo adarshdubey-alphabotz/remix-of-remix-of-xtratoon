@@ -330,7 +330,10 @@ const Navbar: React.FC = () => {
                            <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
                          )}
                          {isAdmin && adminMode && (
-                           <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                           <>
+                             <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                             <Link to="/admin/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Settings</Link>
+                           </>
                          )}
                          {isAdmin && (
                            <button
@@ -498,6 +501,7 @@ const Navbar: React.FC = () => {
                     <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
                     {(isPublisher || (isAdmin && !adminMode)) && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
                     {isAdmin && adminMode && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
+                    {isAdmin && adminMode && <Link to="/admin/settings" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Settings</Link>}
                     {isAdmin && (
                       <button
                         onClick={() => setAdminMode(!adminMode)}
