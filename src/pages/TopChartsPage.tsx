@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import ScrollReveal from '@/components/ScrollReveal';
+import DynamicMeta from '@/components/DynamicMeta';
 
 const pId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 const resolveCover = (url: string | null) => {
