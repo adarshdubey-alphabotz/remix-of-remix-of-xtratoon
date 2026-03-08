@@ -6,7 +6,7 @@ import {
   ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search,
   MessageSquare, Bell, Palette, Mail, Trash2, Pencil, BarChart3, Image, Upload, MapPin, 
   Clock, Globe, ChevronRight, LogOut, Eye, EyeOff, Camera, Link as LinkIcon, ExternalLink,
-  Plus, X, Instagram, Twitter,
+  Plus, X, Instagram, Twitter, Check, XCircle,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -15,6 +15,7 @@ import { animeAvatarUrls } from '@/data/animeAvatarUrls';
 import AvatarPicker from '@/components/profile/AvatarPicker';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useUserNotifications } from '@/hooks/useUserNotifications';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
