@@ -27,7 +27,7 @@ const ProfileHoverCard: React.FC<ProfileHoverCardProps> = ({ userId, username, c
     queryFn: async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('user_id, username, display_name, avatar_url, bio, role_type')
+        .select('user_id, username, display_name, avatar_url, bio, role_type, is_verified')
         .eq('user_id', userId)
         .single();
       return data;
