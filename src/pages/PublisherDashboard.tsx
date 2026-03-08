@@ -583,9 +583,30 @@ const PublisherDashboard: React.FC = () => {
                         )}
                       </div>
 
-                      <button type="submit" disabled={pageFiles.length === 0 || uploadingChapter} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                      {/* Schedule publish */}
+                      <div className="border border-border/40 rounded-lg p-4 space-y-3">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={scheduleEnabled} onChange={e => setScheduleEnabled(e.target.checked)} className="accent-primary" />
+                          <Clock className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold">Schedule for later</span>
+                        </label>
+                        {scheduleEnabled && (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-semibold block mb-1 text-muted-foreground">Date</label>
+                              <input type="date" value={scheduledDate} onChange={e => setScheduledDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 bg-background border border-border text-sm rounded-lg focus:outline-none focus:border-primary" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold block mb-1 text-muted-foreground">Time</label>
+                              <input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} className="w-full px-3 py-2 bg-background border border-border text-sm rounded-lg focus:outline-none focus:border-primary" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <button type="submit" disabled={pageFiles.length === 0 || uploadingChapter || (scheduleEnabled && (!scheduledDate || !scheduledTime))} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                         {uploadingChapter && <Loader2 className="w-4 h-4 animate-spin" />}
-                        {uploadingChapter ? `Uploading ${pageFiles.length} pages...` : `Upload Chapter ${chapterNumber}`}
+                        {uploadingChapter ? `Uploading ${pageFiles.length} pages...` : scheduleEnabled ? `Schedule Chapter ${chapterNumber}` : `Upload Chapter ${chapterNumber}`}
                       </button>
                     </form>
 
