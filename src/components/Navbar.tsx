@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, Grid3X3, MessageSquare, Command } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, Grid3X3, MessageSquare, Command, Shuffle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -88,6 +88,7 @@ const Navbar: React.FC = () => {
   const navItems = [
     { to: '/home', label: 'Home', icon: Home },
     { to: '/browse', label: 'Browse', icon: Search },
+    { to: '/discover', label: 'Discover', icon: Shuffle },
     { to: '/charts', label: 'Charts', icon: BarChart3 },
     { to: '/community', label: 'Community', icon: MessageSquare },
   ];
