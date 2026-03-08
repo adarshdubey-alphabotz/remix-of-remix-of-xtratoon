@@ -423,6 +423,7 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'reports' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">REPORTS</h2>
               <div className="brutal-card overflow-hidden">
