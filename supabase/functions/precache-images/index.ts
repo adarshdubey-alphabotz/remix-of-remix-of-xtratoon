@@ -46,14 +46,7 @@ async function cacheOne(
     return { fileId, status: "error", detail: `HTTP ${fileRes.status}` };
   }
 
-  // Detect real MIME from file extension (Telegram often returns application/octet-stream)
-  const rawCt = fileRes.headers.get("content-type") || "";
-  const ext = filePath.split(".").pop()?.toLowerCase();
-  const mimeMap: Record<string, string> = {
-    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
-    gif: "image/gif", webp: "image/webp", bmp: "image/bmp",
-  };
-  const contentType = mimeMap[ext || ""] || (rawCt.startsWith("image/") ? rawCt : "image/jpeg");
+  const contentType = fileRes.headers.get("content-type") || "image/jpeg";
   const imageBytes = new Uint8Array(await fileRes.arrayBuffer());
 
   // Upload to storage
