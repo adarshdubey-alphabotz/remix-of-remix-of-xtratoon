@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import CreatorAnalytics from '@/components/CreatorAnalytics';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -648,18 +649,8 @@ const PublisherDashboard: React.FC = () => {
           {/* ANALYTICS TAB */}
           {activeTab === 'analytics' && (
             <div>
-              <h2 className="text-display text-3xl mb-4 tracking-wider">ANALYTICS</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {[
-                  { label: 'Total Manhwa', value: totalManga, icon: <BookOpen className="w-5 h-5" /> },
-                  { label: 'Total Chapters', value: totalChapters, icon: <FileText className="w-5 h-5" /> },
-                ].map(s => (
-                  <div key={s.label} className="brutal-card p-4 space-y-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">{s.icon}<span className="text-xs uppercase tracking-wider">{s.label}</span></div>
-                    <div className="text-2xl font-display tracking-wider">{s.value}</div>
-                  </div>
-                ))}
-              </div>
+              <h2 className="text-display text-3xl mb-6 tracking-wider">ANALYTICS</h2>
+              <CreatorAnalytics />
             </div>
           )}
         </div>
