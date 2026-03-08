@@ -32,6 +32,9 @@ import ResetPassword from "./pages/ResetPassword";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ContentGuidelines from "./pages/ContentGuidelines";
+import BlogListPage from "./pages/BlogListPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
+import AdminBlogEditor from "./pages/AdminBlogEditor";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 
