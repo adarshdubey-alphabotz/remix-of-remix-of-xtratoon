@@ -436,19 +436,19 @@ const HomePage: React.FC = () => {
 
             <motion.div className="lg:col-span-2 hidden sm:grid grid-cols-2 gap-4" initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}>
               {featuredSpotlight.map((m, i) => (
-                <FeaturedCard key={m._id} manhwa={m} index={i} />
+                <FeaturedCard key={m.id} manhwa={m} index={i} />
               ))}
             </motion.div>
 
             {featured && (
               <motion.div className="sm:hidden" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }}>
                 <Link to={`/manhwa/${featured.slug}`} className="block">
-                  <div className={`aspect-[16/9] ${featured.cover ? '' : getCoverGradient(0)} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
-                    {featured.cover && <img src={featured.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+                  <div className={`aspect-[16/9] ${featured.cover_url ? '' : getCoverGradient(0)} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
+                    {featured.cover_url && <img src={featured.cover_url.startsWith('http') ? featured.cover_url : `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/telegram-proxy?file_id=${encodeURIComponent(featured.cover_url)}`} alt="" className="absolute inset-0 w-full h-full object-cover" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <h3 className="font-display text-xl text-white tracking-wide">{featured.title}</h3>
-                      <p className="text-xs text-white/70 mt-1">{featured.author || featured.creator?.username} · {formatViews(featured.views)} views</p>
+                      <p className="text-xs text-white/70 mt-1">{featured.profiles?.username || featured.profiles?.display_name} · {formatViews(featured.views)} views</p>
                     </div>
                   </div>
                 </Link>

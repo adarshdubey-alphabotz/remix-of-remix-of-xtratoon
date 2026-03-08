@@ -32,13 +32,13 @@ async function fetchMangaWithProfile(query: any) {
   if (!mangaData || mangaData.length === 0) return [];
 
   // Get creator IDs
-  const creatorIds = [...new Set(mangaData.map((m: any) => m.creator_id))];
+  const creatorIds = [...new Set(mangaData.map((m: any) => m.creator_id as string))].filter(Boolean);
   
   // Fetch profiles
   const { data: profiles } = await supabase
     .from('profiles')
     .select('user_id, username, display_name')
-    .in('user_id', creatorIds);
+    .in('user_id', creatorIds as string[]);
 
   const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
 
