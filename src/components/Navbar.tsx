@@ -257,7 +257,7 @@ const Navbar: React.FC = () => {
                     >
                       <div className="p-4 border-b border-border/50 flex items-center justify-between">
                         <h3 className="font-display text-lg tracking-wide">NOTIFICATIONS</h3>
-                        {((isAdmin && unreadCount > 0) || userUnreadCount > 0) && (
+                        {(userUnreadCount > 0 || (isAdmin && adminMode && unreadCount > 0)) && (
                           <button onClick={() => { if (isAdmin) markAllRead(); markAllUserNotifsRead(); }} className="text-xs text-primary hover:underline">Mark all read</button>
                         )}
                       </div>
