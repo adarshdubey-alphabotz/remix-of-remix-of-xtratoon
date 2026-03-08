@@ -394,7 +394,7 @@ const ManhwaDetail: React.FC = () => {
             )}
 
             <ScrollReveal delay={0.2}>
-              <CommentSection mangaId={manhwa.id} mangaTitle={manhwa.title} />
+              <CommentSection mangaId={manhwa.id} mangaTitle={manhwa.title} creatorId={manhwa.creator_id} />
             </ScrollReveal>
           </div>
 
