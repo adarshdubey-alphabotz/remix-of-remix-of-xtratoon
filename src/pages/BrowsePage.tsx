@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import ManhwaCard from '@/components/ManhwaCard';
 import MasonryManhwaCard from '@/components/MasonryManhwaCard';
 import ScrollReveal from '@/components/ScrollReveal';
+import DynamicMeta from '@/components/DynamicMeta';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
