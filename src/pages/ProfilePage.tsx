@@ -116,6 +116,7 @@ const ProfilePage: React.FC = () => {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [customLinkName, setCustomLinkName] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
+  const [profileTheme, setProfileTheme] = useState('default');
 
   useEffect(() => { if (!loading && !user) navigate('/'); }, [loading, user, navigate]);
 
