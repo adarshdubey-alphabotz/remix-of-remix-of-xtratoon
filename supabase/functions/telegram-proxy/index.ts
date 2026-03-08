@@ -106,10 +106,19 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const pageId = url.searchParams.get("page_id");
     const fileId = url.searchParams.get("file_id");
+    const encodedToken = url.searchParams.get("t");
     // If client just wants the CDN url without streaming
     const urlOnly = url.searchParams.get("url_only") === "true";
 
+    // Support base64-encoded file_id via 't' param (hides plain file_id from network tab)
     let telegramFileId = fileId;
+    if (!telegramFileId && encodedToken) {
+      try {
+        telegramFileId = atob(encodedToken);
+      } catch {
+        throw new Error("Invalid token");
+      }
+    }
 
     if (!telegramFileId && pageId) {
       const supabase = getSupabase();
