@@ -261,7 +261,7 @@ const PublisherProfile: React.FC = () => {
       <div className="max-w-2xl mx-auto px-4 -mt-16 relative z-10">
         {/* Avatar + actions row */}
         <div className="flex items-end justify-between mb-4">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-background overflow-hidden bg-muted flex-shrink-0">
+          <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 ${ts.avatarBorder} overflow-hidden bg-muted flex-shrink-0 transition-all`}>
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt={`${displayName}'s avatar`} className="w-full h-full object-cover" />
             ) : (
