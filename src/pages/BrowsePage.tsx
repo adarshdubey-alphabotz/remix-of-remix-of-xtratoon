@@ -61,6 +61,27 @@ const BrowsePage: React.FC = () => {
     },
   });
 
+  // Fetch creator profiles
+  const creatorIds = [...new Set(results.map(m => m.creator_id).filter(Boolean))];
+  const { data: creatorProfiles } = useQuery({
+    queryKey: ['browse-creators', creatorIds.join(',')],
+    queryFn: async () => {
+      if (creatorIds.length === 0) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name')
+        .in('user_id', creatorIds);
+      return data || [];
+    },
+    enabled: creatorIds.length > 0,
+    staleTime: 60000,
+  });
+
+  const creatorMap: Record<string, string> = {};
+  (creatorProfiles || []).forEach(p => {
+    creatorMap[p.user_id] = p.display_name || p.username || 'Unknown';
+  });
+
   const filtered = useMemo(() => {
     let list = results;
     if (selectedGenres.length > 0) {
