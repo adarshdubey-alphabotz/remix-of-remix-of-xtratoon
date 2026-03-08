@@ -236,11 +236,15 @@ const Navbar: React.FC = () => {
             <div className="relative">
               <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground">
                 <Bell className="w-[18px] h-[18px]" />
-                {(isAdmin ? unreadCount : userUnreadCount) > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {(isAdmin ? unreadCount : userUnreadCount) > 9 ? '9+' : (isAdmin ? unreadCount : userUnreadCount)}
-                  </span>
-                )}
+                {(() => {
+                  const showAdminNotifs = isAdmin && adminMode;
+                  const count = showAdminNotifs ? unreadCount + userUnreadCount : userUnreadCount;
+                  return count > 0 ? (
+                    <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {count > 9 ? '9+' : count}
+                    </span>
+                  ) : null;
+                })()}
               </button>
               <AnimatePresence>
                 {notifOpen && (
