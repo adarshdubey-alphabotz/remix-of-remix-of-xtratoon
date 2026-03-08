@@ -286,7 +286,7 @@ const CommunityPage: React.FC = () => {
                   />
                   {imagePreview && (
                     <div className="relative mt-2 rounded-2xl overflow-hidden border border-border/30">
-                      <img src={imagePreview} alt="Preview" className="w-full max-h-72 object-cover" />
+                      <img src={imagePreview} alt="Upload preview" className="w-full max-h-72 object-cover" />
                       <button onClick={removeImage} className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all">
                         <X className="w-4 h-4" />
                       </button>
