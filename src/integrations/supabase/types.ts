@@ -92,6 +92,7 @@ export type Database = {
           id: string
           is_published: boolean | null
           manga_id: string
+          scheduled_at: string | null
           title: string | null
           updated_at: string
           views: number | null
@@ -102,6 +103,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           manga_id: string
+          scheduled_at?: string | null
           title?: string | null
           updated_at?: string
           views?: number | null
@@ -112,6 +114,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           manga_id?: string
+          scheduled_at?: string | null
           title?: string | null
           updated_at?: string
           views?: number | null
