@@ -83,12 +83,12 @@ const TopChartsPage: React.FC = () => {
   const rankedManga = [...manga].sort((a, b) => {
     if (manhwaFilter === 'views') return (b.views || 0) - (a.views || 0);
     return (b.likes || 0) - (a.likes || 0);
-  });
+  }).slice(0, 10);
 
   const rankedCreators = [...creators].sort((a, b) => {
     if (creatorFilter === 'followers') return b.followers - a.followers;
     return b.publications - a.publications;
-  });
+  }).slice(0, 10);
 
   const getRankStyle = (rank: number) => {
     if (rank === 1) return { bg: 'bg-gold/10', border: 'border-gold', text: 'text-gold', shadow: '0 0 20px hsla(45,100%,50%,0.2)' };
