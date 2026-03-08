@@ -140,7 +140,7 @@ const MyPostsPage: React.FC = () => {
 
                       {post.image_url && (
                         <div className="mt-3 rounded-2xl overflow-hidden border border-border/30">
-                          <img src={post.image_url} alt="" className="w-full max-h-[400px] object-cover" loading="lazy" />
+                          <img src={post.image_url} alt="Post image" className="w-full max-h-[400px] object-cover" loading="lazy" />
                         </div>
                       )}
 

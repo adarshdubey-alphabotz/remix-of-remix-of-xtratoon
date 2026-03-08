@@ -410,7 +410,7 @@ const PublisherProfile: React.FC = () => {
                                 return (
                                   <div key={reply.id} className="flex gap-2">
                                     <div className="w-7 h-7 rounded-full bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                      {rp?.avatar_url ? <img src={rp.avatar_url} className="w-7 h-7 rounded-full object-cover" alt="" /> : <User className="w-3.5 h-3.5 text-muted-foreground" />}
+                                      {rp?.avatar_url ? <img src={rp.avatar_url} className="w-7 h-7 rounded-full object-cover" alt={`${rp.display_name || rp.username || 'User'}'s avatar`} /> : <User className="w-3.5 h-3.5 text-muted-foreground" />}
                                     </div>
                                     <div>
                                       <span className="text-xs font-bold">{rp?.display_name || rp?.username || 'User'}</span>

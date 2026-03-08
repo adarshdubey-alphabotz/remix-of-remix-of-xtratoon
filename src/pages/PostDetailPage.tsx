@@ -309,7 +309,7 @@ const PostDetailPage: React.FC = () => {
           <div className="px-4 py-3 border-b border-border/30 flex gap-3">
             <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden">
               {profile?.avatar_url ? (
-                <img src={profile.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                <img src={profile.avatar_url} className="w-8 h-8 rounded-full object-cover" alt={`${profile.display_name || 'Your'} avatar`} />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                   <User className="w-4 h-4 text-muted-foreground" />
