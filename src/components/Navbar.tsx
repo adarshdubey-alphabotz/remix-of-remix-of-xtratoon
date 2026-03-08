@@ -291,7 +291,7 @@ const Navbar: React.FC = () => {
                           ))}
                         </div>
                       )}
-                      {userNotifs.length === 0 && (!isAdmin || adminNotifications.length === 0) && (
+                      {userNotifs.length === 0 && (!(isAdmin && adminMode) || adminNotifications.length === 0) && (
                         <div className="p-4 text-sm text-muted-foreground">No new notifications</div>
                       )}
                     </motion.div>
