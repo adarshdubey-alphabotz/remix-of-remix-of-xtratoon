@@ -62,7 +62,7 @@ const BlogDetailPage: React.FC = () => {
       <DynamicMeta
         title={blog.seo_title || blog.title}
         description={blog.seo_description || blog.description || ''}
-        ogImage={blog.thumbnail_url}
+        image={blog.thumbnail_url}
       />
 
       <article className="max-w-3xl mx-auto px-4" itemScope itemType="https://schema.org/BlogPosting">
