@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Home, BarChart3, Grid3X3, MessageSquare } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, Grid3X3, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -204,11 +204,15 @@ const Navbar: React.FC = () => {
           </form>
 
           {/* Theme toggle */}
-          <button onClick={toggleTheme} className="p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground" aria-label="Toggle theme">
+          <button onClick={toggleTheme} className="p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground" aria-label="Toggle theme" title={`Theme: ${theme}`}>
             <AnimatePresence mode="wait">
               {theme === 'light' ? (
                 <motion.div key="moon" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
                   <Moon className="w-[18px] h-[18px]" />
+                </motion.div>
+              ) : theme === 'dark' ? (
+                <motion.div key="amoled" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                  <Smartphone className="w-[18px] h-[18px]" />
                 </motion.div>
               ) : (
                 <motion.div key="sun" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
@@ -350,8 +354,8 @@ const Navbar: React.FC = () => {
             <Link to="/creators" className="p-2 rounded-full hover:bg-muted/60 transition-all text-muted-foreground" aria-label="Search creators">
               <Search className="w-4 h-4" />
             </Link>
-            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-muted/60 transition-all text-muted-foreground" aria-label="Toggle theme">
-              {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-muted/60 transition-all text-muted-foreground" aria-label="Toggle theme" title={`Theme: ${theme}`}>
+              {theme === 'light' ? <Moon className="w-4 h-4" /> : theme === 'dark' ? <Smartphone className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
             <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-full hover:bg-muted/60 transition-all text-foreground">
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
