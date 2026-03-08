@@ -437,6 +437,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setAuthTab,
         isAdmin,
         isPublisher,
+        adminMode: isAdmin ? adminMode : false,
+        setAdminMode: (mode: boolean) => {
+          setAdminMode(mode);
+          try { localStorage.setItem('xtratoon-admin-mode', String(mode)); } catch {}
+        },
       }}
     >
       {children}
