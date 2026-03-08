@@ -87,6 +87,7 @@ const CommunityPage: React.FC = () => {
       let query = supabase
         .from('community_posts' as any)
         .select('*')
+        .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(50);
       if (tab === 'following' && followingIds.length > 0) {
@@ -97,6 +98,18 @@ const CommunityPage: React.FC = () => {
       const { data } = await query;
       return (data || []) as any[];
     },
+  });
+
+  const pinPostMutation = useMutation({
+    mutationFn: async ({ postId, pinned }: { postId: string; pinned: boolean }) => {
+      const { error } = await supabase.from('community_posts' as any).update({ is_pinned: pinned }).eq('id', postId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { pinned }) => {
+      toast.success(pinned ? 'Post pinned!' : 'Post unpinned');
+      queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   const creatorIds = [...new Set(posts.map((p: any) => p.creator_id))];
