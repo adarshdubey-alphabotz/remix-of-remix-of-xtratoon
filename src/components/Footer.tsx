@@ -103,12 +103,14 @@ const Footer: React.FC = () => (
           </nav>
         </div>
 
-        {/* Legal */}
+        {/* Legal & Resources */}
         <div className="space-y-3">
           <h4 className="text-display text-sm tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5" /> LEGAL
+            <Shield className="w-3.5 h-3.5" /> RESOURCES
           </h4>
           <nav className="flex flex-col gap-2">
+            <Link to="/blog" className="text-sm text-muted-foreground hover:text-primary transition-colors">Blog</Link>
+            <Link to="/blog/faq" className="text-sm text-muted-foreground hover:text-primary transition-colors">FAQ</Link>
             <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link>
             <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link>
             <Link to="/content-guidelines" className="text-sm text-muted-foreground hover:text-primary transition-colors">Content Guidelines</Link>
