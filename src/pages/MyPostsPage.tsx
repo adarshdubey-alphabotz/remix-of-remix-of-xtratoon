@@ -111,7 +111,7 @@ const MyPostsPage: React.FC = () => {
                   <div className="flex gap-3">
                     <div className="flex-shrink-0">
                       {profile?.avatar_url ? (
-                        <img src={profile.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                        <img src={profile.avatar_url} className="w-10 h-10 rounded-full object-cover" alt={`${profile.display_name || profile.username || 'Your'} avatar`} />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                           <User className="w-5 h-5 text-muted-foreground" />
