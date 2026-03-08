@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { animeAvatarUrls } from '@/data/animeAvatarUrls';
 import AvatarPicker from '@/components/profile/AvatarPicker';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
@@ -317,6 +318,18 @@ const ProfilePage: React.FC = () => {
           </div>
           <h2 className="text-xl font-bold">{displayName || 'Set your name'}</h2>
           <p className="text-sm text-muted-foreground">@{username || 'set-username'}</p>
+          {username && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`https://xtratoon.com/publisher/${username}`);
+                toast.success('Profile link copied!');
+              }}
+              className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              <LinkIcon className="w-3 h-3" />
+              <span className="hover:underline">xtratoon.com/publisher/{username}</span>
+            </button>
+          )}
           <span className="mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
             {isCreator ? '✨ Creator' : '📖 Reader'}
           </span>
