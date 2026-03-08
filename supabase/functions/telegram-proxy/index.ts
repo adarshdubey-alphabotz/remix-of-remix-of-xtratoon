@@ -25,7 +25,7 @@ async function getTelegramFilePath(botToken: string, fileId: string): Promise<st
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
   try {
