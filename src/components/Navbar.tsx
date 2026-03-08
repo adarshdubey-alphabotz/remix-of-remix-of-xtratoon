@@ -399,6 +399,11 @@ const Navbar: React.FC = () => {
                   />
                 )}
                 <UserIcon className="w-5 h-5 relative z-10" />
+                {userUnreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center z-20">
+                    {userUnreadCount > 9 ? '9+' : userUnreadCount}
+                  </span>
+                )}
               </Link>
             ) : (
               <button
