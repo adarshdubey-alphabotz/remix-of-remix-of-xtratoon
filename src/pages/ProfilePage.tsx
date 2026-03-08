@@ -127,7 +127,9 @@ const ProfilePage: React.FC = () => {
   const [customLinkName, setCustomLinkName] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
   const [profileTheme, setProfileTheme] = useState('default');
+  const [showNotifications, setShowNotifications] = useState(false);
 
+  const { notifications: userNotifs, unreadCount: userUnreadCount, markRead, markAllRead } = useUserNotifications();
   useEffect(() => { if (!loading && !user) navigate('/'); }, [loading, user, navigate]);
 
   useEffect(() => {
