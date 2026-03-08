@@ -10,6 +10,7 @@ import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/Scroll
 import CommentSection from '@/components/CommentSection';
 import SocialShareMenu from '@/components/SocialShareMenu';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
+import DynamicMeta from '@/components/DynamicMeta';
 import { useDynamicTheme } from '@/hooks/useDynamicTheme';
 import { toast } from 'sonner';
 
@@ -173,6 +174,7 @@ const ManhwaDetail: React.FC = () => {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center pt-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   if (!manhwa) return <div className="min-h-screen flex items-center justify-center pt-16"><p className="text-muted-foreground">Manhwa not found</p></div>;
 
+  const pageUrl = `https://glassy-ink-verse.lovable.app/manhwa/${manhwa.slug}`;
   const allChapters = chapters || [];
   const visibleChapters = showAllChapters ? allChapters : allChapters.slice(0, 10);
   const firstChapter = allChapters.length > 0 ? allChapters[0] : null;
@@ -189,6 +191,12 @@ const ManhwaDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-16 bg-background">
+      <DynamicMeta
+        title={manhwa.title}
+        description={manhwa.description || `Read ${manhwa.title} on Xtratoon`}
+        image={coverUrl || undefined}
+        url={pageUrl}
+      />
       {/* Parallax Hero */}
       <div ref={heroRef} className="relative h-72 sm:h-80 lg:h-[420px] overflow-hidden">
         {/* Layer 1: Background image with parallax */}

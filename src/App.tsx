@@ -11,6 +11,8 @@ import JsonLd from "@/components/JsonLd";
 import AuthModal from "@/components/AuthModal";
 import PageTransition from "@/components/PageTransition";
 import SpotlightSearch from "@/components/SpotlightSearch";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import OnboardingModal from "@/components/OnboardingModal";
 import Index from "./pages/Index";
 import ManhwaDetail from "./pages/ManhwaDetail";
 import ReaderPage from "./pages/ReaderPage";
@@ -27,6 +29,9 @@ import CommunityPage from "./pages/CommunityPage";
 import PostDetailPage from "./pages/PostDetailPage";
 import MyPostsPage from "./pages/MyPostsPage";
 import ResetPassword from "./pages/ResetPassword";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ContentGuidelines from "./pages/ContentGuidelines";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 
@@ -76,6 +81,9 @@ const AnimatedRoutes = () => {
         <Route path="/community/post/:postId" element={<PageTransition><PostDetailPage /></PageTransition>} />
         <Route path="/community/my-posts" element={<PageTransition><MyPostsPage /></PageTransition>} />
         <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+        <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
+        <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+        <Route path="/content-guidelines" element={<PageTransition><ContentGuidelines /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
       </AnimatePresence>
@@ -90,7 +98,10 @@ const AppLayout = () => (
     <Navbar />
     <AuthModal />
     <SpotlightSearch />
-    <AnimatedRoutes />
+    <OnboardingModal />
+    <ErrorBoundary>
+      <AnimatedRoutes />
+    </ErrorBoundary>
     <Footer />
   </>
 );
