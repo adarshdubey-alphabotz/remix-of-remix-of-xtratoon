@@ -26,13 +26,13 @@ const Footer: React.FC = () => (
   <footer className="relative border-t border-border bg-background overflow-hidden">
     <style>{floatKeyframes}</style>
 
-    {/* Animated mascot */}
-    <div className="absolute -top-16 right-4 sm:right-12 lg:right-24 z-10 pointer-events-none select-none">
+    {/* Animated mascot - positioned inside footer, not overflowing */}
+    <div className="absolute top-4 right-4 sm:right-12 lg:right-24 z-10 pointer-events-none select-none">
       <div style={{ animation: 'mascotFloat 4s ease-in-out infinite' }}>
         <img
           src={mascotImg}
           alt="Xtratoon Mascot"
-          className="w-28 sm:w-36 lg:w-40 drop-shadow-lg"
+          className="w-20 sm:w-28 lg:w-32 drop-shadow-lg"
           loading="lazy"
         />
       </div>

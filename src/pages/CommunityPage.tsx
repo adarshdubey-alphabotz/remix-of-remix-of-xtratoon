@@ -426,6 +426,10 @@ const CommunityPage: React.FC = () => {
                               <Heart className={`w-[18px] h-[18px] ${isLiked ? 'fill-primary' : ''}`} />
                               <span className="text-xs">{post.likes_count || 0}</span>
                             </button>
+                            <div className="flex items-center gap-1.5 p-2 text-muted-foreground">
+                              <Eye className="w-[18px] h-[18px]" />
+                              <span className="text-xs">{post.views_count || 0}</span>
+                            </div>
                           </div>
                         </div>
                       </div>

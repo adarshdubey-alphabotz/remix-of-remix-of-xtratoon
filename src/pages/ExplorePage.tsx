@@ -251,26 +251,8 @@ const ExplorePage: React.FC = () => {
                 </motion.button>
               );
             })}
-          </motion.div>
-          <button
-            onClick={() => setShowWheel(!showWheel)}
-            className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex-shrink-0 ${showWheel ? 'bg-primary text-primary-foreground border-primary' : 'border-border/40 text-muted-foreground hover:text-foreground'}`}
-          >
-            🎯 Wheel
-          </button>
+        </motion.div>
         </div>
-
-        {/* Genre Wheel */}
-        {showWheel && (
-          <motion.div
-            className="flex justify-center py-4 mb-4"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-          >
-            <GenreWheel genres={genres} activeGenre={activeGenre} onSelect={setActiveGenre} />
-          </motion.div>
-        )}
       </div>
 
       {isLoading ? (
