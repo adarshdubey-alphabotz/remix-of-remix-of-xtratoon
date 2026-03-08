@@ -330,8 +330,10 @@ const Navbar: React.FC = () => {
                            <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
                          )}
                          {isAdmin && adminMode && (
-                           <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
-                           <Link to="/admin/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Settings</Link>
+                           <>
+                             <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                             <Link to="/admin/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Settings</Link>
+                           </>
                          )}
                          {isAdmin && (
                            <button
