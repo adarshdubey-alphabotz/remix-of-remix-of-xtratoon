@@ -20,6 +20,7 @@ interface MangaItem {
   rating_average: number;
   created_at: string;
   is_featured: boolean;
+  creator_id: string;
 }
 
 const formatViews = (n: number) => {
@@ -92,7 +93,7 @@ const FeaturedHero: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => (
   </motion.div>
 );
 
-const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; badgeColor?: string }> = ({ manhwa, index, badge, badgeColor }) => (
+const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; badgeColor?: string; creatorName?: string }> = ({ manhwa, index, badge, badgeColor, creatorName }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
     transition={{ delay: index * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
     <Link to={`/manhwa/${manhwa.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
@@ -115,6 +116,7 @@ const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; ba
         </motion.div>
       </div>
       <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">{manhwa.title}</h3>
+      {creatorName && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">by {creatorName}</p>}
       <p className="text-xs text-muted-foreground mt-0.5">{(manhwa.genres || []).slice(0, 2).join(', ')}</p>
     </Link>
   </motion.div>
@@ -126,7 +128,8 @@ const ScrollSection: React.FC<{
   items: MangaItem[];
   badge?: (item: MangaItem, i: number) => { text: string; color: string } | null;
   viewAllLink?: string;
-}> = ({ title, icon, items, badge, viewAllLink }) => (
+  creatorMap?: Record<string, string>;
+}> = ({ title, icon, items, badge, viewAllLink, creatorMap }) => (
   <section>
     <div className="flex items-center justify-between mb-5">
       <motion.div className="flex items-center gap-3" initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
@@ -142,7 +145,7 @@ const ScrollSection: React.FC<{
     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
       {items.length > 0 ? items.map((m, i) => {
         const b = badge?.(m, i);
-        return <SmallCard key={m.id} manhwa={m} index={i} badge={b?.text} badgeColor={b?.color} />;
+        return <SmallCard key={m.id} manhwa={m} index={i} badge={b?.text} badgeColor={b?.color} creatorName={creatorMap?.[m.creator_id]} />;
       }) : (
         <p className="text-muted-foreground text-sm py-8">No manhwa available yet. Be the first creator to publish!</p>
       )}
@@ -203,6 +206,28 @@ const ExplorePage: React.FC = () => {
   });
 
   const manga = allManga || [];
+
+  // Fetch creator profiles for all manga
+  const creatorIds = [...new Set(manga.map(m => m.creator_id).filter(Boolean))];
+  const { data: creatorProfiles } = useQuery({
+    queryKey: ['explore-creators', creatorIds.join(',')],
+    queryFn: async () => {
+      if (creatorIds.length === 0) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name')
+        .in('user_id', creatorIds);
+      return data || [];
+    },
+    enabled: creatorIds.length > 0,
+    staleTime: 60000,
+  });
+
+  const creatorMap: Record<string, string> = {};
+  (creatorProfiles || []).forEach(p => {
+    creatorMap[p.user_id] = p.display_name || p.username || 'Unknown';
+  });
+
   const featured = manga.find(m => m.is_featured) || manga[0];
   const topByViews = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
   const recentlyAdded = manga.slice(0, 8);
@@ -266,10 +291,10 @@ const ExplorePage: React.FC = () => {
 
           {/* Content Sections */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-20">
-            <ScrollSection title="TOP THIS WEEK" icon={<Flame className="w-5 h-5" />} items={topByViews} viewAllLink="/charts"
+            <ScrollSection title="TOP THIS WEEK" icon={<Flame className="w-5 h-5" />} items={topByViews} viewAllLink="/charts" creatorMap={creatorMap}
               badge={(_, i) => i === 0 ? { text: 'HOT', color: 'bg-destructive text-destructive-foreground' } : i === 1 ? { text: 'TOP', color: 'bg-foreground text-background' } : null} />
 
-            <ScrollSection title="RECENTLY ADDED" icon={<Clock className="w-5 h-5" />} items={recentlyAdded} viewAllLink="/browse"
+            <ScrollSection title="RECENTLY ADDED" icon={<Clock className="w-5 h-5" />} items={recentlyAdded} viewAllLink="/browse" creatorMap={creatorMap}
               badge={(_, i) => i < 3 ? { text: 'NEW', color: 'bg-primary text-primary-foreground' } : null} />
 
             {topCharts.length > 0 && (
@@ -288,7 +313,7 @@ const ExplorePage: React.FC = () => {
             )}
 
             {highRated.length > 0 && (
-              <ScrollSection title="FEATURED PICKS" icon={<TrendingUp className="w-5 h-5" />} items={highRated}
+              <ScrollSection title="FEATURED PICKS" icon={<TrendingUp className="w-5 h-5" />} items={highRated} creatorMap={creatorMap}
                 badge={(m) => Number(m.rating_average) >= 4.5 ? { text: '★ TOP RATED', color: 'bg-yellow-500/90 text-black' } : null} />
             )}
           </div>
