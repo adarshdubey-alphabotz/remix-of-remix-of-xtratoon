@@ -25,7 +25,7 @@ const AdminPanel: React.FC = () => {
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('manga').select('id', { count: 'exact', head: true }).eq('approval_status', 'PENDING'),
         supabase.from('reports' as any).select('id', { count: 'exact', head: true }).eq('status', 'PENDING'),
-        supabase.from('chapters').select('id', { count: 'exact', head: true }).eq('approval_status' as any, 'PENDING'),
+        supabase.from('chapters' as any).select('id', { count: 'exact', head: true }).eq('approval_status', 'PENDING'),
       ]);
       return { totalManga: mangaRes.count || 0, totalChapters: chapRes.count || 0, totalUsers: usersRes.count || 0, pending: pendingRes.count || 0, reports: (reportsRes as any).count || 0, pendingChapters: pendingChapRes.count || 0 };
     },
