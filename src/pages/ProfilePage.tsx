@@ -6,7 +6,7 @@ import {
   ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search,
   MessageSquare, Bell, Palette, Mail, Trash2, Pencil, BarChart3, Image, Upload, MapPin, 
   Clock, Globe, ChevronRight, LogOut, Eye, EyeOff, Camera, Link as LinkIcon, ExternalLink,
-  Plus, X, Instagram, Twitter,
+  Plus, X, Instagram, Twitter, Check, XCircle,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -15,6 +15,7 @@ import { animeAvatarUrls } from '@/data/animeAvatarUrls';
 import AvatarPicker from '@/components/profile/AvatarPicker';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useUserNotifications } from '@/hooks/useUserNotifications';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
@@ -126,7 +127,9 @@ const ProfilePage: React.FC = () => {
   const [customLinkName, setCustomLinkName] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
   const [profileTheme, setProfileTheme] = useState('default');
+  const [showNotifications, setShowNotifications] = useState(false);
 
+  const { notifications: userNotifs, unreadCount: userUnreadCount, markRead, markAllRead } = useUserNotifications();
   useEffect(() => { if (!loading && !user) navigate('/'); }, [loading, user, navigate]);
 
   useEffect(() => {
@@ -364,8 +367,95 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Settings Groups */}
-      <div className="space-y-2 px-4 pb-6">
+        {/* Notifications Section */}
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border border-border bg-card hover:bg-muted/30 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="w-9 h-9 rounded-xl flex items-center justify-center text-sm bg-primary/10 text-primary">
+                <Bell className="w-4 h-4" />
+              </span>
+              <span className="text-sm font-medium text-foreground">Notifications</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {userUnreadCount > 0 && (
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full">
+                  {userUnreadCount}
+                </span>
+              )}
+              <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${showNotifications ? 'rotate-90' : ''}`} />
+            </div>
+          </button>
+          
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-2 rounded-2xl border border-border bg-card overflow-hidden">
+                  {userUnreadCount > 0 && (
+                    <div className="flex justify-end px-3 py-2 border-b border-border">
+                      <button onClick={markAllRead} className="text-[11px] text-primary font-semibold hover:underline">Mark all read</button>
+                    </div>
+                  )}
+                  {userNotifs.length === 0 ? (
+                    <div className="py-8 text-center">
+                      <Bell className="w-6 h-6 mx-auto mb-2 text-muted-foreground/30" />
+                      <p className="text-sm text-muted-foreground">No notifications</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-72 overflow-y-auto divide-y divide-border/30">
+                      {userNotifs.map((n: any) => {
+                        const isApproval = ['manga_approved', 'chapter_approved'].includes(n.type);
+                        const isRejection = ['manga_rejected', 'chapter_rejected'].includes(n.type);
+                        return (
+                          <button
+                            key={n.id}
+                            onClick={() => {
+                              markRead(n.id);
+                              if (n.reference_id && (n.type === 'new_chapter' || isApproval)) navigate(`/manhwa/${n.reference_id}`);
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-muted/40 transition-colors flex items-start gap-3"
+                          >
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                              isApproval ? 'bg-green-500/10' : isRejection ? 'bg-destructive/10' : 'bg-muted/60'
+                            }`}>
+                              {isApproval ? <Check className="w-4 h-4 text-green-500" /> :
+                               isRejection ? <XCircle className="w-4 h-4 text-destructive" /> :
+                               <Bell className="w-4 h-4 text-primary" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold">{n.title}</p>
+                              {n.message && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>}
+                              <p className="text-[10px] text-muted-foreground/70 mt-1">
+                                {(() => {
+                                  const s = Math.floor((Date.now() - new Date(n.created_at).getTime()) / 1000);
+                                  if (s < 60) return 'just now';
+                                  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+                                  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+                                  return `${Math.floor(s / 86400)}d ago`;
+                                })()}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Settings Groups */}
+        <div className="space-y-2 px-4 pb-6">
         {/* Account */}
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
           <SettingsRow icon={<User className="w-4 h-4" />} label="Edit Profile" value={displayName || 'Set your name'} onClick={() => setActiveSection('edit')} />
