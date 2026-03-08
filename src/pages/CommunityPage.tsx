@@ -402,6 +402,7 @@ const CommunityPage: React.FC = () => {
                             <ProfileHoverCard userId={post.creator_id} username={creator?.username}>
                               <Link to={`/publisher/${creator?.username || ''}`} className="text-sm font-bold hover:underline truncate">{creator?.display_name || creator?.username || 'Creator'}</Link>
                             </ProfileHoverCard>
+                            {creator?.is_verified && <VerifiedBadge size="sm" />}
                             {creator?.username && <span className="text-xs text-muted-foreground truncate">@{creator.username}</span>}
                             <span className="text-xs text-muted-foreground">·</span>
                             <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo(post.created_at)}</span>
