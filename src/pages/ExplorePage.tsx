@@ -128,7 +128,8 @@ const ScrollSection: React.FC<{
   items: MangaItem[];
   badge?: (item: MangaItem, i: number) => { text: string; color: string } | null;
   viewAllLink?: string;
-}> = ({ title, icon, items, badge, viewAllLink }) => (
+  creatorMap?: Record<string, string>;
+}> = ({ title, icon, items, badge, viewAllLink, creatorMap }) => (
   <section>
     <div className="flex items-center justify-between mb-5">
       <motion.div className="flex items-center gap-3" initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
@@ -144,7 +145,7 @@ const ScrollSection: React.FC<{
     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
       {items.length > 0 ? items.map((m, i) => {
         const b = badge?.(m, i);
-        return <SmallCard key={m.id} manhwa={m} index={i} badge={b?.text} badgeColor={b?.color} />;
+        return <SmallCard key={m.id} manhwa={m} index={i} badge={b?.text} badgeColor={b?.color} creatorName={creatorMap?.[m.creator_id]} />;
       }) : (
         <p className="text-muted-foreground text-sm py-8">No manhwa available yet. Be the first creator to publish!</p>
       )}
