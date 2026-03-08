@@ -241,6 +241,35 @@ export type Database = {
           },
         ]
       }
+      community_post_bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_bookmarks_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_post_likes: {
         Row: {
           created_at: string
@@ -279,6 +308,7 @@ export type Database = {
           deleted_by: string | null
           id: string
           image_url: string | null
+          image_urls: string[] | null
           is_deleted: boolean
           likes_count: number
           replies_count: number
@@ -294,6 +324,7 @@ export type Database = {
           deleted_by?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           is_deleted?: boolean
           likes_count?: number
           replies_count?: number
@@ -309,6 +340,7 @@ export type Database = {
           deleted_by?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           is_deleted?: boolean
           likes_count?: number
           replies_count?: number
