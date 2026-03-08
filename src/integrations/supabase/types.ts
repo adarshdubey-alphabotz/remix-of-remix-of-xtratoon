@@ -419,6 +419,7 @@ export type Database = {
           id: string
           is_banned: boolean
           role_type: string
+          social_links: Json | null
           timezone: string | null
           updated_at: string
           user_id: string
@@ -436,6 +437,7 @@ export type Database = {
           id?: string
           is_banned?: boolean
           role_type?: string
+          social_links?: Json | null
           timezone?: string | null
           updated_at?: string
           user_id: string
@@ -453,6 +455,7 @@ export type Database = {
           id?: string
           is_banned?: boolean
           role_type?: string
+          social_links?: Json | null
           timezone?: string | null
           updated_at?: string
           user_id?: string
@@ -652,6 +655,7 @@ export type Database = {
           id: string
           is_banned: boolean
           role_type: string
+          social_links: Json | null
           timezone: string | null
           updated_at: string
           user_id: string
