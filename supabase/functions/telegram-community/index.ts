@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
             error: "Your message contains inappropriate language. Please keep the community respectful.",
             profanity_detected: true,
           }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
     }
