@@ -56,7 +56,11 @@ Deno.serve(async (req) => {
       const tgData = await tgRes.json();
       if (!tgData.ok) throw new Error(`Telegram cover upload failed: ${tgData.description}`);
 
-      const fileId = tgData.result.document.file_id;
+      // Handle both document and photo responses from Telegram
+      const fileId = tgData.result?.document?.file_id
+        || tgData.result?.photo?.slice(-1)?.[0]?.file_id
+        || tgData.result?.video?.file_id;
+      if (!fileId) throw new Error(`Telegram returned no file_id. Response: ${JSON.stringify(tgData.result).slice(0, 200)}`);
 
       // Update manga cover_url with telegram file_id
       await supabase.from("manga").update({ cover_url: fileId }).eq("id", mangaId);
@@ -90,10 +94,16 @@ Deno.serve(async (req) => {
       const tgData = await tgRes.json();
       if (!tgData.ok) throw new Error(`Telegram upload failed for page ${i + 1}: ${tgData.description}`);
 
+      // Handle both document and photo responses from Telegram
+      const pageFileId = tgData.result?.document?.file_id
+        || tgData.result?.photo?.slice(-1)?.[0]?.file_id
+        || tgData.result?.video?.file_id;
+      if (!pageFileId) throw new Error(`Telegram returned no file_id for page ${i + 1}`);
+
       uploadedPages.push({
         page_number: i + 1,
-        telegram_file_id: tgData.result.document.file_id,
-        file_size: tgData.result.document.file_size || 0,
+        telegram_file_id: pageFileId,
+        file_size: tgData.result?.document?.file_size || 0,
       });
     }
 
