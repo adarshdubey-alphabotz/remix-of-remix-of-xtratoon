@@ -37,6 +37,8 @@ interface AuthContextType {
   setAuthTab: (tab: 'login' | 'signup') => void;
   isAdmin: boolean;
   isPublisher: boolean;
+  adminMode: boolean;
+  setAdminMode: (mode: boolean) => void;
 }
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
