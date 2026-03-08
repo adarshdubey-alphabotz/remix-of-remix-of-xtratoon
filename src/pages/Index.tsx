@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, Wallet, ShieldCheck, ChevronDown, HelpCircle } from 'lucide-react';
 import { motion, useScroll, useTransform, useMotionValueEvent, useInView, AnimatePresence } from 'framer-motion';
 import { formatViews, getCoverGradient, type Manga, useFeaturedManga, useLatestManga } from '@/hooks/useApi';
+import { getImageUrl } from '@/lib/imageUrl';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import MagneticButton from '@/components/MagneticButton';

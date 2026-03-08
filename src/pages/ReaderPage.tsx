@@ -95,7 +95,7 @@ const ReaderPage: React.FC = () => {
       }
       ctx.restore();
     }
-  }, [proxyUrl, user]);
+  }, [user]);
 
   useEffect(() => {
     if (!pages || pages.length === 0) return;
