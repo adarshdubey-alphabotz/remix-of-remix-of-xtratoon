@@ -6,17 +6,16 @@ interface DynamicMetaProps {
   image?: string;
   url?: string;
   type?: string;
+  keywords?: string;
 }
 
-/**
- * Dynamically sets OG meta tags and document title for better SEO/social sharing.
- * Restores defaults on unmount.
- */
-const DynamicMeta: React.FC<DynamicMetaProps> = ({ title, description, image, url, type = 'article' }) => {
-  useEffect(() => {
-    const defaultTitle = 'Xtratoon — Premium Manhwa & Manga';
-    const defaultDesc = 'Xtratoon is a premium manga and manhwa publishing and reading platform. Discover, read, and publish stunning webtoons.';
+const SITE = 'Xtratoon';
+const DEFAULT_TITLE = `${SITE} — Read Manhwa, Manga & Webtoons Online Free | Premium Comics`;
+const DEFAULT_DESC = 'Xtratoon is the #1 platform to read manhwa, manga, webtoons, and comics online for free. Discover trending series, follow top creators, and publish your own manhwa.';
+const DEFAULT_KEYWORDS = 'Xtratoon, xtratoons, manhwa, manga, webtoon, read manhwa online, read manga online, free manhwa, Korean comics, Japanese manga, webtoons, comic reader, best manhwa, trending manga, manhwa platform, read comics free, HD manhwa, premium manhwa';
 
+const DynamicMeta: React.FC<DynamicMetaProps> = ({ title, description, image, url, type = 'article', keywords }) => {
+  useEffect(() => {
     const setMeta = (property: string, content: string) => {
       let el = document.querySelector(`meta[property="${property}"]`) || document.querySelector(`meta[name="${property}"]`);
       if (!el) {
@@ -31,17 +30,17 @@ const DynamicMeta: React.FC<DynamicMetaProps> = ({ title, description, image, ur
       el.setAttribute('content', content);
     };
 
-    if (title) {
-      document.title = `${title} — Xtratoon`;
-      setMeta('og:title', `${title} — Xtratoon`);
-      setMeta('twitter:title', `${title} — Xtratoon`);
-    }
+    const fullTitle = title ? `${title} — ${SITE}` : DEFAULT_TITLE;
+    document.title = fullTitle;
+    setMeta('og:title', fullTitle);
+    setMeta('twitter:title', fullTitle);
 
-    if (description) {
-      setMeta('description', description);
-      setMeta('og:description', description);
-      setMeta('twitter:description', description);
-    }
+    const desc = description || DEFAULT_DESC;
+    setMeta('description', desc);
+    setMeta('og:description', desc);
+    setMeta('twitter:description', desc);
+
+    setMeta('keywords', keywords || DEFAULT_KEYWORDS);
 
     if (image) {
       setMeta('og:image', image);
@@ -51,19 +50,24 @@ const DynamicMeta: React.FC<DynamicMetaProps> = ({ title, description, image, ur
 
     if (url) {
       setMeta('og:url', url);
+      // Update canonical
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+      if (canonical) canonical.href = url;
     }
 
     setMeta('og:type', type);
+    setMeta('og:site_name', SITE);
 
     return () => {
-      document.title = defaultTitle;
-      setMeta('og:title', defaultTitle);
-      setMeta('twitter:title', defaultTitle);
-      setMeta('description', defaultDesc);
-      setMeta('og:description', defaultDesc);
-      setMeta('twitter:description', defaultDesc);
+      document.title = DEFAULT_TITLE;
+      setMeta('og:title', DEFAULT_TITLE);
+      setMeta('twitter:title', DEFAULT_TITLE);
+      setMeta('description', DEFAULT_DESC);
+      setMeta('og:description', DEFAULT_DESC);
+      setMeta('twitter:description', DEFAULT_DESC);
+      setMeta('keywords', DEFAULT_KEYWORDS);
     };
-  }, [title, description, image, url, type]);
+  }, [title, description, image, url, type, keywords]);
 
   return null;
 };
