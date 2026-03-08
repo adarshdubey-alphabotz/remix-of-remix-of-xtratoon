@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,6 +14,7 @@ interface Comment {
   parent_id: string | null;
   content: string;
   created_at: string;
+  is_pinned?: boolean;
   profile?: { username: string | null; display_name: string | null; avatar_url: string | null };
   replies?: Comment[];
 }
@@ -21,15 +22,18 @@ interface Comment {
 interface Props {
   mangaId: string;
   mangaTitle: string;
+  creatorId?: string;
 }
 
-const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
+const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [content, setContent] = useState('');
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+
+  const isCreator = !!user && !!creatorId && user.id === creatorId;
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ['comments', mangaId],
@@ -42,7 +46,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
       if (error) throw error;
       const allComments = (data || []) as any[];
 
-      // Fetch profiles for all commenters
       const userIds = [...new Set(allComments.map((c: any) => c.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
@@ -51,7 +54,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
 
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
 
-      // Build threaded structure
       const commentMap = new Map<string, Comment>();
       const topLevel: Comment[] = [];
 
@@ -73,10 +75,16 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
         }
       }
 
-      // Sort replies chronologically
       for (const c of commentMap.values()) {
         c.replies?.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       }
+
+      // Sort: pinned first, then by date
+      topLevel.sort((a, b) => {
+        if (a.is_pinned && !b.is_pinned) return -1;
+        if (!a.is_pinned && b.is_pinned) return 1;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
 
       return topLevel;
     },
@@ -104,7 +112,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
       setReplyTo(null);
       queryClient.invalidateQueries({ queryKey: ['comments', mangaId] });
 
-      // Mirror to Telegram comment channel (fire & forget)
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       fetch(`https://${projectId}.supabase.co/functions/v1/telegram-comment`, {
         method: 'POST',
@@ -124,6 +131,16 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
     }
   };
 
+  const handleTogglePin = async (comment: Comment) => {
+    const newPinned = !comment.is_pinned;
+    const { error } = await supabase.from('comments' as any).update({ is_pinned: newPinned }).eq('id', comment.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success(newPinned ? 'Comment pinned!' : 'Comment unpinned');
+      queryClient.invalidateQueries({ queryKey: ['comments', mangaId] });
+    }
+  };
+
   const toggleReplies = (id: string) => {
     setExpandedReplies(prev => {
       const next = new Set(prev);
@@ -133,6 +150,8 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
     });
   };
 
+  const canPin = isAdmin || isCreator;
+
   const CommentItem: React.FC<{ comment: Comment; depth?: number }> = ({ comment, depth = 0 }) => {
     const displayName = comment.profile?.display_name || comment.profile?.username || 'Anonymous';
     const initial = displayName[0]?.toUpperCase() || 'A';
@@ -141,6 +160,11 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
 
     return (
       <div className={`${depth > 0 ? 'ml-6 border-l-2 border-border/40 pl-4' : ''}`}>
+        {comment.is_pinned && depth === 0 && (
+          <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-1 pl-11">
+            <Pin className="w-3 h-3" /> Pinned
+          </div>
+        )}
         <div className="flex gap-3 py-3">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
             {comment.profile?.avatar_url ? (
@@ -157,6 +181,11 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
               {user && (
                 <button onClick={() => { setReplyTo(comment); }} className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1">
                   <Reply className="w-3 h-3" /> Reply
+                </button>
+              )}
+              {canPin && depth === 0 && (
+                <button onClick={() => handleTogglePin(comment)} className={`text-xs transition-colors inline-flex items-center gap-1 ${comment.is_pinned ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+                  <Pin className="w-3 h-3" /> {comment.is_pinned ? 'Unpin' : 'Pin'}
                 </button>
               )}
               {(user?.id === comment.user_id || isAdmin) && (
@@ -195,7 +224,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
         COMMENTS ({totalComments})
       </h2>
 
-      {/* Comment input */}
       <div className="brutal-card p-4 space-y-3">
         {replyTo && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 px-3 py-2 rounded-lg">
@@ -223,7 +251,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle }) => {
         </div>
       </div>
 
-      {/* Comments list */}
       {isLoading ? (
         <div className="text-sm text-muted-foreground p-4">Loading comments...</div>
       ) : comments.length === 0 ? (

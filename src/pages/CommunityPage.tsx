@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollowingIds } from '@/hooks/useFollow';
-import { Heart, MessageCircle, ImagePlus, Trash2, User, Loader2, Search, Hash, X, TrendingUp, Eye, Bookmark, Share2 } from 'lucide-react';
+import { Heart, MessageCircle, ImagePlus, Trash2, User, Loader2, Search, Hash, X, TrendingUp, Eye, Bookmark, Share2, Pin } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -87,6 +87,7 @@ const CommunityPage: React.FC = () => {
       let query = supabase
         .from('community_posts' as any)
         .select('*')
+        .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(50);
       if (tab === 'following' && followingIds.length > 0) {
@@ -97,6 +98,18 @@ const CommunityPage: React.FC = () => {
       const { data } = await query;
       return (data || []) as any[];
     },
+  });
+
+  const pinPostMutation = useMutation({
+    mutationFn: async ({ postId, pinned }: { postId: string; pinned: boolean }) => {
+      const { error } = await supabase.from('community_posts' as any).update({ is_pinned: pinned }).eq('id', postId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { pinned }) => {
+      toast.success(pinned ? 'Post pinned!' : 'Post unpinned');
+      queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   const creatorIds = [...new Set(posts.map((p: any) => p.creator_id))];
@@ -367,6 +380,11 @@ const CommunityPage: React.FC = () => {
                 return (
                   <ScrollReveal key={post.id} delay={i * 0.03}>
                     <article className="px-4 py-3 border-b border-border/30 hover:bg-muted/20 transition-colors cursor-pointer" onClick={(e) => { if ((e.target as HTMLElement).closest('button, a')) return; navigate(`/community/post/${post.id}`); }}>
+                      {post.is_pinned && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-2 pl-[52px]">
+                          <Pin className="w-3 h-3" /> Pinned post
+                        </div>
+                      )}
                       <div className="flex gap-3">
                         <ProfileHoverCard userId={post.creator_id} username={creator?.username}>
                           <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
@@ -387,6 +405,11 @@ const CommunityPage: React.FC = () => {
                             <span className="text-xs text-muted-foreground">·</span>
                             <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo(post.created_at)}</span>
                             <div className="flex-1" />
+                            {isAdmin && (
+                              <button onClick={(e) => { e.stopPropagation(); pinPostMutation.mutate({ postId: post.id, pinned: !post.is_pinned }); }} className={`p-1 transition-colors ${post.is_pinned ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} title={post.is_pinned ? 'Unpin' : 'Pin'}>
+                                <Pin className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                             {canDelete && (
                               <button onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete this post?')) deletePost.mutate(post.id); }} className="p-1 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                             )}
