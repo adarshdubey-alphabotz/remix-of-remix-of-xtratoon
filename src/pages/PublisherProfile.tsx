@@ -313,8 +313,11 @@ const PublisherProfile: React.FC = () => {
 
         {/* Name & username */}
         <div className="mb-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">{displayName}</h1>
-          {profile.username && <p className="text-sm text-muted-foreground">@{profile.username}</p>}
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight inline-flex items-center gap-1.5">
+            {displayName}
+            {(profile as any).is_verified && <VerifiedBadge size="md" />}
+          </h1>
+          {profile.username && <p className={`text-sm ${ts.usernameCls}`}>@{profile.username}</p>}
         </div>
 
         {/* Bio */}
