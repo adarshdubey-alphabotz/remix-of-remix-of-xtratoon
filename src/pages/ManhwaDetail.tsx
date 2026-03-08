@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
 import CommentSection from '@/components/CommentSection';
+import LibraryStatusButton from '@/components/LibraryStatusButton';
 import SocialShareMenu from '@/components/SocialShareMenu';
 import QRShareButton from '@/components/QRShareButton';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
@@ -354,9 +355,7 @@ const ManhwaDetail: React.FC = () => {
                     </Link>
                   </MagneticButton>
                 )}
-                <MagneticButton>
-                  <button onClick={handleAddToLibrary} className="btn-outline rounded-none text-sm"><Bookmark className={`w-4 h-4 ${inLibrary ? 'fill-current' : ''}`} /> {inLibrary ? 'In Library ✓' : 'Add to Library'}</button>
-                </MagneticButton>
+                <LibraryStatusButton mangaId={manhwa.id} />
                 <MagneticButton>
                   <button onClick={handleToggleLike} className="btn-outline rounded-none text-sm"><Heart className={`w-4 h-4 ${isLiked ? 'fill-primary text-primary' : ''}`} /> {isLiked ? 'Liked' : 'Like'}</button>
                 </MagneticButton>
