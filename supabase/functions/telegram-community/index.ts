@@ -31,9 +31,9 @@ function containsProfanity(text: string): { hasProfanity: boolean; matches: stri
 
   for (const word of PROFANITY_LIST) {
     const cleanWord = word.replace(/[^a-z0-9\s]/g, '');
-    // Check as whole word or as part of the text
+    // Only match whole words to avoid false positives (e.g. "analysis" matching "anal")
     const regex = new RegExp(`\\b${cleanWord.replace(/\s+/g, '\\s*')}\\b`, 'i');
-    if (regex.test(lower) || lower.includes(cleanWord)) {
+    if (regex.test(lower)) {
       matches.push(word);
     }
   }
@@ -72,8 +72,12 @@ Deno.serve(async (req) => {
 
     const { action, post_id, reply_id, content, image_url, image_urls } = await req.json();
 
-    // ─── Profanity check for content-based actions ───
-    if ((action === "create_post" || action === "reply") && content) {
+    // ─── Check if user is admin (admins bypass profanity filter) ───
+    const { data: isAdminData } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    const isAdmin = isAdminData === true;
+
+    // ─── Profanity check for content-based actions (admins exempt) ───
+    if (!isAdmin && (action === "create_post" || action === "reply") && content) {
       const check = containsProfanity(content);
       if (check.hasProfanity) {
         return new Response(
