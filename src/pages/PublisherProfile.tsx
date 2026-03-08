@@ -151,7 +151,7 @@ const PublisherProfile: React.FC = () => {
           <div className="brutal-card p-6 sm:p-8 mb-8">
             <div className="flex flex-col sm:flex-row items-start gap-6">
               {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-24 h-24 rounded-full object-cover border-2 border-foreground flex-shrink-0" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }} />
+                <img src={profile.avatar_url} alt={`${profile.display_name || profile.username || 'Creator'}'s avatar`} className="w-24 h-24 rounded-full object-cover border-2 border-foreground flex-shrink-0" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }} />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-primary/20 flex-shrink-0 border-2 border-foreground flex items-center justify-center text-2xl font-bold" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }}>
                   <User className="w-10 h-10 text-primary" />
