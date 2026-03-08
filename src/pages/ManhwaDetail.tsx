@@ -9,6 +9,7 @@ import MagneticButton from '@/components/MagneticButton';
 import ScrollReveal, { StaggerContainer, StaggerItem } from '@/components/ScrollReveal';
 import CommentSection from '@/components/CommentSection';
 import SocialShareMenu from '@/components/SocialShareMenu';
+import QRShareButton from '@/components/QRShareButton';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
 import DynamicMeta from '@/components/DynamicMeta';
 import { useDynamicTheme } from '@/hooks/useDynamicTheme';
