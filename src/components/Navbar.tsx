@@ -493,7 +493,20 @@ const Navbar: React.FC = () => {
                     <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
                     <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
                     {isPublisher && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
-                    {isAdmin && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
+                    {isAdmin && (
+                      <>
+                        <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>
+                        <button
+                          onClick={() => setAdminMode(!adminMode)}
+                          className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl"
+                        >
+                          <span>{adminMode ? 'Admin Mode' : 'Creator Mode'}</span>
+                          <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                            <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                          </span>
+                        </button>
+                      </>
+                    )}
                     <button onClick={handleLogout} disabled={logoutPending} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl disabled:opacity-60">{logoutPending ? 'Logging out...' : 'Logout'}</button>
                   </div>
                 )}
