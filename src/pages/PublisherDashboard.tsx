@@ -113,6 +113,7 @@ const PublisherDashboard: React.FC = () => {
     { id: 'works', label: 'My Works', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'create', label: 'New Manhwa', icon: <Plus className="w-4 h-4" /> },
     { id: 'chapters', label: 'Chapters', icon: <FileText className="w-4 h-4" /> },
+    { id: 'earnings', label: 'Earnings', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
   ];
 
