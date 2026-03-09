@@ -56,7 +56,7 @@ const TermsOfService: React.FC = () => (
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">8. Limitation of Liability</h2>
-          <p>Xtratoon shall not be liable for any indirect, incidental, or consequential damages arising from use of the Platform.</p>
+          <p>Komixora shall not be liable for any indirect, incidental, or consequential damages arising from use of the Platform.</p>
         </section>
 
         <section>

@@ -798,7 +798,7 @@ const ProfilePage: React.FC = () => {
             className="w-full py-3 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2">
             <LogOut className="w-4 h-4" /> Sign Out All Devices
           </button>
-          <p className="text-xs text-muted-foreground text-center">Need to delete your account? Contact support@xtratoon.com</p>
+          <p className="text-xs text-muted-foreground text-center">Need to delete your account? Contact support@komixora.fun</p>
         </div>
       </div>
     </motion.div>

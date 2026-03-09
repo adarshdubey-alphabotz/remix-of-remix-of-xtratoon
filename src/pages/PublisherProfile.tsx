@@ -167,7 +167,7 @@ const PublisherProfile: React.FC = () => {
   const socialLinks = profile.social_links as Record<string, string> | null;
   const hasSocials = socialLinks && Object.values(socialLinks).some(Boolean);
   const displayName = profile.display_name || profile.username || 'Creator';
-  const profileUrl = `https://xtratoon.com/publisher/${profile.username}`;
+  const profileUrl = `https://komixora.fun/publisher/${profile.username}`;
   const profileTheme = (profile as any).profile_theme || 'default';
 
   // Theme-specific styles

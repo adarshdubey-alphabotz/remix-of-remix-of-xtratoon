@@ -619,7 +619,7 @@ const AdminPanel: React.FC = () => {
                 <BadgeCheck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-bold">Official Account Verification</p>
-                  <p className="text-xs text-muted-foreground mt-1">Add a gold verification badge to official Xtratoon team accounts. This is different from the blue tick (coming soon) which will be for verified creators.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Add a gold verification badge to official Komixora team accounts. This is different from the blue tick (coming soon) which will be for verified creators.</p>
                 </div>
               </div>
 

@@ -107,7 +107,7 @@ const PrivacyPolicy: React.FC = () => (
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">11. Contact</h2>
           <p>For privacy-related questions, reach us at:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Email:</strong> <a href="mailto:support@xtratoon.com" className="text-primary hover:underline">support@xtratoon.com</a></li>
+            <li><strong>Email:</strong> <a href="mailto:support@komixora.fun" className="text-primary hover:underline">support@komixora.fun</a></li>
             <li><strong>Instagram:</strong> <a href="https://instagram.com/XtraToon.global" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">@XtraToon.global</a></li>
             <li><strong>X (Twitter):</strong> <a href="https://x.com/Xtratoonglobal" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">@Xtratoonglobal</a></li>
           </ul>

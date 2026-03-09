@@ -144,7 +144,7 @@ const BlogDetailPage: React.FC = () => {
           "datePublished": blog.created_at,
           "dateModified": blog.updated_at,
           "keywords": (blog.seo_keywords || []).join(', '),
-          "publisher": { "@type": "Organization", "name": "Xtratoon" },
+          "publisher": { "@type": "Organization", "name": "Komixora" },
         })}} />
 
         
