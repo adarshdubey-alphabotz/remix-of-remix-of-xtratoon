@@ -191,10 +191,10 @@ const ManhwaDetail: React.FC = () => {
     <div className="min-h-screen pt-16 bg-background">
       <DynamicMeta
         title={`${manhwa.title} — Read Online Free`}
-        description={manhwa.description || `Read ${manhwa.title} manhwa online for free on Xtratoon. HD quality, latest chapters updated regularly.`}
+        description={manhwa.description || `Read ${manhwa.title} manhwa online for free on Komixora. HD quality, latest chapters updated regularly.`}
         image={coverUrl || undefined}
         url={pageUrl}
-        keywords={`${manhwa.title}, read ${manhwa.title} online, ${manhwa.title} manhwa, ${(manhwa.genres || []).join(', ')}, Xtratoon, free manhwa, read manhwa online`}
+        keywords={`${manhwa.title}, read ${manhwa.title} online, ${manhwa.title} manhwa, ${(manhwa.genres || []).join(', ')}, Komixora, free manhwa, read manhwa online`}
       />
       {/* JSON-LD Structured Data for this manhwa */}
       <script
