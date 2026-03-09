@@ -7,6 +7,7 @@ import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import AdminRevenueAnalytics from '@/components/AdminRevenueAnalytics';
+import AdminPayoutManager from '@/components/AdminPayoutManager';
 
 const AdminPanel: React.FC = () => {
   const { isAdmin } = useAuth();
