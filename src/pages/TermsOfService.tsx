@@ -40,7 +40,7 @@ const TermsOfService: React.FC = () => (
             <li>Harassment, hate speech, or threats toward other users</li>
             <li>Attempting to reverse-engineer, hack, or disrupt the Platform</li>
             <li>Using bots or automated tools to inflate views, likes, or follows</li>
-            <li>Redistributing or pirating content from Xtratoon</li>
+            <li>Redistributing or pirating content from Komixora</li>
           </ul>
         </section>
 
