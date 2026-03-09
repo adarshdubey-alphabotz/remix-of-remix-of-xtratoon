@@ -1,4 +1,4 @@
-# ─── Xtratoon VPS Deployment ───
+# ─── Komixora VPS Deployment ───
 # On VPS: create .env.local with your own Supabase credentials
 # Vite automatically picks up .env.local over .env
 
