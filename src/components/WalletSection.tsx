@@ -271,6 +271,16 @@ const WalletSection: React.FC<WalletSectionProps> = ({ onBack }) => {
     .reduce((sum, p) => sum + Number(p.net_amount), 0);
   const availableBalance = totalEarned - pendingPayouts - paidOut;
 
+  // Currency conversion
+  const userCurrency = (profile as any)?.currency || 'USD';
+  const currencyInfo = CURRENCY_RATES[userCurrency] || CURRENCY_RATES.USD;
+  const fc = (usd: number) => formatCurrencyFull(usd, userCurrency);
+  const fcShort = (usd: number) => formatCurrency(usd, userCurrency);
+  const showLocal = userCurrency !== 'USD';
+  const localMinPayout = useMemo(() => {
+    return CURRENCY_RATES[userCurrency] ? (10 * CURRENCY_RATES[userCurrency].rate) : 10;
+  }, [userCurrency]);
+
   const handleAddMethod = () => {
     if (!addingMethod) return;
     const config = PAYOUT_METHODS_CONFIG[addingMethod];
