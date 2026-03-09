@@ -156,7 +156,7 @@ export function decodeFileId(fileId: string): DecodedFileId {
 }
 
 export function isDocumentType(fileType: number): boolean {
-  return [
+  const docTypes: number[] = [
     FILE_TYPES.DOCUMENT,
     FILE_TYPES.STICKER,
     FILE_TYPES.ANIMATION,
@@ -165,5 +165,6 @@ export function isDocumentType(fileType: number): boolean {
     FILE_TYPES.VIDEO,
     FILE_TYPES.AUDIO,
     FILE_TYPES.VIDEO_NOTE,
-  ].includes(fileType as typeof FILE_TYPES[keyof typeof FILE_TYPES]);
+  ];
+  return docTypes.includes(fileType);
 }
