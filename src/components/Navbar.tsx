@@ -337,8 +337,8 @@ const Navbar: React.FC = () => {
         >
           <Link to="/" className="flex-shrink-0">
             <span className="text-display text-xl tracking-wider">
-              <span className="font-normal">XTRA</span>
-              <span className="text-primary">TOON</span>
+              <span className="font-normal">KOMI</span>
+              <span className="text-primary">XORA</span>
             </span>
           </Link>
           <div className="flex items-center gap-1">
