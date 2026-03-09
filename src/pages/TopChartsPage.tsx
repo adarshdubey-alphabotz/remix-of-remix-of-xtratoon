@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import AAdsBanner from '@/components/AAdsBanner';
 import { Star, Eye, Heart, Trophy, Users, BookOpen, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -218,6 +219,7 @@ const TopChartsPage: React.FC = () => {
             </div>
           )
         )}
+        <AAdsBanner className="mt-8" />
       </div>
     </div>
   );

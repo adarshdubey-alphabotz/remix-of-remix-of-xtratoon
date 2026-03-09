@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Sparkles, Flame, Loader2 } from 'lucide-react';
+import AAdsBanner from '@/components/AAdsBanner';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -294,8 +295,11 @@ const ExplorePage: React.FC = () => {
             )}
           </div>
         </>
-      )}
-    </div>
+       )}
+       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+         <AAdsBanner />
+       </div>
+     </div>
   );
 };
 

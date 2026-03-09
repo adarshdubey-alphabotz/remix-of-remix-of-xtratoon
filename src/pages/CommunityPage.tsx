@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import EmptyState from '@/components/EmptyState';
+import AAdsBanner from '@/components/AAdsBanner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -479,6 +480,9 @@ const CommunityPage: React.FC = () => {
       </div>
 
       <SharePostModal open={!!sharePostId} onClose={() => setSharePostId(null)} postId={sharePostId || ''} postContent={shareContent} />
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <AAdsBanner />
+      </div>
     </div>
   );
 };
