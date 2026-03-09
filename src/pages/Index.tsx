@@ -682,7 +682,7 @@ const HomePage: React.FC = () => {
             <div className="relative z-10">
               <h2 className="text-display text-4xl sm:text-6xl mb-4 tracking-wider">READY TO <span className="text-primary">PUBLISH?</span></h2>
               <p className="text-muted-foreground max-w-lg mx-auto mb-8">
-                Join hundreds of creators sharing their stories with millions of readers on Xtratoon.
+                Join hundreds of creators sharing their stories with millions of readers on Komixora.
               </p>
               <Link to="/dashboard">
                 <MagneticButton className="btn-accent text-base px-8 py-4">

@@ -70,8 +70,8 @@ const JsonLd: React.FC = () => (
         __html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          "name": "Browse Manhwa & Manga — Xtratoon",
-          "description": "Browse thousands of manhwa, manga, and webtoon series. Filter by genre, popularity, and latest releases on Xtratoon.",
+          "name": "Browse Manhwa & Manga — Komixora",
+          "description": "Browse thousands of manhwa, manga, and webtoon series. Filter by genre, popularity, and latest releases on Komixora.",
           "url": `${SITE_URL}/browse`,
           "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": SITE_URL }
         })

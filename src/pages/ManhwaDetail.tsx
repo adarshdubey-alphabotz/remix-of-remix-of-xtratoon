@@ -243,8 +243,8 @@ const ManhwaDetail: React.FC = () => {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             "itemListElement": [
-              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://xtratoon.com" },
-              { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://xtratoon.com/browse" },
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://komixora.fun" },
+              { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://komixora.fun/browse" },
               { "@type": "ListItem", "position": 3, "name": manhwa.title, "item": pageUrl },
             ]
           })

@@ -52,7 +52,7 @@ const BlogListPage: React.FC = () => {
               OUR <span className="text-primary">BLOG</span>
             </h1>
             <p className="text-muted-foreground max-w-lg mx-auto text-sm sm:text-base">
-              News, guides, FAQs, and updates from the Xtratoon team.
+              News, guides, FAQs, and updates from the Komixora team.
             </p>
           </div>
         </ScrollReveal>
