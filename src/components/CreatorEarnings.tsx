@@ -182,31 +182,6 @@ const CreatorEarnings: React.FC = () => {
         )}
       </div>
 
-      <div className="brutal-card p-5 border-primary/30">
-        <h3 className="font-display text-lg tracking-wider mb-2 flex items-center gap-2">
-          <Calendar className="w-5 h-5" /> PAYOUT INFO
-        </h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Earnings are calculated at $0.50 CPM. You receive 90% of all ad revenue.
-        </p>
-        <div className="bg-muted/30 rounded-lg p-4 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Minimum Payout</span>
-            <span className="font-semibold">$10.00</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Current Balance</span>
-            <span className="font-semibold text-green-500">${creatorShare.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Payout Method</span>
-            <span className="font-semibold">UPI / PayPal / Crypto</span>
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground mt-3">
-          Request payout when balance exceeds $10. Contact admin for withdrawal.
-        </p>
-      </div>
     </div>
   );
 };
