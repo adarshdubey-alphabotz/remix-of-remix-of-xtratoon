@@ -30,7 +30,7 @@ app.use(express.json());
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
-    service: "xtratoon-mtproto-stream",
+    service: "komixora-mtproto-stream",
     uptime: Math.floor(process.uptime()),
     memory: {
       rss: Math.floor(process.memoryUsage().rss / 1024 / 1024) + "MB",
