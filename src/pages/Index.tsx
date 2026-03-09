@@ -642,7 +642,7 @@ const HomePage: React.FC = () => {
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-foreground">Website</p>
-                    <p className="text-xs text-muted-foreground">xtratoon.com</p>
+                    <p className="text-xs text-muted-foreground">komixora.fun</p>
                   </div>
                 </motion.div>
               </div>
