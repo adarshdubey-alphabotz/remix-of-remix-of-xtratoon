@@ -114,21 +114,6 @@ const ReaderPage: React.FC = () => {
     enabled: !!manga,
   });
 
-  // ── Ad unlock check (localStorage first, then DB for logged users) ──
-  useEffect(() => {
-    if (!chapterData) return;
-
-    // First check localStorage (works for everyone)
-    if (isChapterUnlockedLocally(chapterData.id)) {
-      setIsChapterUnlocked(true);
-      setShowAdUnlock(false);
-      return;
-    }
-
-    // Not unlocked locally - show modal
-    setIsChapterUnlocked(false);
-    setShowAdUnlock(true);
-  }, [chapterData?.id]);
 
   // ── Canvas rendering ──
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
