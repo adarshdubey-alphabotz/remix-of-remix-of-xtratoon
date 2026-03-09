@@ -400,6 +400,7 @@ export type Database = {
           image_url: string | null
           image_urls: string[] | null
           is_deleted: boolean
+          is_pinned: boolean
           likes_count: number
           replies_count: number
           telegram_message_id: number | null
@@ -416,6 +417,7 @@ export type Database = {
           image_url?: string | null
           image_urls?: string[] | null
           is_deleted?: boolean
+          is_pinned?: boolean
           likes_count?: number
           replies_count?: number
           telegram_message_id?: number | null
@@ -432,6 +434,7 @@ export type Database = {
           image_url?: string | null
           image_urls?: string[] | null
           is_deleted?: boolean
+          is_pinned?: boolean
           likes_count?: number
           replies_count?: number
           telegram_message_id?: number | null

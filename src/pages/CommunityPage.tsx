@@ -13,6 +13,7 @@ import ScrollReveal from '@/components/ScrollReveal';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
 import SharePostModal from '@/components/SharePostModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import DynamicMeta from '@/components/DynamicMeta';
 
 const timeAgo = (date: string) => {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -283,6 +284,11 @@ const CommunityPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <DynamicMeta
+        title="Community — Manhwa Discussion & Fan Posts"
+        description="Join the Komixora community! Discuss your favorite manhwa, manga, and webtoons. Share posts, follow creators, and connect with fans worldwide."
+        keywords="manhwa community, manga discussion, webtoon fans, Komixora community, manhwa forum"
+      />
       <div className="max-w-5xl mx-auto flex">
         <div className="flex-1 max-w-xl mx-auto border-x border-border/30 min-h-screen">
           {/* Sticky header */}

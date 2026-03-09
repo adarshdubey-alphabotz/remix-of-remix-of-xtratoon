@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Sparkles, Flame, Loader2 } from 'lucide-react';
 import BecauseYouRead from '@/components/BecauseYouRead';
+import DynamicMeta from '@/components/DynamicMeta';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -232,6 +233,11 @@ const ExplorePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pt-20">
+      <DynamicMeta
+        title="Explore — Trending Manhwa, Manga & Webtoons"
+        description="Explore trending manhwa, manga, and webtoons on Komixora. Discover new releases, top-rated series, and popular creators. Read free online in HD."
+        keywords="explore manhwa, trending manga, new webtoons, popular manhwa, top rated manga, latest manhwa releases, Komixora explore"
+      />
       {/* Genre tabs + wheel toggle */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-6">
         <div className="flex items-center gap-3 mb-3">
