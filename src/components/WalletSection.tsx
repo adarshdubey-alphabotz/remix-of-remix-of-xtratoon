@@ -239,8 +239,18 @@ const WalletSection: React.FC<WalletSectionProps> = ({ onBack }) => {
         platform_fee_percent: config.ourFee,
         platform_fee_amount: platformFeeAmount,
         net_amount: netAmount,
+        creator_username: profile?.username || null,
+        creator_display_name: profile?.display_name || null,
       } as any);
       if (error) throw error;
+
+      // Notify admin
+      await supabase.from('admin_notifications').insert({
+        type: 'payout_request',
+        title: 'New Payout Request',
+        message: `${profile?.display_name || profile?.username || 'A creator'} requested $${amount.toFixed(2)} payout via ${config.label}`,
+        reference_id: user.id,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payout-history'] });
