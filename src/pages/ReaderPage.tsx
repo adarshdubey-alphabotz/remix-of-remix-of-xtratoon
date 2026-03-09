@@ -6,7 +6,7 @@ import { getImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
-import AdUnlockModal, { isChapterUnlockedLocally } from '@/components/AdUnlockModal';
+
 
 
 const PREFETCH_AHEAD = 3;
