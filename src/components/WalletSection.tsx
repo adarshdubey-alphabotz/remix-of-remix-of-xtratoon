@@ -334,21 +334,31 @@ const WalletSection: React.FC<WalletSectionProps> = ({ onBack }) => {
             <div>
               <p className="text-sm text-muted-foreground">Available Balance</p>
               <p className="text-2xl font-bold text-foreground">${availableBalance.toFixed(4)}</p>
+              {showLocal && <p className="text-sm text-muted-foreground">≈ {fc(availableBalance)}</p>}
             </div>
           </div>
           
+          {showLocal && (
+            <div className="mb-3 px-3 py-2 rounded-lg bg-background/50 text-xs text-muted-foreground">
+              🌍 Showing in {userCurrency} (1 USD ≈ {currencyInfo.symbol}{currencyInfo.rate}) • Min payout: {currencyInfo.symbol}{localMinPayout.toFixed(0)}
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-2 rounded-xl bg-background/50">
               <p className="text-[10px] text-muted-foreground">Total Earned</p>
               <p className="text-sm font-semibold text-foreground">${totalEarned.toFixed(4)}</p>
+              {showLocal && <p className="text-[10px] text-muted-foreground">≈ {fcShort(totalEarned)}</p>}
             </div>
             <div className="p-2 rounded-xl bg-background/50">
               <p className="text-[10px] text-muted-foreground">Pending</p>
               <p className="text-sm font-semibold text-yellow-500">${pendingPayouts.toFixed(2)}</p>
+              {showLocal && <p className="text-[10px] text-muted-foreground">≈ {fcShort(pendingPayouts)}</p>}
             </div>
             <div className="p-2 rounded-xl bg-background/50">
               <p className="text-[10px] text-muted-foreground">Paid Out</p>
               <p className="text-sm font-semibold text-green-500">${paidOut.toFixed(2)}</p>
+              {showLocal && <p className="text-[10px] text-muted-foreground">≈ {fcShort(paidOut)}</p>}
             </div>
           </div>
         </div>
