@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Wallet, ChevronRight, Plus, Trash2, Check, X, ArrowLeft,
@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { CURRENCY_RATES, formatCurrency, formatCurrencyFull } from '@/lib/currencyRates';
 
 type PayoutMethodType = 'paypal' | 'binance' | 'usdt_ton' | 'upi' | 'bkash';
 type PayoutStatus = 'pending' | 'processing' | 'paid' | 'rejected';
@@ -270,6 +271,16 @@ const WalletSection: React.FC<WalletSectionProps> = ({ onBack }) => {
     .reduce((sum, p) => sum + Number(p.net_amount), 0);
   const availableBalance = totalEarned - pendingPayouts - paidOut;
 
+  // Currency conversion
+  const userCurrency = (profile as any)?.currency || 'USD';
+  const currencyInfo = CURRENCY_RATES[userCurrency] || CURRENCY_RATES.USD;
+  const fc = (usd: number) => formatCurrencyFull(usd, userCurrency);
+  const fcShort = (usd: number) => formatCurrency(usd, userCurrency);
+  const showLocal = userCurrency !== 'USD';
+  const localMinPayout = useMemo(() => {
+    return CURRENCY_RATES[userCurrency] ? (10 * CURRENCY_RATES[userCurrency].rate) : 10;
+  }, [userCurrency]);
+
   const handleAddMethod = () => {
     if (!addingMethod) return;
     const config = PAYOUT_METHODS_CONFIG[addingMethod];
@@ -323,21 +334,31 @@ const WalletSection: React.FC<WalletSectionProps> = ({ onBack }) => {
             <div>
               <p className="text-sm text-muted-foreground">Available Balance</p>
               <p className="text-2xl font-bold text-foreground">${availableBalance.toFixed(4)}</p>
+              {showLocal && <p className="text-sm text-muted-foreground">≈ {fc(availableBalance)}</p>}
             </div>
           </div>
           
+          {showLocal && (
+            <div className="mb-3 px-3 py-2 rounded-lg bg-background/50 text-xs text-muted-foreground">
+              🌍 Showing in {userCurrency} (1 USD ≈ {currencyInfo.symbol}{currencyInfo.rate}) • Min payout: {currencyInfo.symbol}{localMinPayout.toFixed(0)}
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-2 rounded-xl bg-background/50">
               <p className="text-[10px] text-muted-foreground">Total Earned</p>
               <p className="text-sm font-semibold text-foreground">${totalEarned.toFixed(4)}</p>
+              {showLocal && <p className="text-[10px] text-muted-foreground">≈ {fcShort(totalEarned)}</p>}
             </div>
             <div className="p-2 rounded-xl bg-background/50">
               <p className="text-[10px] text-muted-foreground">Pending</p>
               <p className="text-sm font-semibold text-yellow-500">${pendingPayouts.toFixed(2)}</p>
+              {showLocal && <p className="text-[10px] text-muted-foreground">≈ {fcShort(pendingPayouts)}</p>}
             </div>
             <div className="p-2 rounded-xl bg-background/50">
               <p className="text-[10px] text-muted-foreground">Paid Out</p>
               <p className="text-sm font-semibold text-green-500">${paidOut.toFixed(2)}</p>
+              {showLocal && <p className="text-[10px] text-muted-foreground">≈ {fcShort(paidOut)}</p>}
             </div>
           </div>
         </div>
