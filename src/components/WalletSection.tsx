@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Wallet, ChevronRight, Plus, Trash2, Check, X, ArrowLeft,
@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { CURRENCY_RATES, formatCurrency, formatCurrencyFull } from '@/lib/currencyRates';
 
 type PayoutMethodType = 'paypal' | 'binance' | 'usdt_ton' | 'upi' | 'bkash';
 type PayoutStatus = 'pending' | 'processing' | 'paid' | 'rejected';
