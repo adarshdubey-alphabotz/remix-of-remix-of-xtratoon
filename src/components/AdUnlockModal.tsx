@@ -55,7 +55,15 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
   }, [isOpen, phase, countdown]);
 
   const handleVerify = useCallback(async () => {
-    if (!user || !canVerify) return;
+    if (!canVerify) return;
+    
+    // If user is not logged in, still unlock (no tracking)
+    if (!user) {
+      setPhase('unlocked');
+      setTimeout(() => onUnlocked(), 1200);
+      return;
+    }
+
     setPhase('verifying');
 
     try {
@@ -74,7 +82,6 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
       }, 1200);
     } catch (err) {
       console.error('Unlock error:', err);
-      // Still unlock on error to not block the user
       setPhase('unlocked');
       setTimeout(() => onUnlocked(), 1200);
     }
