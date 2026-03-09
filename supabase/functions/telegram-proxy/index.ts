@@ -6,14 +6,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// In-memory cache for Telegram file path lookups (edge function lifetime)
-const filePathCache = new Map<string, { path: string; size: number; expires: number }>();
-
 const mimeMap: Record<string, string> = {
   jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
   gif: "image/gif", webp: "image/webp", bmp: "image/bmp",
   mp4: "video/mp4", mkv: "video/x-matroska", webm: "video/webm",
 };
+
+const BUCKET = "manga-images";
 
 function getSupabase() {
   return createClient(
@@ -22,83 +21,72 @@ function getSupabase() {
   );
 }
 
-// Get Telegram file info (path + size), with in-memory caching
-async function getTelegramFileInfo(
-  botToken: string,
-  fileId: string
-): Promise<{ path: string; size: number }> {
-  const cached = filePathCache.get(fileId);
-  if (cached && cached.expires > Date.now()) {
-    return { path: cached.path, size: cached.size };
+/**
+ * Check if file already exists in Storage bucket.
+ * Returns the public URL if cached, null otherwise.
+ */
+async function getCachedUrl(supabase: ReturnType<typeof getSupabase>, fileId: string): Promise<string | null> {
+  // Use a safe filename from the file_id
+  const safeName = fileId.replace(/[^a-zA-Z0-9_-]/g, "_");
+  
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(`cache/${safeName}`);
+  if (!data?.publicUrl) return null;
+
+  // Check if the file actually exists by doing a HEAD request
+  try {
+    const res = await fetch(data.publicUrl, { method: "HEAD" });
+    if (res.ok) return data.publicUrl;
+  } catch {
+    // File doesn't exist yet
   }
-
-  const res = await fetch(
-    `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`
-  );
-  const data = await res.json();
-  if (!data.ok) throw new Error(`getFile failed: ${data.description}`);
-
-  const info = {
-    path: data.result.file_path as string,
-    size: (data.result.file_size || 0) as number,
-  };
-  filePathCache.set(fileId, { ...info, expires: Date.now() + 25 * 60 * 1000 });
-  return info;
+  return null;
 }
 
-// Stream directly from Telegram with Range request support
-async function streamFromTelegram(
+/**
+ * Download from Telegram and upload to Storage bucket for permanent caching.
+ */
+async function downloadAndCache(
+  supabase: ReturnType<typeof getSupabase>,
   botToken: string,
-  fileId: string,
-  rangeHeader: string | null
-): Promise<Response> {
-  const { path: filePath, size: fileSize } = await getTelegramFileInfo(botToken, fileId);
+  fileId: string
+): Promise<{ publicUrl: string; contentType: string }> {
+  // 1. Get file path from Telegram
+  const getFileRes = await fetch(
+    `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`
+  );
+  const getFileData = await getFileRes.json();
+  if (!getFileData.ok) throw new Error(`getFile failed: ${getFileData.description}`);
+
+  const filePath = getFileData.result.file_path as string;
+  const ext = filePath.split(".").pop()?.toLowerCase() || "jpg";
+  const contentType = mimeMap[ext] || "image/jpeg";
+
+  // 2. Download the actual file from Telegram
   const fileUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
-
-  const ext = filePath.split(".").pop()?.toLowerCase();
-  const contentType = mimeMap[ext || ""] || "image/jpeg";
-
-  // Handle Range requests for partial content / progressive loading
-  if (rangeHeader && fileSize > 0) {
-    const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
-    if (match) {
-      const start = parseInt(match[1], 10);
-      const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
-      const chunkSize = end - start + 1;
-
-      const telegramRes = await fetch(fileUrl, {
-        headers: { Range: `bytes=${start}-${end}` },
-      });
-
-      if (telegramRes.status === 206) {
-        return new Response(telegramRes.body, {
-          status: 206,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": contentType,
-            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-            "Content-Length": String(chunkSize),
-            "Accept-Ranges": "bytes",
-            "Cache-Control": "public, max-age=3600",
-          },
-        });
-      }
-    }
-  }
-
-  // Full stream
   const fileRes = await fetch(fileUrl);
-  if (!fileRes.ok) throw new Error(`Failed to fetch file: ${fileRes.status}`);
+  if (!fileRes.ok) throw new Error(`Failed to download from Telegram: ${fileRes.status}`);
 
-  const headers: Record<string, string> = {
-    ...corsHeaders,
-    "Content-Type": contentType,
-    "Cache-Control": "public, max-age=3600",
-    "Accept-Ranges": "bytes",
-  };
-  if (fileSize > 0) headers["Content-Length"] = String(fileSize);
+  const fileBuffer = await fileRes.arrayBuffer();
 
-  return new Response(fileRes.body, { headers });
+  // 3. Upload to Supabase Storage
+  const safeName = fileId.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const storagePath = `cache/${safeName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(storagePath, fileBuffer, {
+      contentType,
+      upsert: true,
+      cacheControl: "public, max-age=31536000, immutable",
+    });
+
+  if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
+
+  // 4. Get public URL
+  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+  if (!urlData?.publicUrl) throw new Error("Failed to get public URL");
+
+  return { publicUrl: urlData.publicUrl, contentType };
 }
 
 // ─── Main Handler ───────────────────────────────────────────
@@ -114,7 +102,6 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const pageId = url.searchParams.get("page_id");
     const fileId = url.searchParams.get("file_id");
-    const urlOnly = url.searchParams.get("url_only") === "true";
 
     let telegramFileId = fileId;
 
@@ -132,18 +119,38 @@ Deno.serve(async (req) => {
 
     if (!telegramFileId) throw new Error("file_id or page_id required");
 
-    // url_only mode: return the direct Telegram streaming URL info
-    if (urlOnly) {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const streamUrl = `${supabaseUrl}/functions/v1/telegram-proxy?file_id=${encodeURIComponent(telegramFileId)}`;
-      return new Response(JSON.stringify({ url: streamUrl }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const supabase = getSupabase();
+
+    // Check if already cached in Storage
+    const cachedUrl = await getCachedUrl(supabase, telegramFileId);
+    if (cachedUrl) {
+      // Redirect to cached file (instant, no Telegram call)
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          "Location": cachedUrl,
+          "Cache-Control": "public, max-age=86400",
+        },
       });
     }
 
-    // Direct stream from Telegram
-    const rangeHeader = req.headers.get("range");
-    return await streamFromTelegram(TELEGRAM_BOT_TOKEN, telegramFileId, rangeHeader);
+    // Not cached — download from Telegram & cache in Storage
+    const { publicUrl } = await downloadAndCache(
+      supabase,
+      TELEGRAM_BOT_TOKEN,
+      telegramFileId
+    );
+
+    // Redirect to the newly cached file
+    return new Response(null, {
+      status: 302,
+      headers: {
+        ...corsHeaders,
+        "Location": publicUrl,
+        "Cache-Control": "public, max-age=86400",
+      },
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("telegram-proxy error:", message);
