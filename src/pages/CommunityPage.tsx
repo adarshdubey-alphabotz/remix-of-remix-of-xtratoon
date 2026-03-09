@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import EmptyState from '@/components/EmptyState';
+import AAdsBanner from '@/components/AAdsBanner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
