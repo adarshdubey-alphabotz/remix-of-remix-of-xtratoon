@@ -48,8 +48,8 @@ const Footer: React.FC = () => (
         <div className="col-span-2 sm:col-span-2 lg:col-span-2 space-y-4 pr-8">
           <Link to="/" className="inline-block">
             <span className="text-display text-3xl tracking-wider">
-              <span className="font-normal">XTRA</span>
-              <span className="text-primary">TOON</span>
+              <span className="font-normal">KOMI</span>
+              <span className="text-primary">XORA</span>
             </span>
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
