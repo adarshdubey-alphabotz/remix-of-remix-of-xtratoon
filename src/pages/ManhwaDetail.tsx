@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import AAdsBanner from '@/components/AAdsBanner';
+
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, Eye, Heart, Bookmark, ChevronRight, ArrowLeft, Play, Loader2, Flag, X, User } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -448,8 +448,6 @@ const ManhwaDetail: React.FC = () => {
               </ScrollReveal>
             )}
 
-            {/* Ad Banner between chapters and comments */}
-            <AAdsBanner className="my-4" />
 
             <ScrollReveal delay={0.2}>
               <CommentSection mangaId={manhwa.id} mangaTitle={manhwa.title} creatorId={manhwa.creator_id} />
@@ -497,9 +495,6 @@ const ManhwaDetail: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <AAdsBanner />
-      </div>
 
       {/* Report Modal */}
       {showReport && (
