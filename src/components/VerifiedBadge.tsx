@@ -80,7 +80,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({ size = 'sm', className = 
                 <span className="text-xs font-bold text-foreground">Official Account</span>
               </div>
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                This account is verified as an official member of the Xtratoon team.
+                This account is verified as an official member of the Komixora team.
               </p>
             </div>
           </motion.div>
