@@ -121,7 +121,7 @@ const BlogDetailPage: React.FC = () => {
         />
 
         {/* Ad Banner after content */}
-        <AAdsBanner className="my-8" />
+        
 
         {/* Tags */}
         {(blog.seo_keywords || []).length > 0 && (
