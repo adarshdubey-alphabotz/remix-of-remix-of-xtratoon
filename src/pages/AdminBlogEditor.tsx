@@ -32,7 +32,7 @@ const defaultFaqContent = `<h2>Frequently Asked Questions</h2>
 </div>
 
 <div class="faq-item">
-<h3>How do I publish my manhwa on Xtratoon?</h3>
+<h3>How do I publish my manhwa on Komixora?</h3>
 <p>Create a publisher account, upload your chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one.</p>
 </div>
 
