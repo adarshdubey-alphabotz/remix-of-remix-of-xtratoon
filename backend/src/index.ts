@@ -18,9 +18,9 @@ const allowedOrigins = (process.env.CORS_ORIGINS || "")
 app.use(
   cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
-    methods: ["GET", "HEAD", "OPTIONS"],
+    methods: ["GET", "HEAD", "OPTIONS", "POST"],
     allowedHeaders: ["Range", "Content-Type", "Authorization"],
-    exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],
+    exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length", "X-Stream-Source"],
   })
 );
 
@@ -28,24 +28,31 @@ app.use(express.json());
 
 // Health check
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "xtratoon-stream", uptime: process.uptime() });
+  res.json({
+    status: "ok",
+    service: "xtratoon-mtproto-stream",
+    uptime: Math.floor(process.uptime()),
+    memory: {
+      rss: Math.floor(process.memoryUsage().rss / 1024 / 1024) + "MB",
+      heap: Math.floor(process.memoryUsage().heapUsed / 1024 / 1024) + "MB",
+    },
+  });
 });
 
 // API routes
 app.use("/api", streamRoutes);
 
-// Start server
+// Start
 async function start() {
   try {
-    // Initialize Telegram MTProto client
     await getTelegramClient();
-    console.log("✅ Telegram client ready");
 
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Xtratoon Stream Backend running on port ${PORT}`);
+      console.log(`\n🚀 Xtratoon MTProto Stream Backend`);
+      console.log(`   Port: ${PORT}`);
       console.log(`   Health: http://localhost:${PORT}/health`);
       console.log(`   Stream: http://localhost:${PORT}/api/stream?file_id=XXX`);
-      console.log(`   Catalog: http://localhost:${PORT}/api/catalog`);
+      console.log(`   Cache:  http://localhost:${PORT}/api/cache-stats\n`);
     });
   } catch (err) {
     console.error("❌ Failed to start:", err);

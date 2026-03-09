@@ -1,6 +1,6 @@
 {
   "name": "xtratoon-stream-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Telegram MTProto streaming backend for Xtratoon",
   "main": "dist/index.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "auth": "tsx src/auth.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
     "express": "^4.21.0",
     "telegram": "^2.26.8",
     "input": "^1.0.1",
