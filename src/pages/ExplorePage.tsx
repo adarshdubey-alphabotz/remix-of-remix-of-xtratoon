@@ -269,6 +269,9 @@ const ExplorePage: React.FC = () => {
 
           {/* Content Sections */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-20">
+            {/* Because You Read - personalized recommendations */}
+            <BecauseYouRead />
+
             <ScrollSection title="TOP THIS WEEK" icon={<Flame className="w-5 h-5" />} items={topByViews} viewAllLink="/charts" creatorMap={creatorMap}
               badge={(_, i) => i === 0 ? { text: 'HOT', color: 'bg-destructive text-destructive-foreground' } : i === 1 ? { text: 'TOP', color: 'bg-foreground text-background' } : null} />
 

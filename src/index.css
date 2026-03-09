@@ -122,6 +122,11 @@
     --shadow-card-hover: 0 12px 40px -4px hsla(var(--shadow-color) / 0.6);
     --shadow-sm: 0 2px 8px -2px hsla(var(--shadow-color) / 0.3);
   }
+
+  /* Night Shift: warm amber overlay for late-night reading */
+  .night-shift {
+    filter: sepia(0.25) saturate(1.1) brightness(0.92);
+  }
 }
 
 @layer base {

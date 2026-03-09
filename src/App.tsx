@@ -123,6 +123,7 @@ const AppLayout = () => (
     <AuthModal />
     <SpotlightSearch />
     <OnboardingModal />
+    <TermsAcceptanceModal />
     <ErrorBoundary>
       <AnimatedRoutes />
     </ErrorBoundary>

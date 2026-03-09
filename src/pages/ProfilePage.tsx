@@ -806,11 +806,7 @@ const ProfilePage: React.FC = () => {
             className="w-full py-3 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2">
             <LogOut className="w-4 h-4" /> Sign Out All Devices
           </button>
-          <button onClick={handleDeleteAccount} disabled={deletingAccount}
-            className="w-full py-3 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
-            <Trash2 className="w-4 h-4" /> {deletingAccount ? 'Deleting...' : 'Delete Account'}
-          </button>
-          <p className="text-xs text-muted-foreground text-center">This permanently removes your account and all data.</p>
+          <p className="text-xs text-muted-foreground text-center">Need to delete your account? Contact support@xtratoon.com</p>
         </div>
       </div>
     </motion.div>
