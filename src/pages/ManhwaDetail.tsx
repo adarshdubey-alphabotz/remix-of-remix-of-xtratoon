@@ -205,19 +205,19 @@ const ManhwaDetail: React.FC = () => {
             "@type": "ComicSeries",
             "name": manhwa.title,
             "url": pageUrl,
-            "description": manhwa.description || `Read ${manhwa.title} manhwa online for free on Xtratoon.`,
+            "description": manhwa.description || `Read ${manhwa.title} manhwa online for free on Komixora.`,
             "image": coverUrl || undefined,
             "genre": manhwa.genres || [],
             "inLanguage": manhwa.language || "Korean",
             "author": {
               "@type": "Person",
               "name": creatorName,
-              "url": creatorProfile?.username ? `https://xtratoon.com/publisher/${creatorProfile.username}` : undefined,
+              "url": creatorProfile?.username ? `https://komixora.fun/publisher/${creatorProfile.username}` : undefined,
             },
             "publisher": {
               "@type": "Organization",
-              "name": "Xtratoon",
-              "url": "https://xtratoon.com",
+              "name": "Komixora",
+              "url": "https://komixora.fun",
             },
             "aggregateRating": (manhwa.rating_count || 0) > 0 ? {
               "@type": "AggregateRating",
