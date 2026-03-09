@@ -91,7 +91,7 @@ const WhyChooseSection: React.FC = () => {
       <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
         <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-4">Why readers love us</p>
         <h2 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-wider mb-4">
-          Why Choose <span className="text-primary">Xtratoon</span>.
+          Why Choose <span className="text-primary">Komixora</span>.
         </h2>
         <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
           We create meaningful connections between creators and readers, delivering tailored, immersive experiences with a reader-first approach.
