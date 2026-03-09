@@ -219,7 +219,7 @@ const TopChartsPage: React.FC = () => {
             </div>
           )
         )}
-        <AAdsBanner className="mt-8" />
+        
       </div>
     </div>
   );

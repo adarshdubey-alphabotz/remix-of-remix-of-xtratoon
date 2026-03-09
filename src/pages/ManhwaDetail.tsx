@@ -495,9 +495,6 @@ const ManhwaDetail: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <AAdsBanner />
-      </div>
 
       {/* Report Modal */}
       {showReport && (
