@@ -48,7 +48,7 @@ const buildPayoutEmailHtml = (
   return `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#fff;">
       <div style="text-align:center;padding:20px 0;border-bottom:2px solid #f0f0f0;">
-        <h1 style="margin:0;font-size:24px;color:#111;">XtraToon</h1>
+        <h1 style="margin:0;font-size:24px;color:#111;">Komixora</h1>
         <p style="margin:4px 0 0;color:#888;font-size:13px;">Payout Update</p>
       </div>
       <div style="padding:24px 0;">
