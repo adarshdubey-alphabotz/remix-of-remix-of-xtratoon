@@ -153,8 +153,8 @@ const ProfilePage: React.FC = () => {
 
   const availableCountries = continent ? (countriesByContinent[continent] || []) : [];
 
-  useEffect(() => { localStorage.setItem('xtratoon-compact-cards', String(compactCards)); }, [compactCards]);
-  useEffect(() => { localStorage.setItem('xtratoon-creator-alerts', String(creatorAlerts)); }, [creatorAlerts]);
+  useEffect(() => { localStorage.setItem('komixora-compact-cards', String(compactCards)); }, [compactCards]);
+  useEffect(() => { localStorage.setItem('komixora-creator-alerts', String(creatorAlerts)); }, [creatorAlerts]);
 
   const isCreator = profileType === 'publisher' || isPublisher;
 
