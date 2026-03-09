@@ -22,7 +22,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({ size = 'sm', className = 
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         className="inline-flex items-center focus:outline-none"
-        aria-label="Official Xtratoon account"
+        aria-label="Official Komixora account"
       >
         <svg
           viewBox="0 0 24 24"
