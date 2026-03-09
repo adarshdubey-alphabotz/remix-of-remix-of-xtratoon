@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import AdBanner from '@/components/AdBanner';
 
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, Eye, Heart, Bookmark, ChevronRight, ArrowLeft, Play, Loader2, Flag, X, User } from 'lucide-react';
@@ -447,7 +448,7 @@ const ManhwaDetail: React.FC = () => {
                 </section>
               </ScrollReveal>
             )}
-
+<AdBanner className="my-6" />
 
             <ScrollReveal delay={0.2}>
               <CommentSection mangaId={manhwa.id} mangaTitle={manhwa.title} creatorId={manhwa.creator_id} />

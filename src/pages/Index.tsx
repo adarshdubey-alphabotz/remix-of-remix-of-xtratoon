@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import AdBanner from '@/components/AdBanner';
 
 import { Link } from 'react-router-dom';
 import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, Wallet, ShieldCheck, ChevronDown, HelpCircle } from 'lucide-react';
@@ -491,6 +492,8 @@ const HomePage: React.FC = () => {
 
       {/* Trending Blogs Section */}
       <TrendingBlogs />
+
+      <AdBanner className="py-8" />
 
 
       {/* Content */}

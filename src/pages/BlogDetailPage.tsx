@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import AdBanner from '@/components/AdBanner';
 
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -112,7 +113,7 @@ const BlogDetailPage: React.FC = () => {
         )}
 
         {/* Ad Banner before content */}
-
+        <AdBanner className="my-8" />
         {/* Content */}
         <div
           className="prose prose-invert max-w-none blog-content"
