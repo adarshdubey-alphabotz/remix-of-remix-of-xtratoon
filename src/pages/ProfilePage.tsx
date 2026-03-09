@@ -6,7 +6,7 @@ import {
   ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search,
   MessageSquare, Bell, Palette, Mail, Trash2, Pencil, BarChart3, Image, Upload, MapPin, 
   Clock, Globe, ChevronRight, LogOut, Eye, EyeOff, Camera, Link as LinkIcon, ExternalLink,
-  Plus, X, Instagram, Twitter, Check, XCircle,
+  Plus, X, Instagram, Twitter, Check, XCircle, Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -16,6 +16,7 @@ import AvatarPicker from '@/components/profile/AvatarPicker';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
+import WalletSection from '@/components/WalletSection';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
@@ -37,7 +38,7 @@ const timezones = [
 ];
 const currencies = ['USD','EUR','GBP','INR','BDT','JPY','KRW','CNY','BRL','CAD','AUD','NGN','PHP','IDR','MYR','THB','VND','PKR','EGP','ZAR','AED','SAR','TRY','SGD'];
 
-type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme';
+type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme' | 'wallet';
 
 const PROFILE_THEMES = [
   { key: 'default', label: 'Default', emoji: '🎨', preview: 'bg-gradient-to-br from-muted to-muted-foreground/10', desc: 'Clean & minimal' },
