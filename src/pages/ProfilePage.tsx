@@ -6,7 +6,7 @@ import {
   ArrowLeft, User, Shield, Lock, Save, CheckCircle, LayoutDashboard, BookOpen, Search,
   MessageSquare, Bell, Palette, Mail, Trash2, Pencil, BarChart3, Image, Upload, MapPin, 
   Clock, Globe, ChevronRight, LogOut, Eye, EyeOff, Camera, Link as LinkIcon, ExternalLink,
-  Plus, X, Instagram, Twitter, Check, XCircle,
+  Plus, X, Instagram, Twitter, Check, XCircle, Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
@@ -16,6 +16,7 @@ import AvatarPicker from '@/components/profile/AvatarPicker';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
+import WalletSection from '@/components/WalletSection';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
@@ -37,7 +38,7 @@ const timezones = [
 ];
 const currencies = ['USD','EUR','GBP','INR','BDT','JPY','KRW','CNY','BRL','CAD','AUD','NGN','PHP','IDR','MYR','THB','VND','PKR','EGP','ZAR','AED','SAR','TRY','SGD'];
 
-type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme';
+type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme' | 'wallet';
 
 const PROFILE_THEMES = [
   { key: 'default', label: 'Default', emoji: '🎨', preview: 'bg-gradient-to-br from-muted to-muted-foreground/10', desc: 'Clean & minimal' },
@@ -366,6 +367,27 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+        {/* Wallet Button - Top of Profile */}
+        {isCreator && (
+          <div className="px-4 pb-2">
+            <button
+              onClick={() => setActiveSection('wallet')}
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-xl flex items-center justify-center text-sm bg-primary/20 text-primary">
+                  <Wallet className="w-4 h-4" />
+                </span>
+                <div className="text-left">
+                  <span className="text-sm font-medium text-foreground block">My Wallet</span>
+                  <span className="text-[10px] text-muted-foreground">Earnings, payouts & payment methods</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-primary" />
+            </button>
+          </div>
+        )}
 
         {/* Notifications Section */}
         <div className="px-4 pb-2">
@@ -934,6 +956,7 @@ const ProfilePage: React.FC = () => {
           {activeSection === 'profile-theme' && renderProfileTheme()}
           {activeSection === 'creator' && renderCreator()}
           {activeSection === 'library' && renderLibrary()}
+          {activeSection === 'wallet' && <WalletSection onBack={() => setActiveSection('main')} />}
         </AnimatePresence>
       </div>
     </div>

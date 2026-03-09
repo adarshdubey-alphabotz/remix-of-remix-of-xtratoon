@@ -621,6 +621,84 @@ export type Database = {
           },
         ]
       }
+      payout_methods: {
+        Row: {
+          account_details: Json
+          created_at: string
+          id: string
+          is_primary: boolean
+          method_type: Database["public"]["Enums"]["payout_method_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_details?: Json
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          method_type: Database["public"]["Enums"]["payout_method_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_details?: Json
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          method_type?: Database["public"]["Enums"]["payout_method_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payout_requests: {
+        Row: {
+          account_snapshot: Json
+          amount: number
+          created_at: string
+          id: string
+          method_type: Database["public"]["Enums"]["payout_method_type"]
+          net_amount: number
+          notes: string | null
+          platform_fee_amount: number
+          platform_fee_percent: number
+          processed_at: string | null
+          processed_by: string | null
+          status: Database["public"]["Enums"]["payout_status"]
+          user_id: string
+        }
+        Insert: {
+          account_snapshot?: Json
+          amount: number
+          created_at?: string
+          id?: string
+          method_type: Database["public"]["Enums"]["payout_method_type"]
+          net_amount?: number
+          notes?: string | null
+          platform_fee_amount?: number
+          platform_fee_percent?: number
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+          user_id: string
+        }
+        Update: {
+          account_snapshot?: Json
+          amount?: number
+          created_at?: string
+          id?: string
+          method_type?: Database["public"]["Enums"]["payout_method_type"]
+          net_amount?: number
+          notes?: string | null
+          platform_fee_amount?: number
+          platform_fee_percent?: number
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -913,6 +991,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "publisher" | "reader"
+      payout_method_type: "paypal" | "binance" | "usdt_ton" | "upi" | "bkash"
+      payout_status: "pending" | "processing" | "paid" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1041,6 +1121,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "publisher", "reader"],
+      payout_method_type: ["paypal", "binance", "usdt_ton", "upi", "bkash"],
+      payout_status: ["pending", "processing", "paid", "rejected"],
     },
   },
 } as const
