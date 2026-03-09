@@ -51,7 +51,7 @@ export async function getTelegramClient(): Promise<TelegramClient> {
     useWSS: false,
   });
 
-  await client.start({ botAuthToken: process.env.TELEGRAM_BOT_TOKEN });
+  await client.start({ botAuthToken: process.env.TELEGRAM_BOT_TOKEN || "" });
   console.log("✅ MTProto client connected (DC:", client.session.dcId, ")");
   return client;
 }
