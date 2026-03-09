@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     { loc: "/community", priority: "0.7", freq: "daily" },
     { loc: "/creators", priority: "0.7", freq: "weekly" },
     { loc: "/blog", priority: "0.8", freq: "daily" },
-    { loc: "/blog/publish-on-xtratoon", priority: "0.7", freq: "monthly" },
+    { loc: "/blog/publish-on-komixora", priority: "0.7", freq: "monthly" },
     { loc: "/terms", priority: "0.3", freq: "monthly" },
     { loc: "/privacy", priority: "0.3", freq: "monthly" },
     { loc: "/content-guidelines", priority: "0.3", freq: "monthly" },
