@@ -143,19 +143,28 @@ const ReaderPage: React.FC = () => {
     const imgUrl = getImageUrl(pageData.telegram_file_id) || '';
     let img = imageCache.current.get(pageData.id);
     if (!img) {
-      img = new Image();
-      img.crossOrigin = 'anonymous';
-      try {
-        await new Promise<void>((resolve, reject) => {
-          img!.onload = () => resolve();
-          img!.onerror = () => reject(new Error('Failed'));
-          img!.src = imgUrl;
-        });
-        imageCache.current.set(pageData.id, img);
-      } catch {
-        loadingRef.current.delete(pageNum);
-        setErrorPages(prev => new Set(prev).add(pageNum));
-        return;
+      const maxRetries = 3;
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          img = new Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise<void>((resolve, reject) => {
+            img!.onload = () => resolve();
+            img!.onerror = () => reject(new Error('Failed'));
+            // Add cache-busting on retry to avoid stale failures
+            img!.src = attempt > 0 ? `${imgUrl}${imgUrl.includes('?') ? '&' : '?'}_r=${attempt}` : imgUrl;
+          });
+          imageCache.current.set(pageData.id, img);
+          break;
+        } catch {
+          if (attempt < maxRetries - 1) {
+            await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          } else {
+            loadingRef.current.delete(pageNum);
+            setErrorPages(prev => new Set(prev).add(pageNum));
+            return;
+          }
+        }
       }
     }
 
