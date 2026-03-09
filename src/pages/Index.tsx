@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import AAdsBanner from '@/components/AAdsBanner';
 import { Link } from 'react-router-dom';
 import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, Wallet, ShieldCheck, ChevronDown, HelpCircle } from 'lucide-react';
 import { motion, useScroll, useTransform, useMotionValueEvent, useInView, AnimatePresence } from 'framer-motion';

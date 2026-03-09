@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import AAdsBanner from '@/components/AAdsBanner';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
