@@ -12,8 +12,8 @@ const generateSlug = (title: string) =>
 const defaultFaqContent = `<h2>Frequently Asked Questions</h2>
 
 <div class="faq-item">
-<h3>What is Xtratoon?</h3>
-<p>Xtratoon is a premium manhwa and manga platform where creators can publish their stories and earn 100% of ad revenue. Readers can enjoy high-quality webtoons across every genre.</p>
+<h3>What is Komixora?</h3>
+<p>Komixora is a premium manhwa and manga platform where creators can publish their stories and earn 100% of ad revenue. Readers can enjoy high-quality webtoons across every genre.</p>
 </div>
 
 <div class="faq-item">
