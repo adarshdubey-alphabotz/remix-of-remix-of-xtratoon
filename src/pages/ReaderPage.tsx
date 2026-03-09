@@ -124,7 +124,8 @@ const ReaderPage: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) { loadingRef.current.delete(pageNum); return; }
 
-    const imgUPageImageUrl(pageData.id)t img = imageCache.current.get(pageData.id);
+    const imgUrl = getPageImageUrl(pageData.id);
+    let img = imageCache.current.get(pageData.id);
     if (!img) {
       const maxRetries = 3;
       for (let attempt = 0; attempt < maxRetries; attempt++) {
