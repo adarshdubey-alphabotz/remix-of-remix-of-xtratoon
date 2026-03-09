@@ -98,7 +98,7 @@ interface WalletSectionProps {
 }
 
 const WalletSection: React.FC<WalletSectionProps> = ({ onBack }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'overview' | 'methods' | 'history'>('overview');
   const [addingMethod, setAddingMethod] = useState<PayoutMethodType | null>(null);
