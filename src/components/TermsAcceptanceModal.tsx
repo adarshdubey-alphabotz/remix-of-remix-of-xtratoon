@@ -22,7 +22,7 @@ const TermsAcceptanceModal: React.FC = () => {
 
   const handleAccept = () => {
     if (!accepted || !user) return;
-    localStorage.setItem(`xtratoon-terms-accepted-${user.id}`, 'true');
+    localStorage.setItem(`komixora-terms-accepted-${user.id}`, 'true');
     setShow(false);
   };
 

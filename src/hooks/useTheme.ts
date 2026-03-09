@@ -17,7 +17,7 @@ export function useTheme() {
     root.classList.remove('dark', 'amoled');
     if (theme === 'dark') root.classList.add('dark');
     if (theme === 'amoled') root.classList.add('dark', 'amoled');
-    localStorage.setItem('xtratoon-theme', theme);
+    localStorage.setItem('komixora-theme', theme);
   }, [theme]);
 
   const cycleTheme = useCallback(() => {

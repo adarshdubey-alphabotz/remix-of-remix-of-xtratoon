@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
-const NIGHT_SHIFT_KEY = 'xtratoon-night-shift';
+const NIGHT_SHIFT_KEY = 'komixora-night-shift';
 
 export function useNightShift() {
   const [enabled, setEnabledState] = useState(() => {

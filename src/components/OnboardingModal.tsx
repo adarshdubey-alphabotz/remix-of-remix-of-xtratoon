@@ -97,7 +97,7 @@ const OnboardingModal: React.FC = () => {
                   <Sparkles className="w-8 h-8 text-primary" />
                 </div>
                 <h2 className="font-display text-3xl tracking-wider mb-2 text-foreground">
-                  WELCOME TO <span className="text-primary">XTRATOON</span>
+                  WELCOME TO <span className="text-primary">KOMIXORA</span>
                 </h2>
                 <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                   Hey {profile?.display_name || 'there'}! 👋 Let's personalize your experience. Pick your favorite genres so we can recommend the best manhwa for you.

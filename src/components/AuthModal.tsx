@@ -158,7 +158,7 @@ const AuthModal: React.FC = () => {
 
         <div className="p-6 pb-0">
           <h2 className="text-display text-3xl tracking-wider">
-            {forgotMode ? 'RESET PASSWORD' : authTab === 'login' ? 'WELCOME BACK' : 'JOIN XTRATOON'}
+            {forgotMode ? 'RESET PASSWORD' : authTab === 'login' ? 'WELCOME BACK' : 'JOIN KOMIXORA'}
           </h2>
           <p className="text-muted-foreground text-sm mt-1">
             {forgotMode ? 'Enter your email to reset' : authTab === 'login' ? 'Sign in to continue reading' : 'Create your account'}
