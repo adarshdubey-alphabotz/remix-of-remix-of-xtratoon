@@ -58,7 +58,7 @@ const PrivacyPolicy: React.FC = () => (
               <li>Ads for products or services of any nature served by third-party networks</li>
             </ul>
             <p className="mt-3">If you encounter an inappropriate advertisement, please report it to us immediately. We will take steps to block or request removal of the offending ad from our ad provider. However, we cannot guarantee complete control over third-party ad content at all times.</p>
-            <p className="mt-2 font-medium text-foreground">By using this Platform, you acknowledge and accept that third-party advertisements may appear and that Xtratoon bears no liability for their content.</p>
+            <p className="mt-2 font-medium text-foreground">By using this Platform, you acknowledge and accept that third-party advertisements may appear and that Komixora bears no liability for their content.</p>
           </div>
         </section>
 
