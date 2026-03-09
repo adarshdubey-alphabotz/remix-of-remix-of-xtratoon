@@ -33,6 +33,7 @@ const Footer: React.FC = () => (
           src={mascotImg}
           alt="Xtratoon Mascot"
           className="w-20 sm:w-28 lg:w-32 drop-shadow-lg"
+          alt="Komixora Mascot"
           loading="lazy"
         />
       </div>
