@@ -85,7 +85,7 @@ const ReaderPage: React.FC = () => {
     queryKey: ['reader-pages', chapterData?.id],
     queryFn: async () => {
       if (!chapterData) return [];
-      const { data, error } = await supabase.from('chapter_pages').seleid, page_number, width, height, file_sizet('*').eq('chapter_id', chapterData.id).order('page_number', { ascending: true });
+      const { data, error } = await supabase.from('chapter_pages').select('id, page_number, width, height, file_size').eq('chapter_id', chapterData.id).order('page_number', { ascending: true });
       if (error) throw error;
       return data || [];
     },
