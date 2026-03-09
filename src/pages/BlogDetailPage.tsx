@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import AAdsBanner from '@/components/AAdsBanner';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -110,12 +111,18 @@ const BlogDetailPage: React.FC = () => {
           </ScrollReveal>
         )}
 
+        {/* Ad Banner before content */}
+        <AAdsBanner className="my-8" />
+
         {/* Content */}
         <div
           className="prose prose-invert max-w-none blog-content"
           itemProp="articleBody"
           dangerouslySetInnerHTML={{ __html: blog.content }}
         />
+
+        {/* Ad Banner after content */}
+        <AAdsBanner className="my-8" />
 
         {/* Tags */}
         {(blog.seo_keywords || []).length > 0 && (

@@ -1,4 +1,5 @@
 import React from 'react';
+import AAdsBanner from '@/components/AAdsBanner';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -127,6 +128,8 @@ const BlogListPage: React.FC = () => {
                 </Link>
               </ScrollReveal>
             )}
+            {/* Ad Banner between featured and grid */}
+            <AAdsBanner className="my-6" />
 
             {/* Grid */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -114,38 +114,41 @@ const ReaderPage: React.FC = () => {
     enabled: !!manga,
   });
 
-  // ── Ad unlock check ──
-  const needsUnlock = chapterNum > 1 && !!user && !!chapterData;
-
-  const { data: unlockData } = useQuery({
+  // ── Ad unlock check (all chapters, all users) ──
+  const { data: unlockData, isLoading: unlockLoading } = useQuery({
     queryKey: ['chapter-unlock', user?.id, chapterData?.id],
     queryFn: async () => {
       if (!user || !chapterData) return null;
       const { data } = await supabase
         .from('chapter_unlocks' as any)
-        .select('id')
+        .select('id, unlocked_at')
         .eq('user_id', user.id)
         .eq('chapter_id', chapterData.id)
         .maybeSingle();
-      return data;
+      if (data && new Date((data as any).unlocked_at).getTime() > Date.now() - 8 * 60 * 60 * 1000) {
+        return data; // still valid
+      }
+      return null; // expired or not found
     },
-    enabled: needsUnlock,
+    enabled: !!user && !!chapterData,
   });
 
   // Determine if chapter is accessible
   useEffect(() => {
-    if (chapterNum === 1) {
-      setIsChapterUnlocked(true);
-    } else if (!user) {
-      // Non-logged users see content (they'll need to log in to unlock)
-      setIsChapterUnlocked(true);
+    if (!user) {
+      // Not logged in: show unlock modal (they must log in)
+      setIsChapterUnlocked(false);
+      setShowAdUnlock(true);
+    } else if (unlockLoading) {
+      // Still checking
+      return;
     } else if (unlockData) {
       setIsChapterUnlocked(true);
-    } else if (needsUnlock && unlockData === null) {
+    } else {
       setIsChapterUnlocked(false);
       setShowAdUnlock(true);
     }
-  }, [chapterNum, user, unlockData, needsUnlock]);
+  }, [user, unlockData, unlockLoading]);
 
   // ── Canvas rendering ──
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {

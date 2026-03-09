@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import AAdsBanner from '@/components/AAdsBanner';
 import { Link } from 'react-router-dom';
 import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, Wallet, ShieldCheck, ChevronDown, HelpCircle } from 'lucide-react';
 import { motion, useScroll, useTransform, useMotionValueEvent, useInView, AnimatePresence } from 'framer-motion';
@@ -491,6 +492,11 @@ const HomePage: React.FC = () => {
       {/* Trending Blogs Section */}
       <TrendingBlogs />
 
+      {/* Ad Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <AAdsBanner />
+      </div>
+
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
 
@@ -644,6 +650,9 @@ const HomePage: React.FC = () => {
             </div>
           </section>
         </ScrollReveal>
+
+        {/* Ad Banner between FAQ and CTA */}
+        <AAdsBanner className="py-4" />
 
         {/* FAQ Section */}
         <section>
