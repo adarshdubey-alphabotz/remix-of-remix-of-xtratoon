@@ -5,6 +5,10 @@
       "destination": "https://lpozkutezttxiwafhwul.supabase.co/functions/v1/telegram-proxy"
     },
     {
+      "source": "/stremio/:path*",
+      "destination": "https://lpozkutezttxiwafhwul.supabase.co/functions/v1/stremio-addon/:path*"
+    },
+    {
       "source": "/rest/v1/:path*",
       "destination": "https://lpozkutezttxiwafhwul.supabase.co/rest/v1/:path*"
     },
