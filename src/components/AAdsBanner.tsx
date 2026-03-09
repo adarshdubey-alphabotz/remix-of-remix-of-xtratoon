@@ -9,7 +9,7 @@ interface AAdsBannerProps {
 const AAdsBanner: React.FC<AAdsBannerProps> = ({ 
   className = '', 
   label = 'Advertisement',
-  adId = '2429877'
+  adId = '2429882'
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadedRef = useRef(false);
@@ -18,16 +18,16 @@ const AAdsBanner: React.FC<AAdsBannerProps> = ({
     if (loadedRef.current || !containerRef.current) return;
     loadedRef.current = true;
 
-    // Create iframe dynamically to ensure it loads properly
     const iframe = document.createElement('iframe');
     iframe.setAttribute('data-aa', adId);
     iframe.src = `//acceptable.a-ads.com/${adId}/?size=Adaptive`;
     iframe.style.border = '0';
     iframe.style.padding = '0';
-    iframe.style.width = '100%';
-    iframe.style.height = '100px';
+    iframe.style.width = '70%';
+    iframe.style.height = 'auto';
     iframe.style.overflow = 'hidden';
     iframe.style.display = 'block';
+    iframe.style.margin = 'auto';
     iframe.title = 'Ad';
     iframe.loading = 'lazy';
 
