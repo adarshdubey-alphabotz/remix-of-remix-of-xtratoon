@@ -663,7 +663,7 @@ const HomePage: React.FC = () => {
                 Frequently Asked <span className="text-primary">Questions</span>
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-                Everything you need to know about publishing and earning on Xtratoon.
+                Everything you need to know about publishing and earning on Komixora.
               </p>
             </div>
           </ScrollReveal>
