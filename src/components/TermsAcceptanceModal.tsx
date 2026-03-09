@@ -12,7 +12,7 @@ const TermsAcceptanceModal: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    const key = `xtratoon-terms-accepted-${user.id}`;
+    const key = `komixora-terms-accepted-${user.id}`;
     const hasAccepted = localStorage.getItem(key);
     if (!hasAccepted) {
       const timer = setTimeout(() => setShow(true), 2000);
