@@ -654,8 +654,12 @@ export type Database = {
       payout_requests: {
         Row: {
           account_snapshot: Json
+          admin_response_note: string | null
+          admin_response_screenshot: string | null
           amount: number
           created_at: string
+          creator_display_name: string | null
+          creator_username: string | null
           id: string
           method_type: Database["public"]["Enums"]["payout_method_type"]
           net_amount: number
@@ -669,8 +673,12 @@ export type Database = {
         }
         Insert: {
           account_snapshot?: Json
+          admin_response_note?: string | null
+          admin_response_screenshot?: string | null
           amount: number
           created_at?: string
+          creator_display_name?: string | null
+          creator_username?: string | null
           id?: string
           method_type: Database["public"]["Enums"]["payout_method_type"]
           net_amount?: number
@@ -684,8 +692,12 @@ export type Database = {
         }
         Update: {
           account_snapshot?: Json
+          admin_response_note?: string | null
+          admin_response_screenshot?: string | null
           amount?: number
           created_at?: string
+          creator_display_name?: string | null
+          creator_username?: string | null
           id?: string
           method_type?: Database["public"]["Enums"]["payout_method_type"]
           net_amount?: number

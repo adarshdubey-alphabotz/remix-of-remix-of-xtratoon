@@ -7,6 +7,7 @@ import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import AdminRevenueAnalytics from '@/components/AdminRevenueAnalytics';
+import AdminPayoutManager from '@/components/AdminPayoutManager';
 
 const AdminPanel: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -307,6 +308,7 @@ const AdminPanel: React.FC = () => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'revenue', label: 'Revenue', icon: <DollarSign className="w-4 h-4" /> },
+    { id: 'payouts', label: 'Payouts', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'submissions', label: 'Manga', icon: <FileText className="w-4 h-4" /> },
     { id: 'chapter-reviews', label: 'Chapters', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" /> },
@@ -360,6 +362,10 @@ const AdminPanel: React.FC = () => {
 
           {activeTab === 'revenue' && (
             <AdminRevenueAnalytics />
+          )}
+
+          {activeTab === 'payouts' && (
+            <AdminPayoutManager />
           )}
 
           {activeTab === 'submissions' && (
