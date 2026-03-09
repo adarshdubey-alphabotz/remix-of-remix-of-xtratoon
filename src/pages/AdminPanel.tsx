@@ -358,6 +358,10 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'revenue' && (
+            <AdminRevenueAnalytics />
+          )}
+
           {activeTab === 'submissions' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">PENDING SUBMISSIONS</h2>

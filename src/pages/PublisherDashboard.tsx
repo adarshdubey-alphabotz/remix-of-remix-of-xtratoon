@@ -654,6 +654,14 @@ const PublisherDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* EARNINGS TAB */}
+          {activeTab === 'earnings' && (
+            <div>
+              <h2 className="text-display text-3xl mb-6 tracking-wider">EARNINGS</h2>
+              <CreatorEarnings />
+            </div>
+          )}
+
           {/* ANALYTICS TAB */}
           {activeTab === 'analytics' && (
             <div>
