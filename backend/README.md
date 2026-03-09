@@ -1,97 +1,75 @@
-# Xtratoon Backend
+# Xtratoon Stream Backend
 
-This folder is reserved for custom backend integrations (e.g. Stremio, Node.js APIs, etc.).
+Fast Telegram file streaming backend using MTProto via GramJS.
 
-## Current Architecture
+## Setup
 
-The project uses **Supabase** as its primary backend. All existing backend logic lives in:
+### 1. Get Telegram API credentials
+Go to [https://my.telegram.org/apps](https://my.telegram.org/apps) and create an app to get:
+- `API_ID`
+- `API_HASH`
 
-| Component | Location | Description |
-|-----------|----------|-------------|
-| Edge Functions | `supabase/functions/` | Serverless functions (Deno runtime) |
-| Database Schema | `SETUP_SCHEMA.sql` | Full DB setup (tables, RLS, triggers, functions) |
-| DB Migrations | `supabase/migrations/` | Incremental schema changes |
-| Config | `supabase/config.toml` | Supabase project configuration |
-| Types | `src/integrations/supabase/types.ts` | Auto-generated TypeScript types |
-| Client | `src/integrations/supabase/client.ts` | Auto-generated Supabase client |
-
-### Existing Edge Functions
-
-| Function | Purpose |
-|----------|---------|
-| `delete-account` | Account deletion with cleanup |
-| `send-email` | Gmail SMTP email sending (payout notifications) |
-| `publish-scheduled` | Auto-publish scheduled chapters |
-| `precache-images` | Image precaching via Telegram CDN |
-| `sitemap` | Dynamic sitemap generation |
-| `telegram-upload` | Upload chapter pages via Telegram Bot |
-| `telegram-comment` | Sync comments to Telegram |
-| `telegram-community` | Sync community posts to Telegram |
-| `telegram-proxy` | Proxy Telegram file downloads |
-
-### Database Tables (17+)
-
-`manga`, `chapters`, `chapter_pages`, `profiles`, `user_roles`, `user_library`, `reading_history`, `comments`, `community_posts`, `community_replies`, `community_post_likes`, `community_post_bookmarks`, `follows`, `reports`, `admin_notifications`, `user_notifications`, `creator_earnings`, `ad_impressions`, `chapter_unlocks`, `payout_methods`, `payout_requests`, `blogs`
-
-## Frontend
-
-The React frontend lives at the **project root** (required by Lovable/Vite):
-
-```
-/                    ← Frontend root (DO NOT move)
-├── src/             ← React components, pages, hooks
-├── public/          ← Static assets
-├── index.html       ← Entry point
-├── vite.config.ts   ← Vite config
-├── package.json     ← Frontend dependencies
-└── tailwind.config.ts
+### 2. Configure environment
+```bash
+cp .env.example .env
+# Edit .env with your credentials
 ```
 
-## Adding Your Backend Here
-
-Place your custom backend code in this `/backend` folder. Example structure:
-
-```
-backend/
-├── package.json       ← Your backend dependencies
-├── Dockerfile         ← Backend container config
-├── src/
-│   └── index.ts       ← Entry point
-├── routes/            ← API routes
-└── services/          ← Business logic
+### 3. Install dependencies
+```bash
+cd backend
+npm install
 ```
 
-### Docker Compose (VPS)
-
-Update the root `docker-compose.yml` to add your backend service:
-
-```yaml
-services:
-  web:
-    # ... existing frontend service
-  
-  backend:
-    build:
-      context: ./backend
-    ports:
-      - "3001:3001"
-    env_file:
-      - ./backend/.env
-    restart: unless-stopped
+### 4. Generate session (one-time)
+```bash
+npm run auth
+# Copy the TELEGRAM_SESSION value into .env
 ```
 
-### Environment Variables
+### 5. Run
+```bash
+# Development
+npm run dev
 
-Create `backend/.env` (gitignored) for secrets. The frontend connects to Supabase directly — your backend service can also connect using the Supabase client SDK or REST API.
+# Production
+npm run build && npm start
 
-### Connecting Frontend to Custom Backend
-
-From the React app, call your backend API:
-
-```typescript
-// In frontend code
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-const res = await fetch(`${BACKEND_URL}/api/your-endpoint`);
+# Docker
+docker compose up -d stream
 ```
 
-Add `VITE_BACKEND_URL` to your `.env` / Vercel env vars for production.
+## API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Health check |
+| `GET /api/stream?file_id=XXX` | Stream a file (supports Range headers) |
+| `GET /api/stream?page_id=XXX` | Stream by chapter page ID |
+| `GET /api/info?file_id=XXX` | Get file metadata |
+| `GET /api/catalog` | List approved manga |
+| `GET /api/chapters/:mangaId` | List chapters |
+| `GET /api/pages/:chapterId` | List pages with stream URLs |
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TELEGRAM_API_ID` | ✅ | From my.telegram.org |
+| `TELEGRAM_API_HASH` | ✅ | From my.telegram.org |
+| `TELEGRAM_BOT_TOKEN` | ✅ | From @BotFather |
+| `TELEGRAM_CHANNEL_ID` | ✅ | Channel where files are stored |
+| `SUPABASE_URL` | ✅ | Your Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Service role key |
+| `PORT` | ❌ | Default: 3001 |
+| `CORS_ORIGINS` | ❌ | Comma-separated allowed origins |
+| `TELEGRAM_SESSION` | ❌ | Generated via `npm run auth` |
+
+## Frontend Integration
+
+Set in your root `.env`:
+```
+VITE_STREAM_BACKEND_URL=http://your-vps-ip:3001
+```
+
+The frontend `imageUrl.ts` will automatically use this backend for all image loading.
