@@ -266,7 +266,7 @@ export const useChapter = (mangaSlug: string, chapterNumber: number) =>
       // Get chapter pages
       const { data: pages } = await supabase
         .from('chapter_pages')
-        .select('id, page_number, telegram_file_id')
+        .select('id, page_number')
         .eq('chapter_id', chapter.id)
         .order('page_number');
 

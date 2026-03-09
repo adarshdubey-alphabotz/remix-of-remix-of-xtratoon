@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, ImageIcon, Settings, X, LayoutGrid, Image as ImageLucide, Keyboard, ChevronDown, Square, Rows3, GalleryHorizontalEnd } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { getPagePageImageUrl } from '@/lib/imageUrl';
+import { getPagePagePageImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
@@ -85,7 +85,7 @@ const ReaderPage: React.FC = () => {
     queryKey: ['reader-pages', chapterData?.id],
     queryFn: async () => {
       if (!chapterData) return [];
-      const { data, error } = await supabase.from('chapter_pages').select('*').eq('chapter_id', chapterData.id).order('page_number', { ascending: true });
+      const { data, error } = await supabase.from('chapter_pages').seleid, page_number, width, height, file_sizet('*').eq('chapter_id', chapterData.id).order('page_number', { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -124,8 +124,7 @@ const ReaderPage: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) { loadingRef.current.delete(pageNum); return; }
 
-    const imgUrl =PageImageUrl(pageData.id)| '';
-    let img = imageCache.current.get(pageData.id);
+    const imgUPageImageUrl(pageData.id)t img = imageCache.current.get(pageData.id);
     if (!img) {
       const maxRetries = 3;
       for (let attempt = 0; attempt < maxRetries; attempt++) {
