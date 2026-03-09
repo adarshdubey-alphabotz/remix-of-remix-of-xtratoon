@@ -370,7 +370,7 @@ const HomePage: React.FC = () => {
   const { data: featuredManga } = useFeaturedManga();
   const featured = featuredManga?.[0];
   const featuredSpotlight = featuredManga?.slice(0, 4) || [];
-
+import AdBanner from '@/components/AdBanner';
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
