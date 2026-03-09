@@ -1,55 +1,61 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-const DIRECT_LINKS = [
-  'https://www.effectivegatecpm.com/u4g7q1apt5?key=e86c0057a37d29e806ed5cd583807d8a',
-  'https://www.effectivegatecpm.com/amypc61tn?key=9c989b1f3915462a8e77b86d9155f7a7',
-];
+import React, { useEffect, useRef } from 'react';
 
 interface AAdsBannerProps {
   className?: string;
   label?: string;
+  variant?: 'banner' | 'native';
 }
 
 const AAdsBanner: React.FC<AAdsBannerProps> = ({ 
   className = '', 
   label = 'Advertisement',
+  variant = 'banner',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadedRef = useRef(false);
-  const [directLink] = useState(() => DIRECT_LINKS[Math.floor(Math.random() * DIRECT_LINKS.length)]);
 
   useEffect(() => {
     if (loadedRef.current || !containerRef.current) return;
     loadedRef.current = true;
 
-    // Load Adsterra script
-    const script = document.createElement('script');
-    script.src = 'https://pl28878901.effectivegatecpm.com/43/6a/44/436a44a20a0e61abc951d78d7c972653.js';
-    script.async = true;
-    containerRef.current.appendChild(script);
+    if (variant === 'banner') {
+      // Adsterra banner ad (160x300 iframe)
+      const optionsScript = document.createElement('script');
+      optionsScript.textContent = `
+        atOptions = {
+          'key' : 'f9083385402daf96ca61e95a546aa790',
+          'format' : 'iframe',
+          'height' : 300,
+          'width' : 160,
+          'params' : {}
+        };
+      `;
+      containerRef.current.appendChild(optionsScript);
+
+      const invokeScript = document.createElement('script');
+      invokeScript.src = 'https://www.highperformanceformat.com/f9083385402daf96ca61e95a546aa790/invoke.js';
+      containerRef.current.appendChild(invokeScript);
+    } else {
+      // Adsterra native/social bar ad
+      const script = document.createElement('script');
+      script.src = 'https://pl28878901.effectivegatecpm.com/43/6a/44/436a44a20a0e61abc951d78d7c972653.js';
+      script.async = true;
+      containerRef.current.appendChild(script);
+    }
 
     return () => {
       loadedRef.current = false;
     };
-  }, []);
-
-  const handleAdClick = () => {
-    window.open(directLink, '_blank', 'noopener,noreferrer');
-  };
+  }, [variant]);
 
   return (
     <div className={`w-full ${className}`}>
       <div className="max-w-4xl mx-auto">
         <p className="text-[10px] text-muted-foreground/40 text-center mb-1 uppercase tracking-widest">{label}</p>
-        <div className="relative rounded-xl border border-border/30 bg-muted/10 overflow-hidden min-h-[100px]">
-          <div ref={containerRef} className="w-full" />
-          {/* Clickable overlay for direct link monetization */}
-          <div
-            onClick={handleAdClick}
-            className="absolute inset-0 z-10 cursor-pointer"
-            aria-label="Advertisement"
-          />
-        </div>
+        <div 
+          ref={containerRef}
+          className="relative rounded-xl border border-border/30 bg-muted/10 overflow-hidden min-h-[100px] flex items-center justify-center"
+        />
       </div>
     </div>
   );
