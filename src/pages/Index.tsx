@@ -492,10 +492,6 @@ const HomePage: React.FC = () => {
       {/* Trending Blogs Section */}
       <TrendingBlogs />
 
-      {/* Ad Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <AAdsBanner />
-      </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
