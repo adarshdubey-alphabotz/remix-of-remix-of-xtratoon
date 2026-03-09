@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
 import AdUnlockModal, { isChapterUnlockedLocally } from '@/components/AdUnlockModal';
-import AAdsBanner from '@/components/AAdsBanner';
+
 
 const PREFETCH_AHEAD = 3;
 
