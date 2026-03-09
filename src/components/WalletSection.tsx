@@ -33,6 +33,8 @@ interface PayoutRequest {
   notes: string | null;
   created_at: string;
   processed_at: string | null;
+  admin_response_screenshot: string | null;
+  admin_response_note: string | null;
 }
 
 const PAYOUT_METHODS_CONFIG: Record<PayoutMethodType, {
