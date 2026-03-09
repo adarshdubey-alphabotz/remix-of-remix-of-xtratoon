@@ -15,7 +15,7 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
   const [copied, setCopied] = useState(false);
 
   const shareUrl = url || window.location.href;
-  const shareText = `Check out "${title}" on XTRATOON!`;
+  const shareText = `Check out "${title}" on KOMIXORA!`;
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedText = encodeURIComponent(shareText);
 

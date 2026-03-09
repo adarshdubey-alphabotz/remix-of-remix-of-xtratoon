@@ -5,7 +5,7 @@ export type ThemeMode = 'light' | 'dark' | 'amoled';
 export function useTheme() {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('xtratoon-theme');
+      const stored = localStorage.getItem('komixora-theme');
       if (stored === 'dark' || stored === 'light' || stored === 'amoled') return stored as ThemeMode;
       return 'light';
     }
@@ -17,7 +17,7 @@ export function useTheme() {
     root.classList.remove('dark', 'amoled');
     if (theme === 'dark') root.classList.add('dark');
     if (theme === 'amoled') root.classList.add('dark', 'amoled');
-    localStorage.setItem('xtratoon-theme', theme);
+    localStorage.setItem('komixora-theme', theme);
   }, [theme]);
 
   const cycleTheme = useCallback(() => {

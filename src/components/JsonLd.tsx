@@ -1,7 +1,7 @@
 import React from 'react';
 
-const SITE_URL = 'https://xtratoon.com';
-const SITE_NAME = 'Xtratoon';
+const SITE_URL = 'https://komixora.fun';
+const SITE_NAME = 'Komixora';
 
 const JsonLd: React.FC = () => (
   <>
@@ -13,9 +13,9 @@ const JsonLd: React.FC = () => (
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": SITE_NAME,
-          "alternateName": ["Xtratoons", "XtraToon", "Xtra Toon", "xtratoon.com"],
+          "alternateName": ["Komixora", "komixora.fun"],
           "url": SITE_URL,
-          "description": "Xtratoon is the #1 platform to read manhwa, manga, webtoons, and comics online for free. Discover trending series, follow top creators, and publish your own manhwa.",
+          "description": "Komixora is the #1 platform to read manhwa, manga, webtoons, and comics online for free. Discover trending series, follow top creators, and publish your own manhwa.",
           "inLanguage": "en",
           "potentialAction": {
             "@type": "SearchAction",
@@ -41,7 +41,7 @@ const JsonLd: React.FC = () => (
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": SITE_NAME,
-          "alternateName": ["Xtratoons", "XtraToon"],
+          "alternateName": ["Komixora"],
           "url": SITE_URL,
           "logo": `${SITE_URL}/favicon.ico`,
           "description": "Premium manhwa, manga & webtoon publishing and reading platform. Read Korean manhwa, Japanese manga, and webtoons online in HD quality.",
@@ -70,8 +70,8 @@ const JsonLd: React.FC = () => (
         __html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          "name": "Browse Manhwa & Manga — Xtratoon",
-          "description": "Browse thousands of manhwa, manga, and webtoon series. Filter by genre, popularity, and latest releases on Xtratoon.",
+          "name": "Browse Manhwa & Manga — Komixora",
+          "description": "Browse thousands of manhwa, manga, and webtoon series. Filter by genre, popularity, and latest releases on Komixora.",
           "url": `${SITE_URL}/browse`,
           "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": SITE_URL }
         })

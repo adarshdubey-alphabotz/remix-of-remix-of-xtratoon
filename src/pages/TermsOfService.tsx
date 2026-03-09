@@ -15,7 +15,7 @@ const TermsOfService: React.FC = () => (
       <div className="prose prose-sm dark:prose-invert max-w-none space-y-6 text-muted-foreground leading-relaxed">
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">1. Acceptance of Terms</h2>
-          <p>By accessing or using Xtratoon ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, you may not use the Platform.</p>
+          <p>By accessing or using Komixora ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, you may not use the Platform.</p>
         </section>
 
         <section>
@@ -25,12 +25,12 @@ const TermsOfService: React.FC = () => (
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">3. User Accounts</h2>
-          <p>You are responsible for maintaining the security of your account credentials. You agree to notify us immediately of any unauthorized access. Xtratoon is not liable for losses arising from unauthorized account use.</p>
+          <p>You are responsible for maintaining the security of your account credentials. You agree to notify us immediately of any unauthorized access. Komixora is not liable for losses arising from unauthorized account use.</p>
         </section>
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">4. Content & Intellectual Property</h2>
-          <p>Creators retain ownership of their original content. By publishing on Xtratoon, you grant us a non-exclusive, worldwide license to display, distribute, and promote your content on the Platform. You must not upload content that infringes on third-party copyrights or trademarks.</p>
+          <p>Creators retain ownership of their original content. By publishing on Komixora, you grant us a non-exclusive, worldwide license to display, distribute, and promote your content on the Platform. You must not upload content that infringes on third-party copyrights or trademarks.</p>
         </section>
 
         <section>
@@ -40,13 +40,13 @@ const TermsOfService: React.FC = () => (
             <li>Harassment, hate speech, or threats toward other users</li>
             <li>Attempting to reverse-engineer, hack, or disrupt the Platform</li>
             <li>Using bots or automated tools to inflate views, likes, or follows</li>
-            <li>Redistributing or pirating content from Xtratoon</li>
+            <li>Redistributing or pirating content from Komixora</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">6. Content Moderation</h2>
-          <p>Xtratoon reserves the right to remove any content that violates these terms or our Content Guidelines. Repeated violations may result in account suspension or permanent ban.</p>
+          <p>Komixora reserves the right to remove any content that violates these terms or our Content Guidelines. Repeated violations may result in account suspension or permanent ban.</p>
         </section>
 
         <section>
@@ -56,7 +56,7 @@ const TermsOfService: React.FC = () => (
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">8. Limitation of Liability</h2>
-          <p>Xtratoon shall not be liable for any indirect, incidental, or consequential damages arising from use of the Platform.</p>
+          <p>Komixora shall not be liable for any indirect, incidental, or consequential damages arising from use of the Platform.</p>
         </section>
 
         <section>

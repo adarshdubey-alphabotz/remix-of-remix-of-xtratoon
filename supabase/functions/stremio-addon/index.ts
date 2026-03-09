@@ -8,16 +8,16 @@ const corsHeaders = {
 
 // ─── Stremio Addon Manifest ─────────────────────────────────
 const MANIFEST = {
-  id: "community.xtratoon",
+  id: "community.komixora",
   version: "1.0.0",
-  name: "Xtratoon",
-  description: "Browse and read manhwa from Xtratoon via Stremio",
+  name: "Komixora",
+  description: "Browse and read manhwa from Komixora via Stremio",
   logo: "https://glassy-ink-verse.lovable.app/favicon.ico",
   types: ["other"],
   catalogs: [
     {
       type: "other",
-      id: "xtratoon-latest",
+      id: "komixora-latest",
       name: "Latest Manhwa",
       extra: [
         { name: "search", isRequired: false },
@@ -27,7 +27,7 @@ const MANIFEST = {
     },
     {
       type: "other",
-      id: "xtratoon-popular",
+      id: "komixora-popular",
       name: "Popular Manhwa",
       extra: [
         { name: "skip", isRequired: false },
@@ -62,7 +62,7 @@ async function handleCatalog(catalogId: string, extra: Record<string, string>) {
     .eq("approval_status", "APPROVED")
     .range(skip, skip + limit - 1);
 
-  if (catalogId === "xtratoon-popular") {
+  if (catalogId === "komixora-popular") {
     query = query.order("views", { ascending: false });
   } else {
     query = query.order("created_at", { ascending: false });
@@ -168,7 +168,7 @@ async function handleStream(mangaId: string, chapterId: string) {
 
   // Provide each page as a stream source
   const streams = pages.map((page) => ({
-    name: `Xtratoon`,
+    name: `Komixora`,
     title: `${manga?.title || "Manhwa"} - Ch.${chapter?.chapter_number || "?"} - Page ${page.page_number}`,
     url: `${supabaseUrl}/functions/v1/telegram-proxy?file_id=${encodeURIComponent(page.telegram_file_id)}&stream=true`,
     behaviorHints: {

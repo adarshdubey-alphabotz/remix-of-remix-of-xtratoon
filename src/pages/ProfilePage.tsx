@@ -124,8 +124,8 @@ const ProfilePage: React.FC = () => {
   const [passError, setPassError] = useState('');
   const [passSuccess, setPassSuccess] = useState('');
   const [passSubmitting, setPassSubmitting] = useState(false);
-  const [compactCards, setCompactCards] = useState<boolean>(() => localStorage.getItem('xtratoon-compact-cards') === 'true');
-  const [creatorAlerts, setCreatorAlerts] = useState<boolean>(() => localStorage.getItem('xtratoon-creator-alerts') !== 'false');
+  const [compactCards, setCompactCards] = useState<boolean>(() => localStorage.getItem('komixora-compact-cards') === 'true');
+  const [creatorAlerts, setCreatorAlerts] = useState<boolean>(() => localStorage.getItem('komixora-creator-alerts') !== 'false');
   
   const [customLinkName, setCustomLinkName] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
@@ -153,8 +153,8 @@ const ProfilePage: React.FC = () => {
 
   const availableCountries = continent ? (countriesByContinent[continent] || []) : [];
 
-  useEffect(() => { localStorage.setItem('xtratoon-compact-cards', String(compactCards)); }, [compactCards]);
-  useEffect(() => { localStorage.setItem('xtratoon-creator-alerts', String(creatorAlerts)); }, [creatorAlerts]);
+  useEffect(() => { localStorage.setItem('komixora-compact-cards', String(compactCards)); }, [compactCards]);
+  useEffect(() => { localStorage.setItem('komixora-creator-alerts', String(creatorAlerts)); }, [creatorAlerts]);
 
   const isCreator = profileType === 'publisher' || isPublisher;
 
@@ -334,13 +334,13 @@ const ProfilePage: React.FC = () => {
           {username && (
             <button
               onClick={() => {
-                navigator.clipboard.writeText(`https://xtratoon.com/publisher/${username}`);
+                navigator.clipboard.writeText(`https://komixora.fun/publisher/${username}`);
                 toast.success('Profile link copied!');
               }}
               className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
             >
               <LinkIcon className="w-3 h-3" />
-              <span className="hover:underline">xtratoon.com/publisher/{username}</span>
+              <span className="hover:underline">komixora.fun/publisher/{username}</span>
             </button>
           )}
           <span className="mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
@@ -798,7 +798,7 @@ const ProfilePage: React.FC = () => {
             className="w-full py-3 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2">
             <LogOut className="w-4 h-4" /> Sign Out All Devices
           </button>
-          <p className="text-xs text-muted-foreground text-center">Need to delete your account? Contact support@xtratoon.com</p>
+          <p className="text-xs text-muted-foreground text-center">Need to delete your account? Contact support@komixora.fun</p>
         </div>
       </div>
     </motion.div>

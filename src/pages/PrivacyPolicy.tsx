@@ -50,7 +50,7 @@ const PrivacyPolicy: React.FC = () => (
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">4. Advertisement Content Disclaimer</h2>
           <div className="p-4 border border-destructive/30 bg-destructive/5 rounded-xl">
             <p className="font-semibold text-foreground mb-2">⚠️ Important Notice About Advertisements</p>
-            <p>Advertisements displayed on this Platform are served by third-party ad networks (including Adsterra) and are <strong>not controlled, endorsed, or reviewed by Xtratoon</strong>. We are <strong>not responsible</strong> for the content of any advertisements, including but not limited to:</p>
+            <p>Advertisements displayed on this Platform are served by third-party ad networks (including Adsterra) and are <strong>not controlled, endorsed, or reviewed by Komixora</strong>. We are <strong>not responsible</strong> for the content of any advertisements, including but not limited to:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>Ads containing adult, explicit, or sexually suggestive content</li>
               <li>Ads promoting gambling, betting, or related services</li>
@@ -58,7 +58,7 @@ const PrivacyPolicy: React.FC = () => (
               <li>Ads for products or services of any nature served by third-party networks</li>
             </ul>
             <p className="mt-3">If you encounter an inappropriate advertisement, please report it to us immediately. We will take steps to block or request removal of the offending ad from our ad provider. However, we cannot guarantee complete control over third-party ad content at all times.</p>
-            <p className="mt-2 font-medium text-foreground">By using this Platform, you acknowledge and accept that third-party advertisements may appear and that Xtratoon bears no liability for their content.</p>
+            <p className="mt-2 font-medium text-foreground">By using this Platform, you acknowledge and accept that third-party advertisements may appear and that Komixora bears no liability for their content.</p>
           </div>
         </section>
 
@@ -107,7 +107,7 @@ const PrivacyPolicy: React.FC = () => (
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">11. Contact</h2>
           <p>For privacy-related questions, reach us at:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Email:</strong> <a href="mailto:support@xtratoon.com" className="text-primary hover:underline">support@xtratoon.com</a></li>
+            <li><strong>Email:</strong> <a href="mailto:support@komixora.fun" className="text-primary hover:underline">support@komixora.fun</a></li>
             <li><strong>Instagram:</strong> <a href="https://instagram.com/XtraToon.global" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">@XtraToon.global</a></li>
             <li><strong>X (Twitter):</strong> <a href="https://x.com/Xtratoonglobal" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">@Xtratoonglobal</a></li>
           </ul>

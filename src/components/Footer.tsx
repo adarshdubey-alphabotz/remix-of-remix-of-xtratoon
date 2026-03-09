@@ -31,7 +31,7 @@ const Footer: React.FC = () => (
       <div style={{ animation: 'mascotFloat 4s ease-in-out infinite' }}>
         <img
           src={mascotImg}
-          alt="Xtratoon Mascot"
+          alt="Komixora Mascot"
           className="w-20 sm:w-28 lg:w-32 drop-shadow-lg"
           loading="lazy"
         />
@@ -47,8 +47,8 @@ const Footer: React.FC = () => (
         <div className="col-span-2 sm:col-span-2 lg:col-span-2 space-y-4 pr-8">
           <Link to="/" className="inline-block">
             <span className="text-display text-3xl tracking-wider">
-              <span className="font-normal">XTRA</span>
-              <span className="text-primary">TOON</span>
+              <span className="font-normal">KOMI</span>
+              <span className="text-primary">XORA</span>
             </span>
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
@@ -97,7 +97,7 @@ const Footer: React.FC = () => (
           </h4>
           <nav className="flex flex-col gap-2">
             <Link to="/community" className="text-sm text-muted-foreground hover:text-primary transition-colors">Feed</Link>
-            <Link to="/blog/publish-on-xtratoon" className="text-sm text-muted-foreground hover:text-primary transition-colors">For Creators</Link>
+            <Link to="/blog/publish-on-komixora" className="text-sm text-muted-foreground hover:text-primary transition-colors">For Creators</Link>
             <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-primary transition-colors">Publisher Dashboard</Link>
             <Link to="/profile" className="text-sm text-muted-foreground hover:text-primary transition-colors">My Profile</Link>
             <Link to="/settings" className="text-sm text-muted-foreground hover:text-primary transition-colors">Settings</Link>
@@ -122,7 +122,7 @@ const Footer: React.FC = () => (
       {/* Bottom bar */}
       <div className="mt-12 pt-6 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-xs text-muted-foreground flex items-center gap-1">
-          © 2026 Xtratoon. Made with <Heart className="w-3 h-3 text-primary fill-primary inline" /> by Akane Sakuramori.
+          © 2026 Komixora. Made with <Heart className="w-3 h-3 text-primary fill-primary inline" /> by Akane Sakuramori.
         </p>
         <div className="flex items-center gap-4">
           <a

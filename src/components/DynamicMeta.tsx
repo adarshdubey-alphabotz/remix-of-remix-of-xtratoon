@@ -9,10 +9,10 @@ interface DynamicMetaProps {
   keywords?: string;
 }
 
-const SITE = 'Xtratoon';
+const SITE = 'Komixora';
 const DEFAULT_TITLE = `${SITE} — Read Manhwa, Manga & Webtoons Online Free | Premium Comics`;
-const DEFAULT_DESC = 'Xtratoon is the #1 platform to read manhwa, manga, webtoons, and comics online for free. Discover trending series, follow top creators, and publish your own manhwa.';
-const DEFAULT_KEYWORDS = 'Xtratoon, xtratoons, manhwa, manga, webtoon, read manhwa online, read manga online, free manhwa, Korean comics, Japanese manga, webtoons, comic reader, best manhwa, trending manga, manhwa platform, read comics free, HD manhwa, premium manhwa';
+const DEFAULT_DESC = 'Komixora is the #1 platform to read manhwa, manga, webtoons, and comics online for free. Discover trending series, follow top creators, and publish your own manhwa.';
+const DEFAULT_KEYWORDS = 'Komixora, komixora, manhwa, manga, webtoon, read manhwa online, read manga online, free manhwa, Korean comics, Japanese manga, webtoons, comic reader, best manhwa, trending manga, manhwa platform, read comics free, HD manhwa, premium manhwa';
 
 const DynamicMeta: React.FC<DynamicMetaProps> = ({ title, description, image, url, type = 'article', keywords }) => {
   useEffect(() => {

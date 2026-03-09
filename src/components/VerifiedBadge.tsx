@@ -22,7 +22,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({ size = 'sm', className = 
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         className="inline-flex items-center focus:outline-none"
-        aria-label="Official Xtratoon account"
+        aria-label="Official Komixora account"
       >
         <svg
           viewBox="0 0 24 24"
@@ -80,7 +80,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({ size = 'sm', className = 
                 <span className="text-xs font-bold text-foreground">Official Account</span>
               </div>
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                This account is verified as an official member of the Xtratoon team.
+                This account is verified as an official member of the Komixora team.
               </p>
             </div>
           </motion.div>

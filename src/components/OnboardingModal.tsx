@@ -29,7 +29,7 @@ const OnboardingModal: React.FC = () => {
 
   useEffect(() => {
     if (!user || !profile) return;
-    const onboarded = localStorage.getItem(`xtratoon-onboarded-${user.id}`);
+    const onboarded = localStorage.getItem(`komixora-onboarded-${user.id}`);
     if (!onboarded) {
       // Small delay so it doesn't flash on page load
       const timer = setTimeout(() => setShow(true), 1500);
@@ -39,7 +39,7 @@ const OnboardingModal: React.FC = () => {
 
   const handleComplete = () => {
     if (user) {
-      localStorage.setItem(`xtratoon-onboarded-${user.id}`, 'true');
+      localStorage.setItem(`komixora-onboarded-${user.id}`, 'true');
     }
     setShow(false);
   };
@@ -97,7 +97,7 @@ const OnboardingModal: React.FC = () => {
                   <Sparkles className="w-8 h-8 text-primary" />
                 </div>
                 <h2 className="font-display text-3xl tracking-wider mb-2 text-foreground">
-                  WELCOME TO <span className="text-primary">XTRATOON</span>
+                  WELCOME TO <span className="text-primary">KOMIXORA</span>
                 </h2>
                 <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                   Hey {profile?.display_name || 'there'}! 👋 Let's personalize your experience. Pick your favorite genres so we can recommend the best manhwa for you.

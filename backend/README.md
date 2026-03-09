@@ -1,4 +1,4 @@
-# Xtratoon Stream Backend
+# Komixora Stream Backend
 
 Fast Telegram file streaming backend using MTProto via GramJS.
 

@@ -6,7 +6,7 @@ const corsHeaders = {
   "Content-Type": "application/xml; charset=utf-8",
 };
 
-const SITE_URL = "https://xtratoon.com";
+const SITE_URL = "https://komixora.fun";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     { loc: "/community", priority: "0.7", freq: "daily" },
     { loc: "/creators", priority: "0.7", freq: "weekly" },
     { loc: "/blog", priority: "0.8", freq: "daily" },
-    { loc: "/blog/publish-on-xtratoon", priority: "0.7", freq: "monthly" },
+    { loc: "/blog/publish-on-komixora", priority: "0.7", freq: "monthly" },
     { loc: "/terms", priority: "0.3", freq: "monthly" },
     { loc: "/privacy", priority: "0.3", freq: "monthly" },
     { loc: "/content-guidelines", priority: "0.3", freq: "monthly" },
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
     <image:image>
       <image:loc>${escapeXml(m.cover_url)}</image:loc>
       <image:title>${escapeXml(m.title)}</image:title>
-      <image:caption>${escapeXml(m.title)} cover art on Xtratoon</image:caption>
+      <image:caption>${escapeXml(m.title)} cover art on Komixora</image:caption>
     </image:image>`;
     }
     xml += `

@@ -172,7 +172,7 @@ const ManhwaDetail: React.FC = () => {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center pt-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
   if (!manhwa) return <div className="min-h-screen flex items-center justify-center pt-16"><p className="text-muted-foreground">Manhwa not found</p></div>;
 
-  const pageUrl = `https://xtratoon.com/manhwa/${manhwa.slug}`;
+  const pageUrl = `https://komixora.fun/manhwa/${manhwa.slug}`;
   const allChapters = chapters || [];
   const visibleChapters = showAllChapters ? allChapters : allChapters.slice(0, 10);
   const firstChapter = allChapters.length > 0 ? allChapters[0] : null;
@@ -191,10 +191,10 @@ const ManhwaDetail: React.FC = () => {
     <div className="min-h-screen pt-16 bg-background">
       <DynamicMeta
         title={`${manhwa.title} — Read Online Free`}
-        description={manhwa.description || `Read ${manhwa.title} manhwa online for free on Xtratoon. HD quality, latest chapters updated regularly.`}
+        description={manhwa.description || `Read ${manhwa.title} manhwa online for free on Komixora. HD quality, latest chapters updated regularly.`}
         image={coverUrl || undefined}
         url={pageUrl}
-        keywords={`${manhwa.title}, read ${manhwa.title} online, ${manhwa.title} manhwa, ${(manhwa.genres || []).join(', ')}, Xtratoon, free manhwa, read manhwa online`}
+        keywords={`${manhwa.title}, read ${manhwa.title} online, ${manhwa.title} manhwa, ${(manhwa.genres || []).join(', ')}, Komixora, free manhwa, read manhwa online`}
       />
       {/* JSON-LD Structured Data for this manhwa */}
       <script
@@ -205,19 +205,19 @@ const ManhwaDetail: React.FC = () => {
             "@type": "ComicSeries",
             "name": manhwa.title,
             "url": pageUrl,
-            "description": manhwa.description || `Read ${manhwa.title} manhwa online for free on Xtratoon.`,
+            "description": manhwa.description || `Read ${manhwa.title} manhwa online for free on Komixora.`,
             "image": coverUrl || undefined,
             "genre": manhwa.genres || [],
             "inLanguage": manhwa.language || "Korean",
             "author": {
               "@type": "Person",
               "name": creatorName,
-              "url": creatorProfile?.username ? `https://xtratoon.com/publisher/${creatorProfile.username}` : undefined,
+              "url": creatorProfile?.username ? `https://komixora.fun/publisher/${creatorProfile.username}` : undefined,
             },
             "publisher": {
               "@type": "Organization",
-              "name": "Xtratoon",
-              "url": "https://xtratoon.com",
+              "name": "Komixora",
+              "url": "https://komixora.fun",
             },
             "aggregateRating": (manhwa.rating_count || 0) > 0 ? {
               "@type": "AggregateRating",
@@ -243,8 +243,8 @@ const ManhwaDetail: React.FC = () => {
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             "itemListElement": [
-              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://xtratoon.com" },
-              { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://xtratoon.com/browse" },
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://komixora.fun" },
+              { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://komixora.fun/browse" },
               { "@type": "ListItem", "position": 3, "name": manhwa.title, "item": pageUrl },
             ]
           })

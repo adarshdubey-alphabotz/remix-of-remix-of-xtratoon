@@ -41,9 +41,9 @@ const BlogListPage: React.FC = () => {
     <div className="min-h-screen pt-24 pb-32 bg-background">
       <DynamicMeta
         title="Blog — Manhwa News, Guides & FAQ"
-        description="Read the latest Xtratoon blog posts — manhwa news, manga guides, FAQs, reading tips, and platform updates. Stay updated with Xtratoon."
-        keywords="Xtratoon blog, xtratoons blog, manhwa blog, manga news, webtoon guides, manhwa FAQ, manga tips, Xtratoon news, Xtratoon updates, manhwa reading guide"
-        url="https://xtratoon.com/blog"
+        description="Read the latest Komixora blog posts — manhwa news, manga guides, FAQs, reading tips, and platform updates. Stay updated with Komixora."
+        keywords="Komixora blog, komixora blog, manhwa blog, manga news, webtoon guides, manhwa FAQ, manga tips, Komixora news, Komixora updates, manhwa reading guide"
+        url="https://komixora.fun/blog"
       />
       <div className="max-w-6xl mx-auto px-4">
         <ScrollReveal>
@@ -52,7 +52,7 @@ const BlogListPage: React.FC = () => {
               OUR <span className="text-primary">BLOG</span>
             </h1>
             <p className="text-muted-foreground max-w-lg mx-auto text-sm sm:text-base">
-              News, guides, FAQs, and updates from the Xtratoon team.
+              News, guides, FAQs, and updates from the Komixora team.
             </p>
           </div>
         </ScrollReveal>

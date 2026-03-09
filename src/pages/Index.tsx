@@ -91,7 +91,7 @@ const WhyChooseSection: React.FC = () => {
       <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
         <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.2em] mb-4">Why readers love us</p>
         <h2 className="text-display text-4xl sm:text-6xl lg:text-7xl tracking-wider mb-4">
-          Why Choose <span className="text-primary">Xtratoon</span>.
+          Why Choose <span className="text-primary">Komixora</span>.
         </h2>
         <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
           We create meaningful connections between creators and readers, delivering tailored, immersive experiences with a reader-first approach.
@@ -289,8 +289,8 @@ const faqData = [
   { q: 'When do I get paid?', a: 'Payouts are processed at the end of every month. Once your earnings are calculated, they\'re sent to your preferred payment method within 5-7 business days.' },
   { q: 'What payment methods are supported?', a: 'We support UPI (India), bKash (Bangladesh), PayPal (Global), and Crypto via Binance. More payment methods are being added regularly.' },
   { q: 'Is there a minimum payout threshold?', a: 'Yes, the minimum payout is $10 (or equivalent in local currency). This ensures efficient processing for all creators.' },
-  { q: 'How do I publish my manhwa on Xtratoon?', a: 'Simply create a publisher account, upload your chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one.' },
-  { q: 'Can I publish content in any language?', a: 'Yes! Xtratoon supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.' },
+  { q: 'How do I publish my manhwa on Komixora?', a: 'Simply create a publisher account, upload your chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one.' },
+  { q: 'Can I publish content in any language?', a: 'Yes! Komixora supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.' },
 ];
 
 const TrendingBlogs: React.FC = () => {
@@ -384,7 +384,7 @@ const HomePage: React.FC = () => {
             style={{ y: heroY }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[25vw] sm:text-[18vw] font-display text-foreground/[0.03] leading-none tracking-widest whitespace-nowrap"
           >
-            XTRATOON
+            KOMIXORA
           </motion.span>
         </div>
 
@@ -398,7 +398,7 @@ const HomePage: React.FC = () => {
               >
                 <div className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-full text-xs font-semibold mb-6 bg-muted/30 backdrop-blur-sm">
                   <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                  Featured — {featured?.title || 'Xtratoon'}
+                  Featured — {featured?.title || 'Komixora'}
                 </div>
                 <h1 className="text-display text-[14vw] sm:text-7xl lg:text-8xl xl:text-[9rem] leading-[0.85] tracking-wider">
                   <motion.span className="block" initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}>DISCOVER</motion.span>
@@ -499,7 +499,7 @@ const HomePage: React.FC = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
 
-        {/* Why Choose Xtratoon */}
+        {/* Why Choose Komixora */}
         <WhyChooseSection />
 
         {/* Revenue Model — Animated Step-by-Step */}
@@ -642,7 +642,7 @@ const HomePage: React.FC = () => {
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-foreground">Website</p>
-                    <p className="text-xs text-muted-foreground">xtratoon.com</p>
+                    <p className="text-xs text-muted-foreground">komixora.fun</p>
                   </div>
                 </motion.div>
               </div>
@@ -663,7 +663,7 @@ const HomePage: React.FC = () => {
                 Frequently Asked <span className="text-primary">Questions</span>
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-                Everything you need to know about publishing and earning on Xtratoon.
+                Everything you need to know about publishing and earning on Komixora.
               </p>
             </div>
           </ScrollReveal>
@@ -682,7 +682,7 @@ const HomePage: React.FC = () => {
             <div className="relative z-10">
               <h2 className="text-display text-4xl sm:text-6xl mb-4 tracking-wider">READY TO <span className="text-primary">PUBLISH?</span></h2>
               <p className="text-muted-foreground max-w-lg mx-auto mb-8">
-                Join hundreds of creators sharing their stories with millions of readers on Xtratoon.
+                Join hundreds of creators sharing their stories with millions of readers on Komixora.
               </p>
               <Link to="/dashboard">
                 <MagneticButton className="btn-accent text-base px-8 py-4">

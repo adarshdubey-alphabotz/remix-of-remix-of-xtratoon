@@ -18,7 +18,7 @@ const ContentGuidelines: React.FC = () => (
             <ShieldCheck className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-display tracking-wider text-foreground">Our Mission</h2>
           </div>
-          <p>Xtratoon is a platform for creators to share original manhwa, manga, and webtoon content with a global audience. We are committed to fostering a safe, creative, and respectful community.</p>
+          <p>Komixora is a platform for creators to share original manhwa, manga, and webtoon content with a global audience. We are committed to fostering a safe, creative, and respectful community.</p>
         </div>
 
         <section>
@@ -62,11 +62,11 @@ const ContentGuidelines: React.FC = () => (
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-3">DMCA & Copyright</h2>
-          <p>If you believe your copyrighted work is being used without authorization on Xtratoon, you may submit a DMCA takedown request by contacting us via our social channels with:</p>
+          <p>If you believe your copyrighted work is being used without authorization on Komixora, you may submit a DMCA takedown request by contacting us via our social channels with:</p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
             <li>Your contact information</li>
             <li>Description of the copyrighted work</li>
-            <li>Link to the infringing content on Xtratoon</li>
+            <li>Link to the infringing content on Komixora</li>
             <li>A statement of good faith belief</li>
             <li>Your signature (electronic is accepted)</li>
           </ul>

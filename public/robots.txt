@@ -15,4 +15,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://xtratoon.com/sitemap.xml
+Sitemap: https://komixora.fun/sitemap.xml

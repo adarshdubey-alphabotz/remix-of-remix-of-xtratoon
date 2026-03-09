@@ -236,8 +236,8 @@ const AdminSettings: React.FC = () => {
                 <div className="border border-border rounded-xl p-4">
                   <h3 className="text-sm font-bold mb-3">Platform Info</h3>
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Platform</span><span className="font-medium">XtraToon</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Contact</span><span className="font-medium text-primary">admin@xtratoon.com</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Platform</span><span className="font-medium">Komixora</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Contact</span><span className="font-medium text-primary">admin@komixora.fun</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Auth</span><span className="font-medium">Email + Password</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Storage</span><span className="font-medium">Telegram CDN</span></div>
                   </div>
@@ -257,7 +257,7 @@ const AdminSettings: React.FC = () => {
                     <div>
                       <p className="text-sm font-bold">Ban Appeal Process</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Banned users email <a href="mailto:admin@xtratoon.com" className="text-primary hover:underline font-semibold">admin@xtratoon.com</a> to appeal. Review and unban below.
+                        Banned users email <a href="mailto:admin@komixora.fun" className="text-primary hover:underline font-semibold">admin@komixora.fun</a> to appeal. Review and unban below.
                       </p>
                     </div>
                   </div>

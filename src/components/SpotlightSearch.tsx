@@ -233,7 +233,7 @@ const SpotlightSearch: React.FC = () => {
               <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                 <Command className="w-3 h-3" /> <span className="font-bold">K</span> to toggle
               </div>
-              <span className="text-[10px] text-muted-foreground">XTRATOON Search</span>
+              <span className="text-[10px] text-muted-foreground">KOMIXORA Search</span>
             </div>
           </motion.div>
         </div>

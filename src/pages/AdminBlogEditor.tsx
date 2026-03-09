@@ -12,12 +12,12 @@ const generateSlug = (title: string) =>
 const defaultFaqContent = `<h2>Frequently Asked Questions</h2>
 
 <div class="faq-item">
-<h3>What is Xtratoon?</h3>
-<p>Xtratoon is a premium manhwa and manga platform where creators can publish their stories and earn 100% of ad revenue. Readers can enjoy high-quality webtoons across every genre.</p>
+<h3>What is Komixora?</h3>
+<p>Komixora is a premium manhwa and manga platform where creators can publish their stories and earn 100% of ad revenue. Readers can enjoy high-quality webtoons across every genre.</p>
 </div>
 
 <div class="faq-item">
-<h3>How do I start reading on Xtratoon?</h3>
+<h3>How do I start reading on Komixora?</h3>
 <p>Simply create a free account, browse our library of 500+ series, and start reading immediately. No subscription required — just sign up and dive in!</p>
 </div>
 
@@ -32,7 +32,7 @@ const defaultFaqContent = `<h2>Frequently Asked Questions</h2>
 </div>
 
 <div class="faq-item">
-<h3>How do I publish my manhwa on Xtratoon?</h3>
+<h3>How do I publish my manhwa on Komixora?</h3>
 <p>Create a publisher account, upload your chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one.</p>
 </div>
 
@@ -43,7 +43,7 @@ const defaultFaqContent = `<h2>Frequently Asked Questions</h2>
 
 <div class="faq-item">
 <h3>Can I publish content in any language?</h3>
-<p>Yes! Xtratoon supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.</p>
+<p>Yes! Komixora supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.</p>
 </div>
 
 <div class="faq-item">
@@ -152,11 +152,11 @@ const AdminBlogEditor: React.FC = () => {
       ...emptyForm,
       title: 'Frequently Asked Questions',
       slug: 'faq',
-      description: 'Find answers to the most common questions about Xtratoon — reading, publishing, payments, and more.',
+      description: 'Find answers to the most common questions about Komixora — reading, publishing, payments, and more.',
       content: defaultFaqContent,
-      seo_title: 'FAQ — Xtratoon | Frequently Asked Questions',
-      seo_description: 'Find answers to common questions about reading manhwa, publishing, creator payouts, and more on Xtratoon.',
-      seo_keywords: ['faq', 'frequently asked questions', 'manhwa', 'help', 'support', 'xtratoon'],
+      seo_title: 'FAQ — Komixora | Frequently Asked Questions',
+      seo_description: 'Find answers to common questions about reading manhwa, publishing, creator payouts, and more on Komixora.',
+      seo_keywords: ['faq', 'frequently asked questions', 'manhwa', 'help', 'support', 'komixora'],
       is_faq: true,
       is_published: true,
     });

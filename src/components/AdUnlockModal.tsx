@@ -27,7 +27,7 @@ const getRandomAdLink = () => AD_LINKS[Math.floor(Math.random() * AD_LINKS.lengt
 
 // Get or create session ID
 const getSessionId = (): string => {
-  const key = 'xtratoon_session_id';
+  const key = 'komixora_session_id';
   let sessionId = localStorage.getItem(key);
   if (!sessionId) {
     sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

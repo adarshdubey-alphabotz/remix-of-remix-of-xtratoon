@@ -569,7 +569,7 @@ const AdminPanel: React.FC = () => {
                 <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-bold">Ban Appeal Process</p>
-                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:admin@xtratoon.com" className="text-primary hover:underline font-semibold">admin@xtratoon.com</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:admin@komixora.fun" className="text-primary hover:underline font-semibold">admin@komixora.fun</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
                 </div>
               </div>
               <div className="brutal-card overflow-hidden">
@@ -619,7 +619,7 @@ const AdminPanel: React.FC = () => {
                 <BadgeCheck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-bold">Official Account Verification</p>
-                  <p className="text-xs text-muted-foreground mt-1">Add a gold verification badge to official Xtratoon team accounts. This is different from the blue tick (coming soon) which will be for verified creators.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Add a gold verification badge to official Komixora team accounts. This is different from the blue tick (coming soon) which will be for verified creators.</p>
                 </div>
               </div>
 
