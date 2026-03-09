@@ -50,7 +50,7 @@ const PrivacyPolicy: React.FC = () => (
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">4. Advertisement Content Disclaimer</h2>
           <div className="p-4 border border-destructive/30 bg-destructive/5 rounded-xl">
             <p className="font-semibold text-foreground mb-2">⚠️ Important Notice About Advertisements</p>
-            <p>Advertisements displayed on this Platform are served by third-party ad networks (including Adsterra) and are <strong>not controlled, endorsed, or reviewed by Xtratoon</strong>. We are <strong>not responsible</strong> for the content of any advertisements, including but not limited to:</p>
+            <p>Advertisements displayed on this Platform are served by third-party ad networks (including Adsterra) and are <strong>not controlled, endorsed, or reviewed by Komixora</strong>. We are <strong>not responsible</strong> for the content of any advertisements, including but not limited to:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>Ads containing adult, explicit, or sexually suggestive content</li>
               <li>Ads promoting gambling, betting, or related services</li>
