@@ -46,7 +46,7 @@ const TermsOfService: React.FC = () => (
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">6. Content Moderation</h2>
-          <p>Xtratoon reserves the right to remove any content that violates these terms or our Content Guidelines. Repeated violations may result in account suspension or permanent ban.</p>
+          <p>Komixora reserves the right to remove any content that violates these terms or our Content Guidelines. Repeated violations may result in account suspension or permanent ban.</p>
         </section>
 
         <section>
