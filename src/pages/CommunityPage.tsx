@@ -480,6 +480,9 @@ const CommunityPage: React.FC = () => {
       </div>
 
       <SharePostModal open={!!sharePostId} onClose={() => setSharePostId(null)} postId={sharePostId || ''} postContent={shareContent} />
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <AAdsBanner />
+      </div>
     </div>
   );
 };
