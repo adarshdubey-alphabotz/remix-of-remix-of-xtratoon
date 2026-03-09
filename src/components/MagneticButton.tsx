@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface MagneticButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -8,14 +8,14 @@ interface MagneticButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
   strength?: number;
 }
 
-const MagneticButton: React.FC<MagneticButtonProps> = ({ 
+const MagneticButton = forwardRef<HTMLDivElement, MagneticButtonProps>(({ 
   children, className, strength = 0.35, as = 'button', ...props 
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
+}, forwardedRef) => {
+  const innerRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const el = ref.current;
+    const el = innerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left - rect.width / 2) * strength;
@@ -29,7 +29,11 @@ const MagneticButton: React.FC<MagneticButtonProps> = ({
 
   return (
     <motion.div
-      ref={ref}
+      ref={(node) => {
+        (innerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        if (typeof forwardedRef === 'function') forwardedRef(node);
+        else if (forwardedRef) (forwardedRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       animate={{ x: pos.x, y: pos.y }}
@@ -43,6 +47,8 @@ const MagneticButton: React.FC<MagneticButtonProps> = ({
       )}
     </motion.div>
   );
-};
+});
+
+MagneticButton.displayName = 'MagneticButton';
 
 export default MagneticButton;
