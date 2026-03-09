@@ -6,7 +6,7 @@ const corsHeaders = {
   "Content-Type": "application/xml; charset=utf-8",
 };
 
-const SITE_URL = "https://xtratoon.com";
+const SITE_URL = "https://komixora.fun";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
