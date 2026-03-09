@@ -447,7 +447,7 @@ const ManhwaDetail: React.FC = () => {
                 </section>
               </ScrollReveal>
             )}
-
+import AdBanner from '@/components/AdBanner';
 
             <ScrollReveal delay={0.2}>
               <CommentSection mangaId={manhwa.id} mangaTitle={manhwa.title} creatorId={manhwa.creator_id} />
