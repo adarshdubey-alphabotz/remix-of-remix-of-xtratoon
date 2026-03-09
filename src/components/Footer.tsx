@@ -31,9 +31,8 @@ const Footer: React.FC = () => (
       <div style={{ animation: 'mascotFloat 4s ease-in-out infinite' }}>
         <img
           src={mascotImg}
-          alt="Xtratoon Mascot"
-          className="w-20 sm:w-28 lg:w-32 drop-shadow-lg"
           alt="Komixora Mascot"
+          className="w-20 sm:w-28 lg:w-32 drop-shadow-lg"
           loading="lazy"
         />
       </div>
