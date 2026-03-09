@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { DollarSign, TrendingUp, Eye, Wallet, Calendar, ArrowUpRight, BarChart3 } from 'lucide-react';
+import { DollarSign, TrendingUp, Eye, Wallet, BarChart3 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const CreatorEarnings: React.FC = () => {
