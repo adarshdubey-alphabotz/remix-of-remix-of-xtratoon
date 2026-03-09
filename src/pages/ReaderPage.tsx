@@ -861,9 +861,10 @@ const ReaderPage: React.FC = () => {
                   )}
                 </motion.div>
               ) : isEnd ? (
-                <motion.div key="end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex items-center justify-center">
+                <motion.div key="end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex items-center justify-center overflow-y-auto">
                   <div className="text-center space-y-6 p-8">
                     <p className="text-white/60 text-lg font-semibold">End of Chapter {chapterNum}</p>
+                    <AAdsBanner className="max-w-sm mx-auto" />
                     <div className="flex justify-center gap-3">
                       {prevChapter != null && (
                         <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="px-5 py-2.5 border border-white/20 text-white text-sm font-medium flex items-center gap-1 hover:bg-white/5 rounded-xl">
