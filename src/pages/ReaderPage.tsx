@@ -114,41 +114,21 @@ const ReaderPage: React.FC = () => {
     enabled: !!manga,
   });
 
-  // ── Ad unlock check (all chapters, all users) ──
-  const { data: unlockData, isLoading: unlockLoading } = useQuery({
-    queryKey: ['chapter-unlock', user?.id, chapterData?.id],
-    queryFn: async () => {
-      if (!user || !chapterData) return null;
-      const { data } = await supabase
-        .from('chapter_unlocks' as any)
-        .select('id, unlocked_at')
-        .eq('user_id', user.id)
-        .eq('chapter_id', chapterData.id)
-        .maybeSingle();
-      if (data && new Date((data as any).unlocked_at).getTime() > Date.now() - 8 * 60 * 60 * 1000) {
-        return data; // still valid
-      }
-      return null; // expired or not found
-    },
-    enabled: !!user && !!chapterData,
-  });
-
-  // Determine if chapter is accessible
+  // ── Ad unlock check (localStorage first, then DB for logged users) ──
   useEffect(() => {
-    if (!user) {
-      // Not logged in: show unlock modal (they must log in)
-      setIsChapterUnlocked(false);
-      setShowAdUnlock(true);
-    } else if (unlockLoading) {
-      // Still checking
-      return;
-    } else if (unlockData) {
+    if (!chapterData) return;
+
+    // First check localStorage (works for everyone)
+    if (isChapterUnlockedLocally(chapterData.id)) {
       setIsChapterUnlocked(true);
-    } else {
-      setIsChapterUnlocked(false);
-      setShowAdUnlock(true);
+      setShowAdUnlock(false);
+      return;
     }
-  }, [user, unlockData, unlockLoading]);
+
+    // Not unlocked locally - show modal
+    setIsChapterUnlocked(false);
+    setShowAdUnlock(true);
+  }, [chapterData?.id]);
 
   // ── Canvas rendering ──
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
