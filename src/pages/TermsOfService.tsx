@@ -15,7 +15,7 @@ const TermsOfService: React.FC = () => (
       <div className="prose prose-sm dark:prose-invert max-w-none space-y-6 text-muted-foreground leading-relaxed">
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">1. Acceptance of Terms</h2>
-          <p>By accessing or using Xtratoon ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, you may not use the Platform.</p>
+          <p>By accessing or using Komixora ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, you may not use the Platform.</p>
         </section>
 
         <section>
