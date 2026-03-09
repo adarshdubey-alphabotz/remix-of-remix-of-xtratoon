@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
+import { useNightShift } from '@/components/NightShiftToggle';
 import { supabase } from '@/integrations/supabase/client';
 import { animeAvatarUrls } from '@/data/animeAvatarUrls';
 import AvatarPicker from '@/components/profile/AvatarPicker';
@@ -97,8 +98,9 @@ const SectionHeader: React.FC<{ onBack: () => void; title: string }> = ({ onBack
 );
 
 const ProfilePage: React.FC = () => {
-  const { user, profile, loading, updateProfile, changePassword, refreshProfile, logout, deleteAccount, isPublisher, isAdmin, adminMode, setAdminMode } = useAuth();
+  const { user, profile, loading, updateProfile, changePassword, refreshProfile, logout, isPublisher, isAdmin, adminMode, setAdminMode } = useAuth();
   const { theme, toggleTheme, cycleTheme } = useTheme();
+  const { nightShift, toggleNightShift } = useNightShift();
   const navigate = useNavigate();
 
   const [activeSection, setActiveSection] = useState<ActiveSection>('main');
@@ -124,7 +126,7 @@ const ProfilePage: React.FC = () => {
   const [passSubmitting, setPassSubmitting] = useState(false);
   const [compactCards, setCompactCards] = useState<boolean>(() => localStorage.getItem('xtratoon-compact-cards') === 'true');
   const [creatorAlerts, setCreatorAlerts] = useState<boolean>(() => localStorage.getItem('xtratoon-creator-alerts') !== 'false');
-  const [deletingAccount, setDeletingAccount] = useState(false);
+  
   const [customLinkName, setCustomLinkName] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
   const [profileTheme, setProfileTheme] = useState('default');
@@ -260,14 +262,6 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleGlobalLogout = async () => { await logout(); navigate('/'); };
-  const handleDeleteAccount = async () => {
-    if (!user) return;
-    if (!window.confirm('This will permanently delete your account. Continue?')) return;
-    setDeletingAccount(true); setError('');
-    const result = await deleteAccount();
-    if (!result.success) { setError(result.error || 'Could not delete account'); setDeletingAccount(false); return; }
-    navigate('/'); setDeletingAccount(false);
-  };
 
   const updateSocialLink = (key: string, value: string) => {
     setSocialLinks(prev => ({ ...prev, [key]: value }));
@@ -552,9 +546,20 @@ const ProfilePage: React.FC = () => {
           <SettingsRow icon={<LogOut className="w-4 h-4" />} label="Sign Out All Devices" onClick={handleGlobalLogout} />
         </div>
 
-        {/* Danger Zone */}
-        <div className="rounded-2xl border border-destructive/20 bg-card overflow-hidden">
-          <SettingsRow icon={<Trash2 className="w-4 h-4" />} label="Delete Account" danger onClick={handleDeleteAccount} />
+        {/* Night Shift */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={toggleNightShift}>
+            <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+              <Eye className="w-4 h-4 text-orange-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">Night Shift</p>
+              <p className="text-xs text-muted-foreground">Warm color filter for late-night reading</p>
+            </div>
+            <span className={`w-10 h-5 rounded-full transition-colors flex items-center ${nightShift ? 'bg-orange-500 justify-end' : 'bg-muted justify-start'}`}>
+              <span className="w-4 h-4 bg-background rounded-full mx-0.5 shadow-sm" />
+            </span>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -793,11 +798,7 @@ const ProfilePage: React.FC = () => {
             className="w-full py-3 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2">
             <LogOut className="w-4 h-4" /> Sign Out All Devices
           </button>
-          <button onClick={handleDeleteAccount} disabled={deletingAccount}
-            className="w-full py-3 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
-            <Trash2 className="w-4 h-4" /> {deletingAccount ? 'Deleting...' : 'Delete Account'}
-          </button>
-          <p className="text-xs text-muted-foreground text-center">This permanently removes your account and all data.</p>
+          <p className="text-xs text-muted-foreground text-center">Need to delete your account? Contact support@xtratoon.com</p>
         </div>
       </div>
     </motion.div>
