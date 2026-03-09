@@ -43,7 +43,7 @@ const defaultFaqContent = `<h2>Frequently Asked Questions</h2>
 
 <div class="faq-item">
 <h3>Can I publish content in any language?</h3>
-<p>Yes! Xtratoon supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.</p>
+<p>Yes! Komixora supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.</p>
 </div>
 
 <div class="faq-item">
