@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import AdBanner from '@/components/AdBanner';
 
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
