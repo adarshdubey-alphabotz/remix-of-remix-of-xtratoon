@@ -678,6 +678,10 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          <AAdsBanner />
+        </div>
+
         {/* Publish CTA */}
         <ScrollReveal>
           <section className="rounded-3xl border border-border p-8 sm:p-12 text-center relative overflow-hidden bg-muted/20" style={{ boxShadow: 'var(--shadow-card)' }}>
