@@ -65,8 +65,8 @@ const BlogDetailPage: React.FC = () => {
         title={blog.seo_title || blog.title}
         description={blog.seo_description || blog.description || ''}
         image={blog.thumbnail_url}
-        keywords={(blog.seo_keywords || []).join(', ') + ', Xtratoon, xtratoons, manhwa, manga, webtoon'}
-        url={`https://xtratoon.com/blog/${blog.slug}`}
+        keywords={(blog.seo_keywords || []).join(', ') + ', Komixora, komixora, manhwa, manga, webtoon'}
+        url={`https://komixora.fun/blog/${blog.slug}`}
       />
 
       <article className="max-w-3xl mx-auto px-4" itemScope itemType="https://schema.org/BlogPosting">
