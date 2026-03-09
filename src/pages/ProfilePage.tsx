@@ -368,6 +368,27 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
+        {/* Wallet Button - Top of Profile */}
+        {isCreator && (
+          <div className="px-4 pb-2">
+            <button
+              onClick={() => setActiveSection('wallet')}
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-xl flex items-center justify-center text-sm bg-primary/20 text-primary">
+                  <Wallet className="w-4 h-4" />
+                </span>
+                <div className="text-left">
+                  <span className="text-sm font-medium text-foreground block">My Wallet</span>
+                  <span className="text-[10px] text-muted-foreground">Earnings, payouts & payment methods</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-primary" />
+            </button>
+          </div>
+        )}
+
         {/* Notifications Section */}
         <div className="px-4 pb-2">
           <button
