@@ -29,7 +29,7 @@ const OnboardingModal: React.FC = () => {
 
   useEffect(() => {
     if (!user || !profile) return;
-    const onboarded = localStorage.getItem(`xtratoon-onboarded-${user.id}`);
+    const onboarded = localStorage.getItem(`komixora-onboarded-${user.id}`);
     if (!onboarded) {
       // Small delay so it doesn't flash on page load
       const timer = setTimeout(() => setShow(true), 1500);
