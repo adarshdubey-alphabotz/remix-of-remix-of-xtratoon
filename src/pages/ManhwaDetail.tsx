@@ -497,6 +497,10 @@ const ManhwaDetail: React.FC = () => {
         </div>
       </div>
 
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <AAdsBanner />
+      </div>
+
       {/* Report Modal */}
       {showReport && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setShowReport(false)}>
