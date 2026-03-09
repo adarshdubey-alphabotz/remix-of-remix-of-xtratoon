@@ -124,8 +124,8 @@ const ProfilePage: React.FC = () => {
   const [passError, setPassError] = useState('');
   const [passSuccess, setPassSuccess] = useState('');
   const [passSubmitting, setPassSubmitting] = useState(false);
-  const [compactCards, setCompactCards] = useState<boolean>(() => localStorage.getItem('xtratoon-compact-cards') === 'true');
-  const [creatorAlerts, setCreatorAlerts] = useState<boolean>(() => localStorage.getItem('xtratoon-creator-alerts') !== 'false');
+  const [compactCards, setCompactCards] = useState<boolean>(() => localStorage.getItem('komixora-compact-cards') === 'true');
+  const [creatorAlerts, setCreatorAlerts] = useState<boolean>(() => localStorage.getItem('komixora-creator-alerts') !== 'false');
   
   const [customLinkName, setCustomLinkName] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
