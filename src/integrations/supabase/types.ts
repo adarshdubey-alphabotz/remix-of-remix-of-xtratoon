@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_impressions: {
+        Row: {
+          chapter_id: string
+          created_at: string
+          creator_id: string
+          id: string
+          manga_id: string
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          chapter_id: string
+          created_at?: string
+          creator_id: string
+          id?: string
+          manga_id: string
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          chapter_id?: string
+          created_at?: string
+          creator_id?: string
+          id?: string
+          manga_id?: string
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_impressions_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_impressions_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_notifications: {
         Row: {
           created_at: string
@@ -814,6 +859,16 @@ export type Database = {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
+        }
+        Returns: boolean
+      }
+      record_ad_impression: {
+        Args: {
+          p_chapter_id: string
+          p_creator_id: string
+          p_manga_id: string
+          p_session_id: string
+          p_user_id?: string
         }
         Returns: boolean
       }
