@@ -39,7 +39,7 @@ const OnboardingModal: React.FC = () => {
 
   const handleComplete = () => {
     if (user) {
-      localStorage.setItem(`xtratoon-onboarded-${user.id}`, 'true');
+      localStorage.setItem(`komixora-onboarded-${user.id}`, 'true');
     }
     setShow(false);
   };
