@@ -25,7 +25,7 @@ const TermsOfService: React.FC = () => (
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">3. User Accounts</h2>
-          <p>You are responsible for maintaining the security of your account credentials. You agree to notify us immediately of any unauthorized access. Xtratoon is not liable for losses arising from unauthorized account use.</p>
+          <p>You are responsible for maintaining the security of your account credentials. You agree to notify us immediately of any unauthorized access. Komixora is not liable for losses arising from unauthorized account use.</p>
         </section>
 
         <section>
