@@ -148,7 +148,7 @@ const BlogDetailPage: React.FC = () => {
           "publisher": { "@type": "Organization", "name": "Xtratoon" },
         })}} />
 
-        <AAdsBanner className="mt-10 mb-10" />
+        
 
         {/* Related */}
         {related.length > 0 && (
