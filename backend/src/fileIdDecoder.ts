@@ -110,7 +110,7 @@ export function decodeFileId(fileId: string): DecodedFileId {
     const refLen = payload[offset];
     offset += 1;
     if (refLen > 0 && offset + refLen <= payload.length) {
-      fileReference = payload.subarray(offset, offset + refLen);
+      fileReference = Buffer.from(payload.subarray(offset, offset + refLen));
       offset += refLen;
     }
   }
@@ -165,5 +165,5 @@ export function isDocumentType(fileType: number): boolean {
     FILE_TYPES.VIDEO,
     FILE_TYPES.AUDIO,
     FILE_TYPES.VIDEO_NOTE,
-  ].includes(fileType);
+  ].includes(fileType as typeof FILE_TYPES[keyof typeof FILE_TYPES]);
 }

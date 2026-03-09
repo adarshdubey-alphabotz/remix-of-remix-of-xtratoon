@@ -6,6 +6,7 @@
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 import dotenv from "dotenv";
+// @ts-ignore - input module lacks type declarations
 import input from "input";
 
 dotenv.config();
@@ -27,7 +28,7 @@ async function main() {
   });
 
   await client.start({
-    botAuthToken: process.env.TELEGRAM_BOT_TOKEN,
+    botAuthToken: process.env.TELEGRAM_BOT_TOKEN || "",
   });
 
   const session = client.session.save() as unknown as string;
