@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, ImageIcon, Settings, X, LayoutGrid, Image as ImageLucide, Keyboard, ChevronDown, Square, Rows3, GalleryHorizontalEnd } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { getPageImageUrl } from '@/lib/imageUrl';
+import { getPagePageImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
@@ -124,7 +124,7 @@ const ReaderPage: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) { loadingRef.current.delete(pageNum); return; }
 
-    const imgUrl = getImageUrl(pageData.telegram_file_id) || '';
+    const imgUrl =PageImageUrl(pageData.id)| '';
     let img = imageCache.current.get(pageData.id);
     if (!img) {
       const maxRetries = 3;
