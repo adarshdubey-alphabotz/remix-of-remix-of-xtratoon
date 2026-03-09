@@ -6,6 +6,7 @@ import { getImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
+import AdUnlockModal from '@/components/AdUnlockModal';
 
 const PREFETCH_AHEAD = 3;
 
@@ -51,6 +52,10 @@ const ReaderPage: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const autoHideTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Ad unlock state
+  const [showAdUnlock, setShowAdUnlock] = useState(false);
+  const [isChapterUnlocked, setIsChapterUnlocked] = useState(false);
 
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
@@ -108,6 +113,39 @@ const ReaderPage: React.FC = () => {
     },
     enabled: !!manga,
   });
+
+  // ── Ad unlock check ──
+  const needsUnlock = chapterNum > 1 && !!user && !!chapterData;
+
+  const { data: unlockData } = useQuery({
+    queryKey: ['chapter-unlock', user?.id, chapterData?.id],
+    queryFn: async () => {
+      if (!user || !chapterData) return null;
+      const { data } = await supabase
+        .from('chapter_unlocks' as any)
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('chapter_id', chapterData.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: needsUnlock,
+  });
+
+  // Determine if chapter is accessible
+  useEffect(() => {
+    if (chapterNum === 1) {
+      setIsChapterUnlocked(true);
+    } else if (!user) {
+      // Non-logged users see content (they'll need to log in to unlock)
+      setIsChapterUnlocked(true);
+    } else if (unlockData) {
+      setIsChapterUnlocked(true);
+    } else if (needsUnlock && unlockData === null) {
+      setIsChapterUnlocked(false);
+      setShowAdUnlock(true);
+    }
+  }, [chapterNum, user, unlockData, needsUnlock]);
 
   // ── Canvas rendering ──
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
@@ -437,6 +475,23 @@ const ReaderPage: React.FC = () => {
   };
 
   return (
+    <>
+    {/* Ad Unlock Modal */}
+    <AdUnlockModal
+      isOpen={showAdUnlock && !isChapterUnlocked}
+      onClose={() => {
+        setShowAdUnlock(false);
+        navigate(`/manhwa/${manga.slug}`);
+      }}
+      onUnlocked={() => {
+        setIsChapterUnlocked(true);
+        setShowAdUnlock(false);
+      }}
+      chapterId={chapterData.id}
+      mangaId={manga.id}
+      creatorId={manga.creator_id}
+      chapterNumber={chapterNum}
+    />
     <div
       ref={fullscreenRef}
       className="fixed inset-0 bg-[#0d0d0d] z-[100] select-none flex flex-col overflow-hidden"
@@ -882,6 +937,7 @@ const ReaderPage: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

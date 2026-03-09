@@ -139,6 +139,48 @@ export type Database = {
           },
         ]
       }
+      chapter_unlocks: {
+        Row: {
+          chapter_id: string
+          creator_id: string
+          id: string
+          manga_id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter_id: string
+          creator_id: string
+          id?: string
+          manga_id: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string
+          creator_id?: string
+          id?: string
+          manga_id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_unlocks_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_unlocks_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chapters: {
         Row: {
           approval_status: string
@@ -387,6 +429,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      creator_earnings: {
+        Row: {
+          creator_id: string
+          creator_share: number
+          estimated_revenue: number
+          id: string
+          platform_share: number
+          total_unlocks: number
+          updated_at: string
+        }
+        Insert: {
+          creator_id: string
+          creator_share?: number
+          estimated_revenue?: number
+          id?: string
+          platform_share?: number
+          total_unlocks?: number
+          updated_at?: string
+        }
+        Update: {
+          creator_id?: string
+          creator_share?: number
+          estimated_revenue?: number
+          id?: string
+          platform_share?: number
+          total_unlocks?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       follows: {
         Row: {
@@ -742,6 +814,15 @@ export type Database = {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
+        }
+        Returns: boolean
+      }
+      record_chapter_unlock: {
+        Args: {
+          p_chapter_id: string
+          p_creator_id: string
+          p_manga_id: string
+          p_user_id: string
         }
         Returns: boolean
       }
