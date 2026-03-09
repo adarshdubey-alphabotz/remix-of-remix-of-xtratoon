@@ -126,7 +126,7 @@ const ProfilePage: React.FC = () => {
   const [passSubmitting, setPassSubmitting] = useState(false);
   const [compactCards, setCompactCards] = useState<boolean>(() => localStorage.getItem('xtratoon-compact-cards') === 'true');
   const [creatorAlerts, setCreatorAlerts] = useState<boolean>(() => localStorage.getItem('xtratoon-creator-alerts') !== 'false');
-  const [deletingAccount, setDeletingAccount] = useState(false);
+  
   const [customLinkName, setCustomLinkName] = useState('');
   const [customLinkUrl, setCustomLinkUrl] = useState('');
   const [profileTheme, setProfileTheme] = useState('default');
