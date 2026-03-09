@@ -17,7 +17,7 @@ const defaultFaqContent = `<h2>Frequently Asked Questions</h2>
 </div>
 
 <div class="faq-item">
-<h3>How do I start reading on Xtratoon?</h3>
+<h3>How do I start reading on Komixora?</h3>
 <p>Simply create a free account, browse our library of 500+ series, and start reading immediately. No subscription required — just sign up and dive in!</p>
 </div>
 
