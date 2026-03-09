@@ -956,6 +956,7 @@ const ProfilePage: React.FC = () => {
           {activeSection === 'profile-theme' && renderProfileTheme()}
           {activeSection === 'creator' && renderCreator()}
           {activeSection === 'library' && renderLibrary()}
+          {activeSection === 'wallet' && <WalletSection onBack={() => setActiveSection('main')} />}
         </AnimatePresence>
       </div>
     </div>
