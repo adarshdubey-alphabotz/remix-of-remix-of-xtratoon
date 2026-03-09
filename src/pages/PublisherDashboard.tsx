@@ -2,9 +2,10 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon } from 'lucide-react';
+import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import CreatorAnalytics from '@/components/CreatorAnalytics';
+import CreatorEarnings from '@/components/CreatorEarnings';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -112,6 +113,7 @@ const PublisherDashboard: React.FC = () => {
     { id: 'works', label: 'My Works', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'create', label: 'New Manhwa', icon: <Plus className="w-4 h-4" /> },
     { id: 'chapters', label: 'Chapters', icon: <FileText className="w-4 h-4" /> },
+    { id: 'earnings', label: 'Earnings', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
   ];
 
@@ -649,6 +651,14 @@ const PublisherDashboard: React.FC = () => {
                   </>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* EARNINGS TAB */}
+          {activeTab === 'earnings' && (
+            <div>
+              <h2 className="text-display text-3xl mb-6 tracking-wider">EARNINGS</h2>
+              <CreatorEarnings />
             </div>
           )}
 
