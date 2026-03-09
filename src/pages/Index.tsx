@@ -29,11 +29,6 @@ import parallax7 from '@/assets/parallax-7.jpg';
 import featureUpdates from '@/assets/feature-updates.png';
 import featureCreators from '@/assets/feature-creators.png';
 
-const XIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
 
 const FeaturedCard: React.FC<{ manhwa: Manga; index: number }> = ({ manhwa, index }) => {
   const hasCover = !!manhwa.cover_url;
@@ -618,23 +613,23 @@ const HomePage: React.FC = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <motion.a href="https://instagram.com/XtraToon.global" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-border/40 bg-background/50 hover:bg-background/80 hover:-translate-y-1 transition-all duration-400 group w-full sm:w-auto" style={{ backdropFilter: 'blur(20px)', boxShadow: 'var(--shadow-sm)' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0, duration: 0.5 }} whileHover={{ scale: 1.02 }}>
+                <motion.a href="https://instagram.com/komixora.fun" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-border/40 bg-background/50 hover:bg-background/80 hover:-translate-y-1 transition-all duration-400 group w-full sm:w-auto" style={{ backdropFilter: 'blur(20px)', boxShadow: 'var(--shadow-sm)' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0, duration: 0.5 }} whileHover={{ scale: 1.02 }}>
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center text-white flex-shrink-0">
                     <Instagram className="w-5 h-5" />
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-foreground group-hover:text-primary transition-colors">Instagram</p>
-                    <p className="text-xs text-muted-foreground">@XtraToon.global</p>
+                    <p className="text-xs text-muted-foreground">@komixora.fun</p>
                   </div>
                 </motion.a>
 
-                <motion.a href="https://x.com/Xtratoonglobal" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-border/40 bg-background/50 hover:bg-background/80 hover:-translate-y-1 transition-all duration-400 group w-full sm:w-auto" style={{ backdropFilter: 'blur(20px)', boxShadow: 'var(--shadow-sm)' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1, duration: 0.5 }} whileHover={{ scale: 1.02 }}>
-                  <div className="w-12 h-12 rounded-xl bg-foreground flex items-center justify-center text-background flex-shrink-0">
-                    <XIcon />
+                <motion.a href="https://t.me/komixora" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-border/40 bg-background/50 hover:bg-background/80 hover:-translate-y-1 transition-all duration-400 group w-full sm:w-auto" style={{ backdropFilter: 'blur(20px)', boxShadow: 'var(--shadow-sm)' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1, duration: 0.5 }} whileHover={{ scale: 1.02 }}>
+                  <div className="w-12 h-12 rounded-xl bg-[#229ED9] flex items-center justify-center text-white flex-shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
                   </div>
                   <div className="text-left">
-                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors">X (Twitter)</p>
-                    <p className="text-xs text-muted-foreground">@Xtratoonglobal</p>
+                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors">Telegram</p>
+                    <p className="text-xs text-muted-foreground">t.me/komixora</p>
                   </div>
                 </motion.a>
 
