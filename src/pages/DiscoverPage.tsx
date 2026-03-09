@@ -2,6 +2,7 @@ import React from 'react';
 import { Shuffle } from 'lucide-react';
 import SwipeDiscover from '@/components/SwipeDiscover';
 import ScrollReveal from '@/components/ScrollReveal';
+import AAdsBanner from '@/components/AAdsBanner';
 
 const DiscoverPage: React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const DiscoverPage: React.FC = () => {
           <p className="text-sm text-muted-foreground mb-10">Swipe right to like, left to skip. Find your next favorite manhwa!</p>
         </ScrollReveal>
         <SwipeDiscover />
+        <AAdsBanner className="mt-8" />
       </div>
     </div>
   );

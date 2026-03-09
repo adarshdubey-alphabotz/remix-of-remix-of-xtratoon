@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
 import AdUnlockModal, { isChapterUnlockedLocally } from '@/components/AdUnlockModal';
+import AAdsBanner from '@/components/AAdsBanner';
 
 const PREFETCH_AHEAD = 3;
 
@@ -791,8 +792,18 @@ const ReaderPage: React.FC = () => {
                 {pages.map((page, idx) => (
                   <div key={page.id}>
                     {renderPageContent(page, idx)}
+                    {/* Ad after every 10 pages */}
+                    {(idx + 1) % 10 === 0 && idx < pages.length - 1 && (
+                      <div className="py-4">
+                        <AAdsBanner label="Continue Reading ↓" />
+                      </div>
+                    )}
                   </div>
                 ))}
+                {/* Ad at end of strip */}
+                <div className="py-6">
+                  <AAdsBanner />
+                </div>
               </div>
             </div>
           </div>
@@ -850,9 +861,10 @@ const ReaderPage: React.FC = () => {
                   )}
                 </motion.div>
               ) : isEnd ? (
-                <motion.div key="end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex items-center justify-center">
+                <motion.div key="end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex items-center justify-center overflow-y-auto">
                   <div className="text-center space-y-6 p-8">
                     <p className="text-white/60 text-lg font-semibold">End of Chapter {chapterNum}</p>
+                    <AAdsBanner className="max-w-sm mx-auto" />
                     <div className="flex justify-center gap-3">
                       {prevChapter != null && (
                         <Link to={`/read/${manga.slug}/chapter-${prevChapter}`} className="px-5 py-2.5 border border-white/20 text-white text-sm font-medium flex items-center gap-1 hover:bg-white/5 rounded-xl">
