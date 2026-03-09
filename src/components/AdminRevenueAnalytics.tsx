@@ -255,23 +255,6 @@ const AdminRevenueAnalytics: React.FC = () => {
         </div>
       </div>
 
-      <div className="brutal-card p-5 border-primary/30">
-        <h3 className="font-display text-lg tracking-wider mb-2">REVENUE MODEL</h3>
-        <div className="grid sm:grid-cols-3 gap-4 text-sm">
-          <div className="bg-muted/30 rounded-lg p-4">
-            <p className="text-muted-foreground mb-1">CPM Rate</p>
-            <p className="text-xl font-bold">$0.50</p>
-          </div>
-          <div className="bg-muted/30 rounded-lg p-4">
-            <p className="text-muted-foreground mb-1">Creator Split</p>
-            <p className="text-xl font-bold text-green-500">90%</p>
-          </div>
-          <div className="bg-muted/30 rounded-lg p-4">
-            <p className="text-muted-foreground mb-1">Platform Split</p>
-            <p className="text-xl font-bold text-primary">10%</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
