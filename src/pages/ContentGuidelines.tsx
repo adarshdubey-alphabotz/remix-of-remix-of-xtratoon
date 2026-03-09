@@ -18,7 +18,7 @@ const ContentGuidelines: React.FC = () => (
             <ShieldCheck className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-display tracking-wider text-foreground">Our Mission</h2>
           </div>
-          <p>Xtratoon is a platform for creators to share original manhwa, manga, and webtoon content with a global audience. We are committed to fostering a safe, creative, and respectful community.</p>
+          <p>Komixora is a platform for creators to share original manhwa, manga, and webtoon content with a global audience. We are committed to fostering a safe, creative, and respectful community.</p>
         </div>
 
         <section>
