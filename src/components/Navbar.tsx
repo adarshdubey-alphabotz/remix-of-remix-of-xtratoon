@@ -91,7 +91,6 @@ const Navbar: React.FC = () => {
     { to: '/browse', label: 'Browse', icon: Search },
     { to: '/charts', label: 'Charts', icon: BarChart3 },
     { to: '/community', label: 'Community', icon: MessageSquare },
-    { to: '/blog/publish-on-xtratoon', label: 'For Creators', icon: BookOpen },
   ];
 
   const dropdownVariants = {

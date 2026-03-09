@@ -6,7 +6,7 @@ import { getImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
-import AdUnlockModal, { isChapterUnlockedLocally } from '@/components/AdUnlockModal';
+
 
 
 const PREFETCH_AHEAD = 3;
@@ -54,9 +54,8 @@ const ReaderPage: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const autoHideTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Ad unlock state
-  const [showAdUnlock, setShowAdUnlock] = useState(false);
-  const [isChapterUnlocked, setIsChapterUnlocked] = useState(false);
+  // Ad unlock removed — chapters are free now
+  const [isChapterUnlocked] = useState(true);
 
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
@@ -115,21 +114,6 @@ const ReaderPage: React.FC = () => {
     enabled: !!manga,
   });
 
-  // ── Ad unlock check (localStorage first, then DB for logged users) ──
-  useEffect(() => {
-    if (!chapterData) return;
-
-    // First check localStorage (works for everyone)
-    if (isChapterUnlockedLocally(chapterData.id)) {
-      setIsChapterUnlocked(true);
-      setShowAdUnlock(false);
-      return;
-    }
-
-    // Not unlocked locally - show modal
-    setIsChapterUnlocked(false);
-    setShowAdUnlock(true);
-  }, [chapterData?.id]);
 
   // ── Canvas rendering ──
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
@@ -469,22 +453,6 @@ const ReaderPage: React.FC = () => {
 
   return (
     <>
-    {/* Ad Unlock Modal */}
-    <AdUnlockModal
-      isOpen={showAdUnlock && !isChapterUnlocked}
-      onClose={() => {
-        setShowAdUnlock(false);
-        navigate(`/manhwa/${manga.slug}`);
-      }}
-      onUnlocked={() => {
-        setIsChapterUnlocked(true);
-        setShowAdUnlock(false);
-      }}
-      chapterId={chapterData.id}
-      mangaId={manga.id}
-      creatorId={manga.creator_id}
-      chapterNumber={chapterNum}
-    />
     <div
       ref={fullscreenRef}
       className="fixed inset-0 bg-[#0d0d0d] z-[100] select-none flex flex-col overflow-hidden"
