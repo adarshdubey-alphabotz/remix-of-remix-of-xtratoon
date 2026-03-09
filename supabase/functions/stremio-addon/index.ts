@@ -27,7 +27,7 @@ const MANIFEST = {
     },
     {
       type: "other",
-      id: "xtratoon-popular",
+      id: "komixora-popular",
       name: "Popular Manhwa",
       extra: [
         { name: "skip", isRequired: false },

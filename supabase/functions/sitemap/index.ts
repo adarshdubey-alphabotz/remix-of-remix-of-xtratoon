@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
     <image:image>
       <image:loc>${escapeXml(m.cover_url)}</image:loc>
       <image:title>${escapeXml(m.title)}</image:title>
-      <image:caption>${escapeXml(m.title)} cover art on Xtratoon</image:caption>
+      <image:caption>${escapeXml(m.title)} cover art on Komixora</image:caption>
     </image:image>`;
     }
     xml += `
