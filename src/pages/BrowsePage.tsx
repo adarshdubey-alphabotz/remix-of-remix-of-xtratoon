@@ -155,6 +155,9 @@ const BrowsePage: React.FC = () => {
           </div>
         </ScrollReveal>
 
+        {/* Ad Banner */}
+        <AAdsBanner className="mb-6" />
+
         <div className="flex flex-col lg:flex-row gap-8">
           <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center gap-2 px-4 py-2 border-2 border-foreground text-sm font-semibold" style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}>
             <SlidersHorizontal className="w-4 h-4" /> Filters {activeFilters.length > 0 && `(${activeFilters.length})`}
