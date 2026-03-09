@@ -340,7 +340,7 @@ const ProfilePage: React.FC = () => {
               className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
             >
               <LinkIcon className="w-3 h-3" />
-              <span className="hover:underline">xtratoon.com/publisher/{username}</span>
+              <span className="hover:underline">komixora.fun/publisher/{username}</span>
             </button>
           )}
           <span className="mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
