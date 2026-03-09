@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Sparkles, Flame, Loader2 } from 'lucide-react';
+import BecauseYouRead from '@/components/BecauseYouRead';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
