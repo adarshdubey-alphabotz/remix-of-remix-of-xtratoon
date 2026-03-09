@@ -334,7 +334,7 @@ const ProfilePage: React.FC = () => {
           {username && (
             <button
               onClick={() => {
-                navigator.clipboard.writeText(`https://xtratoon.com/publisher/${username}`);
+                navigator.clipboard.writeText(`https://komixora.fun/publisher/${username}`);
                 toast.success('Profile link copied!');
               }}
               className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
