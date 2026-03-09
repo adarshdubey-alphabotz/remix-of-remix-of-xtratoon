@@ -17,6 +17,14 @@ interface AdUnlockModalProps {
 const UNLOCK_DURATION_HOURS = 8;
 const REQUIRED_AWAY_SECONDS = 5;
 
+// Adsterra direct links
+const AD_LINKS = [
+  'https://www.effectivegatecpm.com/u4g7q1apt5?key=e86c0057a37d29e806ed5cd583807d8a',
+  'https://www.effectivegatecpm.com/amypc61tn?key=9c989b1f3915462a8e77b86d9155f7a7',
+];
+
+const getRandomAdLink = () => AD_LINKS[Math.floor(Math.random() * AD_LINKS.length)];
+
 // Get or create session ID
 const getSessionId = (): string => {
   const key = 'xtratoon_session_id';
@@ -62,7 +70,6 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
   const [phase, setPhase] = useState<'click-ad' | 'waiting' | 'verifying' | 'unlocked'>('click-ad');
   const [adClicked, setAdClicked] = useState(false);
   const leftAtRef = useRef<number | null>(null);
-  const visibilityHandlerRef = useRef<(() => void) | null>(null);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -81,10 +88,8 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
       if (document.visibilityState === 'visible' && leftAtRef.current) {
         const awaySeconds = (Date.now() - leftAtRef.current) / 1000;
         if (awaySeconds >= REQUIRED_AWAY_SECONDS) {
-          // User was away for 5+ seconds — verify!
           handleVerify();
         } else {
-          // Came back too fast
           setPhase('click-ad');
           setAdClicked(false);
           leftAtRef.current = null;
@@ -92,19 +97,16 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
       }
     };
 
-    visibilityHandlerRef.current = handleVisibility;
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [isOpen, phase]);
 
-  // Track when user leaves the tab (clicked ad opens new tab)
+  // Track when user leaves the tab
   useEffect(() => {
     if (!isOpen || phase !== 'waiting') return;
 
     const handleBlur = () => {
-      if (!leftAtRef.current) {
-        leftAtRef.current = Date.now();
-      }
+      if (!leftAtRef.current) leftAtRef.current = Date.now();
     };
 
     const handleHidden = () => {
@@ -124,7 +126,7 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
   const handleAdClick = () => {
     setAdClicked(true);
     setPhase('waiting');
-    leftAtRef.current = null; // Will be set when tab loses focus
+    leftAtRef.current = null;
   };
 
   const handleVerify = useCallback(async () => {
@@ -149,9 +151,6 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
   }, [chapterId, mangaId, creatorId, user, onUnlocked]);
 
   if (!isOpen) return null;
-
-  // A-Ads ad URL that opens in new tab
-  const adUrl = 'https://acceptable.a-ads.com/2429877';
 
   return (
     <AnimatePresence>
@@ -203,36 +202,17 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
               {phase === 'unlocked'
                 ? 'Enjoy reading! This chapter is unlocked for 8 hours.'
                 : phase === 'waiting'
-                ? 'Visit the ad page for 5 seconds, then come back here.'
+                ? 'Visit the sponsor page for 5 seconds, then come back here.'
                 : 'Click the button below to visit our sponsor and unlock this chapter for free.'}
             </p>
           </div>
 
-          {/* Ad Preview + Click Area */}
+          {/* Click Area */}
           {(phase === 'click-ad' || phase === 'waiting') && (
             <div className="px-6 pb-4">
-              {/* Embedded ad preview */}
-              <div className="relative bg-muted/30 border border-border rounded-xl overflow-hidden mb-4">
-                <div className="w-full flex justify-center p-2">
-                  <iframe
-                    data-aa="2429877"
-                    src="//acceptable.a-ads.com/2429877/?size=Adaptive"
-                    style={{
-                      border: 0,
-                      padding: 0,
-                      width: '100%',
-                      height: '100px',
-                      overflow: 'hidden',
-                      display: 'block',
-                    }}
-                    title="Ad"
-                  />
-                </div>
-              </div>
-
               {phase === 'click-ad' && (
                 <a
-                  href={adUrl}
+                  href={getRandomAdLink()}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={handleAdClick}
@@ -248,11 +228,11 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
                   <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20 w-full justify-center">
                     <MousePointerClick className="w-4 h-4 text-primary animate-pulse" />
                     <span className="text-sm text-foreground font-medium">
-                      Stay on the ad page for 5 seconds...
+                      Stay on the sponsor page for 5 seconds...
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground text-center">
-                    Come back here after viewing the ad. We'll verify automatically.
+                    Come back here after viewing. We'll verify automatically.
                   </p>
                 </div>
               )}
@@ -298,7 +278,7 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
           <div className="px-6 py-3 bg-muted/30 border-t border-border">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>Support creators with your view</span>
-              <span className="text-primary/60">Powered by A-Ads</span>
+              <span className="text-primary/60">Powered by Adsterra</span>
             </div>
           </div>
         </motion.div>
