@@ -41,7 +41,7 @@ const JsonLd: React.FC = () => (
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": SITE_NAME,
-          "alternateName": ["Xtratoons", "XtraToon"],
+          "alternateName": ["Komixora"],
           "url": SITE_URL,
           "logo": `${SITE_URL}/favicon.ico`,
           "description": "Premium manhwa, manga & webtoon publishing and reading platform. Read Korean manhwa, Japanese manga, and webtoons online in HD quality.",
