@@ -15,6 +15,33 @@ interface AdUnlockModalProps {
 }
 
 const COUNTDOWN_SECONDS = 5;
+const UNLOCK_DURATION_HOURS = 8;
+
+// LocalStorage key generator
+const getUnlockKey = (chapterId: string) => `chapter_unlock_${chapterId}`;
+
+// Check if chapter is unlocked via localStorage
+export const isChapterUnlockedLocally = (chapterId: string): boolean => {
+  try {
+    const stored = localStorage.getItem(getUnlockKey(chapterId));
+    if (!stored) return false;
+    const timestamp = parseInt(stored, 10);
+    const now = Date.now();
+    const hoursDiff = (now - timestamp) / (1000 * 60 * 60);
+    return hoursDiff < UNLOCK_DURATION_HOURS;
+  } catch {
+    return false;
+  }
+};
+
+// Store unlock in localStorage
+const storeUnlockLocally = (chapterId: string) => {
+  try {
+    localStorage.setItem(getUnlockKey(chapterId), Date.now().toString());
+  } catch {
+    // localStorage not available, ignore
+  }
+};
 
 const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
   isOpen,
@@ -56,36 +83,29 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
 
   const handleVerify = useCallback(async () => {
     if (!canVerify) return;
-    
-    // If user is not logged in, still unlock (no tracking)
-    if (!user) {
-      setPhase('unlocked');
-      setTimeout(() => onUnlocked(), 1200);
-      return;
-    }
-
     setPhase('verifying');
 
-    try {
-      const { data, error } = await supabase.rpc('record_chapter_unlock', {
-        p_user_id: user.id,
-        p_chapter_id: chapterId,
-        p_manga_id: mangaId,
-        p_creator_id: creatorId,
-      });
+    // Always store locally for everyone
+    storeUnlockLocally(chapterId);
 
-      if (error) throw error;
-      
-      setPhase('unlocked');
-      setTimeout(() => {
-        onUnlocked();
-      }, 1200);
-    } catch (err) {
-      console.error('Unlock error:', err);
-      setPhase('unlocked');
-      setTimeout(() => onUnlocked(), 1200);
+    // If logged in, also track in DB for creator earnings
+    if (user) {
+      try {
+        await supabase.rpc('record_chapter_unlock', {
+          p_user_id: user.id,
+          p_chapter_id: chapterId,
+          p_manga_id: mangaId,
+          p_creator_id: creatorId,
+        });
+      } catch (err) {
+        console.error('Unlock tracking error:', err);
+        // Don't block unlock on error
+      }
     }
-  }, [user, canVerify, chapterId, mangaId, creatorId, onUnlocked]);
+
+    setPhase('unlocked');
+    setTimeout(() => onUnlocked(), 1000);
+  }, [canVerify, chapterId, mangaId, creatorId, user, onUnlocked]);
 
   if (!isOpen) return null;
 
@@ -103,15 +123,15 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-lg bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden"
+          className="relative w-full max-w-lg bg-card border border-border rounded-2xl overflow-hidden"
         >
           {/* Close button */}
           {phase !== 'verifying' && (
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
             >
-              <X className="w-4 h-4 text-white/70" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
 
@@ -124,20 +144,20 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: 'spring', damping: 15 }}
                 >
-                  <Unlock className="w-6 h-6 text-green-400" />
+                  <Unlock className="w-6 h-6 text-green-500" />
                 </motion.div>
               ) : (
                 <Lock className="w-6 h-6 text-primary" />
               )}
-              <h2 className="text-lg font-bold text-white">
+              <h2 className="text-lg font-bold text-foreground">
                 {phase === 'unlocked'
                   ? 'Chapter Unlocked!'
                   : `Unlock Chapter ${chapterNumber}`}
               </h2>
             </div>
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-muted-foreground">
               {phase === 'unlocked'
-                ? 'Enjoy reading! 90% of ad revenue goes to the creator.'
+                ? 'Enjoy reading! This chapter is unlocked for 8 hours.'
                 : 'Watch the ad below and verify to unlock this chapter for free.'}
             </p>
           </div>
@@ -145,7 +165,7 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
           {/* Ad Container */}
           {phase !== 'unlocked' && (
             <div className="px-6 pb-4">
-              <div className="relative bg-black/40 border border-white/5 rounded-xl overflow-hidden min-h-[120px]">
+              <div className="relative bg-muted/30 border border-border rounded-xl overflow-hidden min-h-[120px]">
                 {/* A-Ads iframe */}
                 <div className="w-full flex justify-center p-2">
                   <iframe
@@ -165,9 +185,9 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
 
                 {/* Countdown overlay */}
                 {!canVerify && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1.5 px-3 py-1.5 bg-black/70 backdrop-blur rounded-full">
+                  <div className="absolute top-2 right-2 flex items-center gap-1.5 px-3 py-1.5 bg-background/90 backdrop-blur rounded-full border border-border">
                     <Timer className="w-3.5 h-3.5 text-primary animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-white">{countdown}s</span>
+                    <span className="text-xs font-mono font-bold text-foreground">{countdown}s</span>
                   </div>
                 )}
               </div>
@@ -183,7 +203,7 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
                 transition={{ type: 'spring', damping: 12 }}
                 className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center"
               >
-                <CheckCircle2 className="w-10 h-10 text-green-400" />
+                <CheckCircle2 className="w-10 h-10 text-green-500" />
               </motion.div>
             </div>
           )}
@@ -197,7 +217,7 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
                 className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   canVerify
                     ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/25'
-                    : 'bg-white/5 text-white/30 cursor-not-allowed'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed'
                 }`}
               >
                 {canVerify ? (
@@ -215,9 +235,9 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
             )}
 
             {phase === 'verifying' && (
-              <div className="flex items-center justify-center gap-2 py-3.5 text-white/50">
+              <div className="flex items-center justify-center gap-2 py-3.5 text-muted-foreground">
                 <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                <span className="text-sm">Verifying...</span>
+                <span className="text-sm">Unlocking...</span>
               </div>
             )}
 
@@ -225,17 +245,17 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center text-xs text-white/30"
+                className="text-center text-xs text-muted-foreground"
               >
-                Redirecting to chapter...
+                Opening chapter...
               </motion.div>
             )}
           </div>
 
           {/* Revenue info bar */}
-          <div className="px-6 py-3 bg-white/[0.02] border-t border-white/5">
-            <div className="flex items-center justify-between text-xs text-white/30">
-              <span>Creator gets 90% of ad revenue</span>
+          <div className="px-6 py-3 bg-muted/30 border-t border-border">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Support creators with your view</span>
               <span className="text-primary/60">Powered by A-Ads</span>
             </div>
           </div>
