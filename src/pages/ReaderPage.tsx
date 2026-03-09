@@ -937,6 +937,7 @@ const ReaderPage: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
