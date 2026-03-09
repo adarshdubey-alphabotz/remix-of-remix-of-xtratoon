@@ -17,7 +17,7 @@ const MANIFEST = {
   catalogs: [
     {
       type: "other",
-      id: "xtratoon-latest",
+      id: "komixora-latest",
       name: "Latest Manhwa",
       extra: [
         { name: "search", isRequired: false },
