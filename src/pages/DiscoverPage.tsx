@@ -2,7 +2,7 @@ import React from 'react';
 import { Shuffle } from 'lucide-react';
 import SwipeDiscover from '@/components/SwipeDiscover';
 import ScrollReveal from '@/components/ScrollReveal';
-import AAdsBanner from '@/components/AAdsBanner';
+
 
 const DiscoverPage: React.FC = () => {
   return (
