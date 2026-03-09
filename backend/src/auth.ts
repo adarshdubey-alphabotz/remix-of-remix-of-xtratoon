@@ -6,6 +6,7 @@
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 import dotenv from "dotenv";
+// @ts-ignore - input module lacks type declarations
 import input from "input";
 
 dotenv.config();
