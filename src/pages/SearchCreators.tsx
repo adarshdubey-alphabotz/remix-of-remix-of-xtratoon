@@ -146,6 +146,11 @@ const SearchCreators: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-32 bg-background">
+      <DynamicMeta
+        title="Find Creators — Manhwa Artists & Publishers"
+        description="Discover and follow top manhwa creators, manga artists, and webtoon publishers on Komixora. Browse creator profiles, view portfolios, and support your favorites."
+        keywords="manhwa creators, manga artists, webtoon publishers, follow creators, Komixora creators"
+      />
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">Find Creators</h1>
