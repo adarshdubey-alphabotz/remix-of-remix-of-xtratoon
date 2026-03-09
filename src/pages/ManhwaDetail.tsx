@@ -448,6 +448,9 @@ const ManhwaDetail: React.FC = () => {
               </ScrollReveal>
             )}
 
+            {/* Ad Banner between chapters and comments */}
+            <AAdsBanner className="my-4" />
+
             <ScrollReveal delay={0.2}>
               <CommentSection mangaId={manhwa.id} mangaTitle={manhwa.title} creatorId={manhwa.creator_id} />
             </ScrollReveal>

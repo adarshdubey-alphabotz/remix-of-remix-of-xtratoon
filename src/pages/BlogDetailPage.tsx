@@ -111,12 +111,18 @@ const BlogDetailPage: React.FC = () => {
           </ScrollReveal>
         )}
 
+        {/* Ad Banner before content */}
+        <AAdsBanner className="my-8" />
+
         {/* Content */}
         <div
           className="prose prose-invert max-w-none blog-content"
           itemProp="articleBody"
           dangerouslySetInnerHTML={{ __html: blog.content }}
         />
+
+        {/* Ad Banner after content */}
+        <AAdsBanner className="my-8" />
 
         {/* Tags */}
         {(blog.seo_keywords || []).length > 0 && (

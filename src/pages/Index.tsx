@@ -651,6 +651,9 @@ const HomePage: React.FC = () => {
           </section>
         </ScrollReveal>
 
+        {/* Ad Banner between FAQ and CTA */}
+        <AAdsBanner className="py-4" />
+
         {/* FAQ Section */}
         <section>
           <ScrollReveal>
