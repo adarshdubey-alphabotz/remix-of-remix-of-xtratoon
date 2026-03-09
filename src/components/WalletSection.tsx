@@ -601,6 +601,33 @@ const WalletSection: React.FC<WalletSectionProps> = ({ onBack }) => {
                         <p>Net: <span className="text-foreground font-medium">${Number(payout.net_amount).toFixed(2)}</span></p>
                         {payout.notes && <p className="text-yellow-500 mt-1">{payout.notes}</p>}
                       </div>
+                      
+                      {/* Admin Response */}
+                      {(payout.admin_response_note || payout.admin_response_screenshot) && (
+                        <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Admin Response</p>
+                          {payout.admin_response_note && (
+                            <p className="text-xs text-foreground bg-muted/30 rounded-lg p-2">{payout.admin_response_note}</p>
+                          )}
+                          {payout.admin_response_screenshot && (
+                            <div>
+                              <p className="text-[10px] text-muted-foreground mb-1">Payment Proof:</p>
+                              <a href={payout.admin_response_screenshot} target="_blank" rel="noopener noreferrer">
+                                <img 
+                                  src={payout.admin_response_screenshot} 
+                                  alt="Payment proof" 
+                                  className="w-full max-h-48 object-contain rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" 
+                                />
+                              </a>
+                            </div>
+                          )}
+                          {payout.processed_at && (
+                            <p className="text-[10px] text-muted-foreground">
+                              Processed: {new Date(payout.processed_at).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })

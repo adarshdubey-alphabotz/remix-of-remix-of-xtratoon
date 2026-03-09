@@ -364,6 +364,10 @@ const AdminPanel: React.FC = () => {
             <AdminRevenueAnalytics />
           )}
 
+          {activeTab === 'payouts' && (
+            <AdminPayoutManager />
+          )}
+
           {activeTab === 'submissions' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">PENDING SUBMISSIONS</h2>
