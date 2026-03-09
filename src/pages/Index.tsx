@@ -398,7 +398,7 @@ const HomePage: React.FC = () => {
               >
                 <div className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-full text-xs font-semibold mb-6 bg-muted/30 backdrop-blur-sm">
                   <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                  Featured — {featured?.title || 'Xtratoon'}
+                  Featured — {featured?.title || 'Komixora'}
                 </div>
                 <h1 className="text-display text-[14vw] sm:text-7xl lg:text-8xl xl:text-[9rem] leading-[0.85] tracking-wider">
                   <motion.span className="block" initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}>DISCOVER</motion.span>
