@@ -801,12 +801,6 @@ const ReaderPage: React.FC = () => {
                 {pages.map((page, idx) => (
                   <div key={page.id}>
                     {renderPageContent(page, idx)}
-                    {/* Ad after every 10 pages */}
-                    {(idx + 1) % 10 === 0 && idx < pages.length - 1 && (
-                      <div className="py-4">
-                        <AAdsBanner label="Continue Reading ↓" />
-                      </div>
-                    )}
                   </div>
                 ))}
                 {/* Ad at end of strip */}
