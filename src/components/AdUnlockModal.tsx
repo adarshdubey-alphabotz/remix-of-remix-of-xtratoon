@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Unlock, Timer, CheckCircle2, X } from 'lucide-react';
+import { Lock, Unlock, ExternalLink, CheckCircle2, X, MousePointerClick } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -14,10 +14,10 @@ interface AdUnlockModalProps {
   chapterNumber: number;
 }
 
-const COUNTDOWN_SECONDS = 5;
 const UNLOCK_DURATION_HOURS = 8;
+const REQUIRED_AWAY_SECONDS = 5;
 
-// Get or create session ID (persists across sessions)
+// Get or create session ID
 const getSessionId = (): string => {
   const key = 'xtratoon_session_id';
   let sessionId = localStorage.getItem(key);
@@ -28,10 +28,8 @@ const getSessionId = (): string => {
   return sessionId;
 };
 
-// LocalStorage key generator
 const getUnlockKey = (chapterId: string) => `chapter_unlock_${chapterId}`;
 
-// Check if chapter is unlocked via localStorage
 export const isChapterUnlockedLocally = (chapterId: string): boolean => {
   try {
     const stored = localStorage.getItem(getUnlockKey(chapterId));
@@ -45,13 +43,10 @@ export const isChapterUnlockedLocally = (chapterId: string): boolean => {
   }
 };
 
-// Store unlock in localStorage
 const storeUnlockLocally = (chapterId: string) => {
   try {
     localStorage.setItem(getUnlockKey(chapterId), Date.now().toString());
-  } catch {
-    // localStorage not available
-  }
+  } catch {}
 };
 
 const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
@@ -64,42 +59,78 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
   chapterNumber,
 }) => {
   const { user } = useAuth();
-  const [phase, setPhase] = useState<'ad' | 'verifying' | 'unlocked'>('ad');
-  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
-  const [canVerify, setCanVerify] = useState(false);
+  const [phase, setPhase] = useState<'click-ad' | 'waiting' | 'verifying' | 'unlocked'>('click-ad');
+  const [adClicked, setAdClicked] = useState(false);
+  const leftAtRef = useRef<number | null>(null);
+  const visibilityHandlerRef = useRef<(() => void) | null>(null);
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setPhase('ad');
-      setCountdown(COUNTDOWN_SECONDS);
-      setCanVerify(false);
+      setPhase('click-ad');
+      setAdClicked(false);
+      leftAtRef.current = null;
     }
   }, [isOpen]);
 
-  // Countdown timer
+  // Listen for user returning after clicking ad
   useEffect(() => {
-    if (!isOpen || phase !== 'ad' || countdown <= 0) return;
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          setCanVerify(true);
-          return 0;
+    if (!isOpen || phase !== 'waiting') return;
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && leftAtRef.current) {
+        const awaySeconds = (Date.now() - leftAtRef.current) / 1000;
+        if (awaySeconds >= REQUIRED_AWAY_SECONDS) {
+          // User was away for 5+ seconds — verify!
+          handleVerify();
+        } else {
+          // Came back too fast
+          setPhase('click-ad');
+          setAdClicked(false);
+          leftAtRef.current = null;
         }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isOpen, phase, countdown]);
+      }
+    };
+
+    visibilityHandlerRef.current = handleVisibility;
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [isOpen, phase]);
+
+  // Track when user leaves the tab (clicked ad opens new tab)
+  useEffect(() => {
+    if (!isOpen || phase !== 'waiting') return;
+
+    const handleBlur = () => {
+      if (!leftAtRef.current) {
+        leftAtRef.current = Date.now();
+      }
+    };
+
+    const handleHidden = () => {
+      if (document.visibilityState === 'hidden' && !leftAtRef.current) {
+        leftAtRef.current = Date.now();
+      }
+    };
+
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('visibilitychange', handleHidden);
+    return () => {
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('visibilitychange', handleHidden);
+    };
+  }, [isOpen, phase]);
+
+  const handleAdClick = () => {
+    setAdClicked(true);
+    setPhase('waiting');
+    leftAtRef.current = null; // Will be set when tab loses focus
+  };
 
   const handleVerify = useCallback(async () => {
-    if (!canVerify) return;
     setPhase('verifying');
-
-    // Store locally for this device
     storeUnlockLocally(chapterId);
 
-    // Track ad impression for creator earnings (works for ALL users)
     try {
       const sessionId = getSessionId();
       await supabase.rpc('record_ad_impression', {
@@ -111,14 +142,16 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
       });
     } catch (err) {
       console.error('Ad impression tracking error:', err);
-      // Don't block unlock on tracking error
     }
 
     setPhase('unlocked');
     setTimeout(() => onUnlocked(), 1000);
-  }, [canVerify, chapterId, mangaId, creatorId, user, onUnlocked]);
+  }, [chapterId, mangaId, creatorId, user, onUnlocked]);
 
   if (!isOpen) return null;
+
+  // A-Ads ad URL that opens in new tab
+  const adUrl = 'https://acceptable.a-ads.com/2429877';
 
   return (
     <AnimatePresence>
@@ -169,15 +202,17 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
             <p className="text-sm text-muted-foreground">
               {phase === 'unlocked'
                 ? 'Enjoy reading! This chapter is unlocked for 8 hours.'
-                : 'Watch the ad below and verify to unlock this chapter for free.'}
+                : phase === 'waiting'
+                ? 'Visit the ad page for 5 seconds, then come back here.'
+                : 'Click the button below to visit our sponsor and unlock this chapter for free.'}
             </p>
           </div>
 
-          {/* Ad Container */}
-          {phase !== 'unlocked' && (
+          {/* Ad Preview + Click Area */}
+          {(phase === 'click-ad' || phase === 'waiting') && (
             <div className="px-6 pb-4">
-              <div className="relative bg-muted/30 border border-border rounded-xl overflow-hidden min-h-[120px]">
-                {/* A-Ads iframe */}
+              {/* Embedded ad preview */}
+              <div className="relative bg-muted/30 border border-border rounded-xl overflow-hidden mb-4">
                 <div className="w-full flex justify-center p-2">
                   <iframe
                     data-aa="2429877"
@@ -193,15 +228,34 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
                     title="Ad"
                   />
                 </div>
-
-                {/* Countdown overlay */}
-                {!canVerify && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1.5 px-3 py-1.5 bg-background/90 backdrop-blur rounded-full border border-border">
-                    <Timer className="w-3.5 h-3.5 text-primary animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-foreground">{countdown}s</span>
-                  </div>
-                )}
               </div>
+
+              {phase === 'click-ad' && (
+                <a
+                  href={adUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleAdClick}
+                  className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/25 transition-all duration-300"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Visit Sponsor & Unlock
+                </a>
+              )}
+
+              {phase === 'waiting' && (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20 w-full justify-center">
+                    <MousePointerClick className="w-4 h-4 text-primary animate-pulse" />
+                    <span className="text-sm text-foreground font-medium">
+                      Stay on the ad page for 5 seconds...
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Come back here after viewing the ad. We'll verify automatically.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -219,40 +273,17 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
             </div>
           )}
 
-          {/* Action Button */}
-          <div className="px-6 pb-6">
-            {phase === 'ad' && (
-              <button
-                onClick={handleVerify}
-                disabled={!canVerify}
-                className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
-                  canVerify
-                    ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/25'
-                    : 'bg-muted text-muted-foreground cursor-not-allowed'
-                }`}
-              >
-                {canVerify ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Verify & Unlock
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <Timer className="w-4 h-4" />
-                    Wait {countdown} seconds...
-                  </span>
-                )}
-              </button>
-            )}
+          {/* Verifying state */}
+          {phase === 'verifying' && (
+            <div className="px-6 pb-6 flex items-center justify-center gap-2 py-3.5 text-muted-foreground">
+              <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              <span className="text-sm">Verifying & unlocking...</span>
+            </div>
+          )}
 
-            {phase === 'verifying' && (
-              <div className="flex items-center justify-center gap-2 py-3.5 text-muted-foreground">
-                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                <span className="text-sm">Unlocking...</span>
-              </div>
-            )}
-
-            {phase === 'unlocked' && (
+          {/* Unlocked closing text */}
+          {phase === 'unlocked' && (
+            <div className="px-6 pb-6">
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -260,8 +291,8 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
               >
                 Opening chapter...
               </motion.div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Revenue info bar */}
           <div className="px-6 py-3 bg-muted/30 border-t border-border">
