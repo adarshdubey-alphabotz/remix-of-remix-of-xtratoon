@@ -28,7 +28,7 @@ async function main() {
   });
 
   await client.start({
-    botAuthToken: process.env.TELEGRAM_BOT_TOKEN,
+    botAuthToken: process.env.TELEGRAM_BOT_TOKEN || "",
   });
 
   const session = client.session.save() as unknown as string;

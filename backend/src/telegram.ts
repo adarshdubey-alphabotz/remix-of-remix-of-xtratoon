@@ -66,10 +66,10 @@ async function getBotApiFileInfo(fileId: string): Promise<{ path: string; size: 
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN!;
   const res = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-  const data = await res.json();
+  const data = await res.json() as { ok: boolean; description?: string; result: { file_path: string; file_size?: number } };
   if (!data.ok) throw new Error(`getFile failed: ${data.description}`);
 
-  const info = { path: data.result.file_path as string, size: (data.result.file_size || 0) as number };
+  const info = { path: data.result.file_path, size: (data.result.file_size || 0) };
   pathCache.set(fileId, info);
 
   const ext = info.path.split(".").pop()?.toLowerCase() || "";

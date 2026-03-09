@@ -165,5 +165,5 @@ export function isDocumentType(fileType: number): boolean {
     FILE_TYPES.VIDEO,
     FILE_TYPES.AUDIO,
     FILE_TYPES.VIDEO_NOTE,
-  ].includes(fileType);
+  ].includes(fileType as typeof FILE_TYPES[keyof typeof FILE_TYPES]);
 }
