@@ -289,8 +289,8 @@ const faqData = [
   { q: 'When do I get paid?', a: 'Payouts are processed at the end of every month. Once your earnings are calculated, they\'re sent to your preferred payment method within 5-7 business days.' },
   { q: 'What payment methods are supported?', a: 'We support UPI (India), bKash (Bangladesh), PayPal (Global), and Crypto via Binance. More payment methods are being added regularly.' },
   { q: 'Is there a minimum payout threshold?', a: 'Yes, the minimum payout is $10 (or equivalent in local currency). This ensures efficient processing for all creators.' },
-  { q: 'How do I publish my manhwa on Xtratoon?', a: 'Simply create a publisher account, upload your chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one.' },
-  { q: 'Can I publish content in any language?', a: 'Yes! Xtratoon supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.' },
+  { q: 'How do I publish my manhwa on Komixora?', a: 'Simply create a publisher account, upload your chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one.' },
+  { q: 'Can I publish content in any language?', a: 'Yes! Komixora supports content in multiple languages. We have readers from around the world, so your stories can reach a global audience.' },
 ];
 
 const TrendingBlogs: React.FC = () => {
