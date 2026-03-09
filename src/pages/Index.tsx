@@ -384,7 +384,7 @@ const HomePage: React.FC = () => {
             style={{ y: heroY }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[25vw] sm:text-[18vw] font-display text-foreground/[0.03] leading-none tracking-widest whitespace-nowrap"
           >
-            XTRATOON
+            KOMIXORA
           </motion.span>
         </div>
 
