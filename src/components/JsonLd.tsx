@@ -13,9 +13,9 @@ const JsonLd: React.FC = () => (
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": SITE_NAME,
-          "alternateName": ["Xtratoons", "XtraToon", "Xtra Toon", "xtratoon.com"],
+          "alternateName": ["Komixora", "komixora.fun"],
           "url": SITE_URL,
-          "description": "Xtratoon is the #1 platform to read manhwa, manga, webtoons, and comics online for free. Discover trending series, follow top creators, and publish your own manhwa.",
+          "description": "Komixora is the #1 platform to read manhwa, manga, webtoons, and comics online for free. Discover trending series, follow top creators, and publish your own manhwa.",
           "inLanguage": "en",
           "potentialAction": {
             "@type": "SearchAction",
