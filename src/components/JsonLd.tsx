@@ -1,7 +1,7 @@
 import React from 'react';
 
-const SITE_URL = 'https://xtratoon.com';
-const SITE_NAME = 'Xtratoon';
+const SITE_URL = 'https://komixora.fun';
+const SITE_NAME = 'Komixora';
 
 const JsonLd: React.FC = () => (
   <>
