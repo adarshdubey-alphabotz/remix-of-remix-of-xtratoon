@@ -554,9 +554,20 @@ const ProfilePage: React.FC = () => {
           <SettingsRow icon={<LogOut className="w-4 h-4" />} label="Sign Out All Devices" onClick={handleGlobalLogout} />
         </div>
 
-        {/* Danger Zone */}
-        <div className="rounded-2xl border border-destructive/20 bg-card overflow-hidden">
-          <SettingsRow icon={<Trash2 className="w-4 h-4" />} label="Delete Account" danger onClick={handleDeleteAccount} />
+        {/* Night Shift */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={toggleNightShift}>
+            <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+              <Eye className="w-4 h-4 text-orange-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">Night Shift</p>
+              <p className="text-xs text-muted-foreground">Warm color filter for late-night reading</p>
+            </div>
+            <span className={`w-10 h-5 rounded-full transition-colors flex items-center ${nightShift ? 'bg-orange-500 justify-end' : 'bg-muted justify-start'}`}>
+              <span className="w-4 h-4 bg-background rounded-full mx-0.5 shadow-sm" />
+            </span>
+          </div>
         </div>
       </div>
     </motion.div>
