@@ -284,6 +284,11 @@ const CommunityPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <DynamicMeta
+        title="Community — Manhwa Discussion & Fan Posts"
+        description="Join the Komixora community! Discuss your favorite manhwa, manga, and webtoons. Share posts, follow creators, and connect with fans worldwide."
+        keywords="manhwa community, manga discussion, webtoon fans, Komixora community, manhwa forum"
+      />
       <div className="max-w-5xl mx-auto flex">
         <div className="flex-1 max-w-xl mx-auto border-x border-border/30 min-h-screen">
           {/* Sticky header */}
