@@ -62,7 +62,7 @@ async function handleCatalog(catalogId: string, extra: Record<string, string>) {
     .eq("approval_status", "APPROVED")
     .range(skip, skip + limit - 1);
 
-  if (catalogId === "xtratoon-popular") {
+  if (catalogId === "komixora-popular") {
     query = query.order("views", { ascending: false });
   } else {
     query = query.order("created_at", { ascending: false });
