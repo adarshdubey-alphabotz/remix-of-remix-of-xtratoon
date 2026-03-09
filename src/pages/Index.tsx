@@ -493,7 +493,7 @@ const HomePage: React.FC = () => {
       {/* Trending Blogs Section */}
       <TrendingBlogs />
 
-      <AdBanner className="py-8" />
+      
 
 
       {/* Content */}

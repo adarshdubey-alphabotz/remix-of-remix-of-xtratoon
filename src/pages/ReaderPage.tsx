@@ -453,22 +453,6 @@ const ReaderPage: React.FC = () => {
 
   return (
     <>
-    {/* Ad Unlock Modal */}
-    <AdUnlockModal
-      isOpen={showAdUnlock && !isChapterUnlocked}
-      onClose={() => {
-        setShowAdUnlock(false);
-        navigate(`/manhwa/${manga.slug}`);
-      }}
-      onUnlocked={() => {
-        setIsChapterUnlocked(true);
-        setShowAdUnlock(false);
-      }}
-      chapterId={chapterData.id}
-      mangaId={manga.id}
-      creatorId={manga.creator_id}
-      chapterNumber={chapterNum}
-    />
     <div
       ref={fullscreenRef}
       className="fixed inset-0 bg-[#0d0d0d] z-[100] select-none flex flex-col overflow-hidden"
