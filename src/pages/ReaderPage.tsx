@@ -54,9 +54,8 @@ const ReaderPage: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const autoHideTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Ad unlock state
-  const [showAdUnlock, setShowAdUnlock] = useState(false);
-  const [isChapterUnlocked, setIsChapterUnlocked] = useState(false);
+  // Ad unlock removed — chapters are free now
+  const [isChapterUnlocked] = useState(true);
 
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
