@@ -262,14 +262,6 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleGlobalLogout = async () => { await logout(); navigate('/'); };
-  const handleDeleteAccount = async () => {
-    if (!user) return;
-    if (!window.confirm('This will permanently delete your account. Continue?')) return;
-    setDeletingAccount(true); setError('');
-    const result = await deleteAccount();
-    if (!result.success) { setError(result.error || 'Could not delete account'); setDeletingAccount(false); return; }
-    navigate('/'); setDeletingAccount(false);
-  };
 
   const updateSocialLink = (key: string, value: string) => {
     setSocialLinks(prev => ({ ...prev, [key]: value }));
