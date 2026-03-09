@@ -113,7 +113,7 @@ const BlogDetailPage: React.FC = () => {
         )}
 
         {/* Ad Banner before content */}
-
+        <AdBanner className="my-8" />
         {/* Content */}
         <div
           className="prose prose-invert max-w-none blog-content"
