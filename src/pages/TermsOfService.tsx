@@ -66,7 +66,7 @@ const TermsOfService: React.FC = () => (
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">10. Contact</h2>
-          <p>For questions about these terms, reach us on <a href="https://instagram.com/XtraToon.global" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Instagram</a> or <a href="https://x.com/Xtratoonglobal" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">X (Twitter)</a>.</p>
+          <p>For questions about these terms, reach us on <a href="https://instagram.com/komixora.fun" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Instagram</a> or <a href="https://t.me/komixora" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Telegram</a>.</p>
         </section>
       </div>
     </div>

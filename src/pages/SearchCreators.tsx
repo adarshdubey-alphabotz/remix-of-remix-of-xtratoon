@@ -79,15 +79,27 @@ const SearchCreators: React.FC = () => {
   const { data: suggested = [] } = useQuery({
     queryKey: ['suggested-creators'],
     queryFn: async () => {
+      // Fetch admin account separately to pin at top
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', 'admin')
+        .maybeSingle();
+
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
         .or('role_type.eq.publisher,role_type.eq.creator')
         .not('username', 'is', null)
+        .neq('username', 'admin')
         .order('created_at', { ascending: false })
-        .limit(12);
-      if (!profiles || profiles.length === 0) return [];
-      return enrichCreators(profiles as Profile[]);
+        .limit(11);
+
+      const allProfiles: Profile[] = [];
+      if (adminProfile) allProfiles.push(adminProfile as Profile);
+      if (profiles) allProfiles.push(...(profiles as Profile[]));
+      if (allProfiles.length === 0) return [];
+      return enrichCreators(allProfiles);
     },
     staleTime: 60000,
   });

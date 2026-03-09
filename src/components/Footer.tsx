@@ -1,12 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Heart, BookOpen, Users, BarChart3, Shield } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Instagram, Heart, BookOpen, Users, Shield } from 'lucide-react';
 import mascotImg from '@/assets/mascot-character.png';
 
-const XIcon = () => (
+const TelegramIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
   </svg>
 );
 
@@ -15,30 +14,18 @@ const floatKeyframes = `
   0%, 100% { transform: translateY(0px) rotate(-2deg); }
   50% { transform: translateY(-12px) rotate(2deg); }
 }
-@keyframes mascotWave {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(15deg); }
-  75% { transform: rotate(-5deg); }
-}
 `;
 
 const Footer: React.FC = () => (
   <footer className="relative border-t border-border bg-background overflow-hidden">
     <style>{floatKeyframes}</style>
 
-    {/* Animated mascot - positioned inside footer, not overflowing */}
     <div className="absolute top-4 right-4 sm:right-12 lg:right-24 z-10 pointer-events-none select-none">
       <div style={{ animation: 'mascotFloat 4s ease-in-out infinite' }}>
-        <img
-          src={mascotImg}
-          alt="Komixora Mascot"
-          className="w-20 sm:w-28 lg:w-32 drop-shadow-lg"
-          loading="lazy"
-        />
+        <img src={mascotImg} alt="Komixora Mascot" className="w-20 sm:w-28 lg:w-32 drop-shadow-lg" loading="lazy" />
       </div>
     </div>
 
-    {/* Background accent glow */}
     <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
 
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 relative z-[1]">
@@ -56,7 +43,7 @@ const Footer: React.FC = () => (
           </p>
           <div className="flex gap-2 pt-1">
             <a
-              href="https://instagram.com/XtraToon.global"
+              href="https://instagram.com/komixora.fun"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
@@ -65,13 +52,13 @@ const Footer: React.FC = () => (
               <Instagram className="w-5 h-5" />
             </a>
             <a
-              href="https://x.com/Xtratoonglobal"
+              href="https://t.me/komixora"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
-              aria-label="Follow us on X"
+              aria-label="Join us on Telegram"
             >
-              <XIcon />
+              <TelegramIcon />
             </a>
           </div>
         </div>
@@ -126,21 +113,21 @@ const Footer: React.FC = () => (
         </p>
         <div className="flex items-center gap-4">
           <a
-            href="https://instagram.com/XtraToon.global"
+            href="https://instagram.com/komixora.fun"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-muted-foreground hover:text-primary transition-colors"
           >
-            @XtraToon.global
+            @komixora.fun
           </a>
           <span className="text-muted-foreground/30">·</span>
           <a
-            href="https://x.com/Xtratoonglobal"
+            href="https://t.me/komixora"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-muted-foreground hover:text-primary transition-colors"
           >
-            @Xtratoonglobal
+            t.me/komixora
           </a>
         </div>
       </div>
