@@ -66,7 +66,7 @@ const buildPayoutEmailHtml = (
         ${screenshotUrl ? `<div style="margin:16px 0;"><p style="font-size:12px;color:#888;margin:0 0 8px;">Payment Proof:</p><img src="${screenshotUrl}" style="max-width:100%;border-radius:8px;border:1px solid #eee;" /></div>` : ''}
       </div>
       <div style="padding:16px 0;border-top:2px solid #f0f0f0;text-align:center;">
-        <p style="margin:0;font-size:12px;color:#aaa;">© XtraToon — You received this because you requested a payout.</p>
+        <p style="margin:0;font-size:12px;color:#aaa;">© Komixora — You received this because you requested a payout.</p>
       </div>
     </div>
   `;

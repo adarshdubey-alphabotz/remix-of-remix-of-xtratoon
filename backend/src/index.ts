@@ -48,7 +48,7 @@ async function start() {
     await getTelegramClient();
 
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`\n🚀 Xtratoon MTProto Stream Backend`);
+      console.log(`\n🚀 Komixora MTProto Stream Backend`);
       console.log(`   Port: ${PORT}`);
       console.log(`   Health: http://localhost:${PORT}/health`);
       console.log(`   Stream: http://localhost:${PORT}/api/stream?file_id=XXX`);

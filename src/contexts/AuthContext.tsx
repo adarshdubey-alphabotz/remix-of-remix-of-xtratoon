@@ -442,7 +442,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         adminMode: isAdmin ? adminMode : false,
         setAdminMode: (mode: boolean) => {
           setAdminMode(mode);
-          try { localStorage.setItem('xtratoon-admin-mode', String(mode)); } catch {}
+          try { localStorage.setItem('komixora-admin-mode', String(mode)); } catch {}
         },
       }}
     >

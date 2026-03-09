@@ -499,7 +499,7 @@ const HomePage: React.FC = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 space-y-24 sm:space-y-36">
 
-        {/* Why Choose Xtratoon */}
+        {/* Why Choose Komixora */}
         <WhyChooseSection />
 
         {/* Revenue Model — Animated Step-by-Step */}
