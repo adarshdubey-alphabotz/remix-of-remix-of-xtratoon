@@ -168,7 +168,7 @@ async function handleStream(mangaId: string, chapterId: string) {
 
   // Provide each page as a stream source
   const streams = pages.map((page) => ({
-    name: `Xtratoon`,
+    name: `Komixora`,
     title: `${manga?.title || "Manhwa"} - Ch.${chapter?.chapter_number || "?"} - Page ${page.page_number}`,
     url: `${supabaseUrl}/functions/v1/telegram-proxy?file_id=${encodeURIComponent(page.telegram_file_id)}&stream=true`,
     behaviorHints: {
