@@ -1,5 +1,4 @@
-import React, { useRef, useState } from 'react';
-
+import React, { useRef, useState, lazy, Suspense } from 'react';
 
 import { Link } from 'react-router-dom';
 import { Star, Play, ArrowRight, Instagram, Globe, CheckCircle2, Eye, Banknote, Wallet, ShieldCheck, ChevronDown, HelpCircle } from 'lucide-react';
@@ -15,7 +14,8 @@ import avatar1 from '@/assets/avatar-1.png';
 import avatar2 from '@/assets/avatar-2.png';
 import avatar3 from '@/assets/avatar-3.png';
 import avatar4 from '@/assets/avatar-4.png';
-import { HeroParallax } from '@/components/ui/hero-parallax';
+
+const LazyHeroParallax = lazy(() => import('@/components/ui/hero-parallax').then(m => ({ default: m.HeroParallax })));
 
 import featureLibrary from '@/assets/feature-library.png';
 
@@ -459,36 +459,38 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Hero Parallax Showcase */}
-      <HeroParallax
-        products={[
-          { title: 'Solo Leveling', link: '/browse', thumbnail: parallax1 },
-          { title: 'Cherry Blossom', link: '/browse', thumbnail: parallax2 },
-          { title: 'Epic Battle', link: '/browse', thumbnail: parallax3 },
-          { title: 'Gothic Castle', link: '/browse', thumbnail: parallax4 },
-          { title: 'Cyberpunk City', link: '/browse', thumbnail: parallax5 },
-          { title: 'Underwater World', link: '/browse', thumbnail: parallax6 },
-          { title: 'Dragon Realm', link: '/browse', thumbnail: parallax7 },
-          { title: 'Dark Fantasy', link: '/browse', thumbnail: parallax1 },
-          { title: 'Romance Arc', link: '/browse', thumbnail: parallax2 },
-          { title: 'Action Scene', link: '/browse', thumbnail: parallax3 },
-          { title: 'Night Kingdom', link: '/browse', thumbnail: parallax4 },
-          { title: 'Neon Streets', link: '/browse', thumbnail: parallax5 },
-          { title: 'Ocean Depths', link: '/browse', thumbnail: parallax6 },
-          { title: 'Sky Dragons', link: '/browse', thumbnail: parallax7 },
-          { title: 'Shadow Warrior', link: '/browse', thumbnail: parallax1 },
-        ]}
-        header={
-          <div className="max-w-7xl relative mx-auto py-20 md:py-40 px-4 w-full left-0 top-0">
-            <h1 className="text-display text-5xl sm:text-7xl lg:text-9xl tracking-wider text-foreground leading-[0.9]">
-              EXPLORE EVERY<br />
-              <span className="text-primary">GENRE</span> WITH US
-            </h1>
-            <p className="max-w-2xl text-sm sm:text-base md:text-xl mt-8 text-muted-foreground leading-relaxed">
-              From action-packed adventures to heartfelt romances — dive into a universe of stories crafted by world-class creators.
-            </p>
-          </div>
-        }
-      />
+      <Suspense fallback={<div className="h-[100vh] bg-background" />}>
+        <LazyHeroParallax
+          products={[
+            { title: 'Solo Leveling', link: '/browse', thumbnail: parallax1 },
+            { title: 'Cherry Blossom', link: '/browse', thumbnail: parallax2 },
+            { title: 'Epic Battle', link: '/browse', thumbnail: parallax3 },
+            { title: 'Gothic Castle', link: '/browse', thumbnail: parallax4 },
+            { title: 'Cyberpunk City', link: '/browse', thumbnail: parallax5 },
+            { title: 'Underwater World', link: '/browse', thumbnail: parallax6 },
+            { title: 'Dragon Realm', link: '/browse', thumbnail: parallax7 },
+            { title: 'Dark Fantasy', link: '/browse', thumbnail: parallax1 },
+            { title: 'Romance Arc', link: '/browse', thumbnail: parallax2 },
+            { title: 'Action Scene', link: '/browse', thumbnail: parallax3 },
+            { title: 'Night Kingdom', link: '/browse', thumbnail: parallax4 },
+            { title: 'Neon Streets', link: '/browse', thumbnail: parallax5 },
+            { title: 'Ocean Depths', link: '/browse', thumbnail: parallax6 },
+            { title: 'Sky Dragons', link: '/browse', thumbnail: parallax7 },
+            { title: 'Shadow Warrior', link: '/browse', thumbnail: parallax1 },
+          ]}
+          header={
+            <div className="max-w-7xl relative mx-auto py-20 md:py-40 px-4 w-full left-0 top-0">
+              <h1 className="text-display text-5xl sm:text-7xl lg:text-9xl tracking-wider text-foreground leading-[0.9]">
+                EXPLORE EVERY<br />
+                <span className="text-primary">GENRE</span> WITH US
+              </h1>
+              <p className="max-w-2xl text-sm sm:text-base md:text-xl mt-8 text-muted-foreground leading-relaxed">
+                From action-packed adventures to heartfelt romances — dive into a universe of stories crafted by world-class creators.
+              </p>
+            </div>
+          }
+        />
+      </Suspense>
 
       {/* Trending Blogs Section */}
       <TrendingBlogs />

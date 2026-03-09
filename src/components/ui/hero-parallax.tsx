@@ -191,6 +191,8 @@ export const ProductCard = ({
           src={product.thumbnail}
           className="object-cover object-left-top absolute h-full w-full inset-0 rounded-lg"
           alt={product.title}
+          loading="lazy"
+          decoding="async"
         />
       </Link>
       <div className="absolute inset-0 h-full w-full opacity-0 group-hover/product:opacity-80 bg-foreground/80 pointer-events-none rounded-lg"></div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface ScrollRevealProps {
@@ -16,13 +16,14 @@ const directionMap: Record<string, { x: number; y: number }> = {
   right: { x: -1, y: 0 },
 };
 
-const ScrollReveal: React.FC<ScrollRevealProps> = ({ 
+const ScrollReveal = forwardRef<HTMLDivElement, ScrollRevealProps>(({ 
   children, className, delay = 0, direction = 'up', distance = 40 
-}) => {
+}, ref) => {
   const dir = directionMap[direction];
   
   return (
     <motion.div
+      ref={ref}
       className={className}
       initial={{ 
         opacity: 0, 
@@ -40,7 +41,9 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
       {children}
     </motion.div>
   );
-};
+});
+
+ScrollReveal.displayName = 'ScrollReveal';
 
 export default ScrollReveal;
 
