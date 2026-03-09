@@ -112,7 +112,6 @@ const BlogDetailPage: React.FC = () => {
         )}
 
         {/* Ad Banner before content */}
-        <AAdsBanner className="my-8" />
 
         {/* Content */}
         <div
