@@ -8,10 +8,10 @@ const corsHeaders = {
 
 // ─── Stremio Addon Manifest ─────────────────────────────────
 const MANIFEST = {
-  id: "community.xtratoon",
+  id: "community.komixora",
   version: "1.0.0",
-  name: "Xtratoon",
-  description: "Browse and read manhwa from Xtratoon via Stremio",
+  name: "Komixora",
+  description: "Browse and read manhwa from Komixora via Stremio",
   logo: "https://glassy-ink-verse.lovable.app/favicon.ico",
   types: ["other"],
   catalogs: [
