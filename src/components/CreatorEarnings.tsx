@@ -187,7 +187,7 @@ const CreatorEarnings: React.FC = () => {
           <Calendar className="w-5 h-5" /> PAYOUT INFO
         </h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Earnings are calculated at $0.50 CPM. You receive 90% of all ad revenue.
+          Earnings are calculated at $0.01 CPM. You receive 90% of all ad revenue.
         </p>
         <div className="bg-muted/30 rounded-lg p-4 space-y-2 text-sm">
           <div className="flex justify-between">
