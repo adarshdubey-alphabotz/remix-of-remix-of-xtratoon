@@ -803,10 +803,6 @@ const ReaderPage: React.FC = () => {
                     {renderPageContent(page, idx)}
                   </div>
                 ))}
-                {/* Ad at end of strip */}
-                <div className="py-6">
-                  <AAdsBanner />
-                </div>
               </div>
             </div>
           </div>
