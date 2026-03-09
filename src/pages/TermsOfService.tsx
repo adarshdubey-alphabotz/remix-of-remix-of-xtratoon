@@ -30,7 +30,7 @@ const TermsOfService: React.FC = () => (
 
         <section>
           <h2 className="text-lg font-display tracking-wider text-foreground mb-2">4. Content & Intellectual Property</h2>
-          <p>Creators retain ownership of their original content. By publishing on Xtratoon, you grant us a non-exclusive, worldwide license to display, distribute, and promote your content on the Platform. You must not upload content that infringes on third-party copyrights or trademarks.</p>
+          <p>Creators retain ownership of their original content. By publishing on Komixora, you grant us a non-exclusive, worldwide license to display, distribute, and promote your content on the Platform. You must not upload content that infringes on third-party copyrights or trademarks.</p>
         </section>
 
         <section>
