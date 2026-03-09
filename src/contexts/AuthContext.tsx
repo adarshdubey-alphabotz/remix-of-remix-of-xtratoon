@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPublisher, setIsPublisher] = useState(false);
   const [adminMode, setAdminMode] = useState(() => {
-    try { return localStorage.getItem('xtratoon-admin-mode') === 'true'; } catch { return true; }
+    try { return localStorage.getItem('komixora-admin-mode') === 'true'; } catch { return true; }
   });
 
   const fetchProfile = useCallback(async (userId: string) => {
