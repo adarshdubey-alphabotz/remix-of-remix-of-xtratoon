@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, ImageIcon, Settings, X, LayoutGrid, Image as ImageLucide, Keyboard, ChevronDown, Square, Rows3, GalleryHorizontalEnd } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { getImageUrl } from '@/lib/imageUrl';
+import { getPageImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
