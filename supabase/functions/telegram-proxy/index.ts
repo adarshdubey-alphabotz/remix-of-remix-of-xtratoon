@@ -22,34 +22,32 @@ function getSupabase() {
 }
 
 /**
- * Check if file already exists in Storage bucket.
- * Returns the public URL if cached, null otherwise.
+ * Check if file is cached in Storage bucket and return its bytes.
  */
-async function getCachedUrl(supabase: ReturnType<typeof getSupabase>, fileId: string): Promise<string | null> {
-  // Use a safe filename from the file_id
+async function getCachedFile(
+  supabase: ReturnType<typeof getSupabase>,
+  fileId: string
+): Promise<{ data: ArrayBuffer; contentType: string } | null> {
   const safeName = fileId.replace(/[^a-zA-Z0-9_-]/g, "_");
-  
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(`cache/${safeName}`);
-  if (!data?.publicUrl) return null;
+  const storagePath = `cache/${safeName}`;
 
-  // Check if the file actually exists by doing a HEAD request
-  try {
-    const res = await fetch(data.publicUrl, { method: "HEAD" });
-    if (res.ok) return data.publicUrl;
-  } catch {
-    // File doesn't exist yet
-  }
-  return null;
+  const { data, error } = await supabase.storage.from(BUCKET).download(storagePath);
+  if (error || !data) return null;
+
+  const ext = safeName.split(".").pop()?.toLowerCase() || "";
+  const contentType = mimeMap[ext] || data.type || "image/jpeg";
+
+  return { data: await data.arrayBuffer(), contentType };
 }
 
 /**
- * Download from Telegram and upload to Storage bucket for permanent caching.
+ * Download from Telegram, cache in Storage, return the bytes.
  */
 async function downloadAndCache(
   supabase: ReturnType<typeof getSupabase>,
   botToken: string,
   fileId: string
-): Promise<{ publicUrl: string; contentType: string }> {
+): Promise<{ data: ArrayBuffer; contentType: string }> {
   // 1. Get file path from Telegram
   const getFileRes = await fetch(
     `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`
@@ -68,25 +66,24 @@ async function downloadAndCache(
 
   const fileBuffer = await fileRes.arrayBuffer();
 
-  // 3. Upload to Supabase Storage
+  // 3. Upload to Supabase Storage (fire and forget for speed)
   const safeName = fileId.replace(/[^a-zA-Z0-9_-]/g, "_");
   const storagePath = `cache/${safeName}`;
 
-  const { error: uploadError } = await supabase.storage
+  // Don't await — cache in background so response is fast
+  supabase.storage
     .from(BUCKET)
     .upload(storagePath, fileBuffer, {
       contentType,
       upsert: true,
       cacheControl: "public, max-age=31536000, immutable",
+    })
+    .then(({ error }) => {
+      if (error) console.warn("Cache upload failed:", error.message);
+      else console.log("Cached:", safeName);
     });
 
-  if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
-
-  // 4. Get public URL
-  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
-  if (!urlData?.publicUrl) throw new Error("Failed to get public URL");
-
-  return { publicUrl: urlData.publicUrl, contentType };
+  return { data: fileBuffer, contentType };
 }
 
 // ─── Main Handler ───────────────────────────────────────────
@@ -121,34 +118,30 @@ Deno.serve(async (req) => {
 
     const supabase = getSupabase();
 
-    // Check if already cached in Storage
-    const cachedUrl = await getCachedUrl(supabase, telegramFileId);
-    if (cachedUrl) {
-      // Redirect to cached file (instant, no Telegram call)
-      return new Response(null, {
-        status: 302,
+    // 1. Check if cached in Storage
+    const cached = await getCachedFile(supabase, telegramFileId);
+    if (cached) {
+      return new Response(cached.data, {
+        status: 200,
         headers: {
           ...corsHeaders,
-          "Location": cachedUrl,
-          "Cache-Control": "public, max-age=86400",
+          "Content-Type": cached.contentType,
+          "Cache-Control": "public, max-age=86400, immutable",
+          "Content-Length": String(cached.data.byteLength),
         },
       });
     }
 
-    // Not cached — download from Telegram & cache in Storage
-    const { publicUrl } = await downloadAndCache(
-      supabase,
-      TELEGRAM_BOT_TOKEN,
-      telegramFileId
-    );
+    // 2. Not cached — download from Telegram, cache in background, serve immediately
+    const result = await downloadAndCache(supabase, TELEGRAM_BOT_TOKEN, telegramFileId);
 
-    // Redirect to the newly cached file
-    return new Response(null, {
-      status: 302,
+    return new Response(result.data, {
+      status: 200,
       headers: {
         ...corsHeaders,
-        "Location": publicUrl,
+        "Content-Type": result.contentType,
         "Cache-Control": "public, max-age=86400",
+        "Content-Length": String(result.data.byteLength),
       },
     });
   } catch (error: unknown) {
