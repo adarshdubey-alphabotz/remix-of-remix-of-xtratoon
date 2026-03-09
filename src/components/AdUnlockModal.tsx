@@ -17,6 +17,17 @@ interface AdUnlockModalProps {
 const COUNTDOWN_SECONDS = 5;
 const UNLOCK_DURATION_HOURS = 8;
 
+// Get or create session ID (persists across sessions)
+const getSessionId = (): string => {
+  const key = 'xtratoon_session_id';
+  let sessionId = localStorage.getItem(key);
+  if (!sessionId) {
+    sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem(key, sessionId);
+  }
+  return sessionId;
+};
+
 // LocalStorage key generator
 const getUnlockKey = (chapterId: string) => `chapter_unlock_${chapterId}`;
 
@@ -39,7 +50,7 @@ const storeUnlockLocally = (chapterId: string) => {
   try {
     localStorage.setItem(getUnlockKey(chapterId), Date.now().toString());
   } catch {
-    // localStorage not available, ignore
+    // localStorage not available
   }
 };
 
@@ -85,22 +96,22 @@ const AdUnlockModal: React.FC<AdUnlockModalProps> = ({
     if (!canVerify) return;
     setPhase('verifying');
 
-    // Always store locally for everyone
+    // Store locally for this device
     storeUnlockLocally(chapterId);
 
-    // If logged in, also track in DB for creator earnings
-    if (user) {
-      try {
-        await supabase.rpc('record_chapter_unlock', {
-          p_user_id: user.id,
-          p_chapter_id: chapterId,
-          p_manga_id: mangaId,
-          p_creator_id: creatorId,
-        });
-      } catch (err) {
-        console.error('Unlock tracking error:', err);
-        // Don't block unlock on error
-      }
+    // Track ad impression for creator earnings (works for ALL users)
+    try {
+      const sessionId = getSessionId();
+      await supabase.rpc('record_ad_impression', {
+        p_session_id: sessionId,
+        p_chapter_id: chapterId,
+        p_manga_id: mangaId,
+        p_creator_id: creatorId,
+        p_user_id: user?.id || null,
+      });
+    } catch (err) {
+      console.error('Ad impression tracking error:', err);
+      // Don't block unlock on tracking error
     }
 
     setPhase('unlocked');
