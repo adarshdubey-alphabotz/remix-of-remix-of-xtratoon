@@ -63,6 +63,10 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Track SPA page views in Google Analytics
+    if (typeof window.gtag === 'function') {
+      window.gtag('config', 'G-ZVXWVDJDQG', { page_path: pathname });
+    }
   }, [pathname]);
   return null;
 };
