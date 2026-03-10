@@ -1062,6 +1062,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      sync_community_post_counts: {
+        Args: { p_post_id: string }
+        Returns: undefined
+      }
+      sync_manga_engagement_counts: {
+        Args: { p_manga_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "publisher" | "reader"
