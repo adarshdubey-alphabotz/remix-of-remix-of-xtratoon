@@ -72,28 +72,10 @@ const AdminPanel: React.FC = () => {
     enabled: isAdmin,
   });
 
-  // Helper: send email notification (fire-and-forget)
-  const sendEmailNotification = async (event: string, userId: string, details?: any) => {
-    try {
-      await supabase.functions.invoke('notify-user', {
-        body: { event, user_id: userId, details },
-      });
-    } catch (e) {
-      console.error('Email notification failed:', e);
-    }
-  };
-
   const updateApproval = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      // Get manga details for email
-      const { data: manga } = await supabase.from('manga').select('title, creator_id').eq('id', id).single();
       const { error } = await supabase.from('manga').update({ approval_status: status }).eq('id', id);
       if (error) throw error;
-      // Send email notification
-      if (manga) {
-        const event = status === 'APPROVED' ? 'manga_approved' : 'manga_rejected';
-        sendEmailNotification(event, manga.creator_id, { title: manga.title });
-      }
     },
     onSuccess: () => {
       toast.success('Status updated');
@@ -106,13 +88,8 @@ const AdminPanel: React.FC = () => {
 
   const deleteManga = useMutation({
     mutationFn: async (id: string) => {
-      // Get manga info for email before deleting
-      const { data: manga } = await supabase.from('manga').select('title, creator_id').eq('id', id).single();
       const { error } = await supabase.from('manga').delete().eq('id', id);
       if (error) throw error;
-      if (manga) {
-        sendEmailNotification('content_deleted', manga.creator_id, { title: manga.title });
-      }
     },
     onSuccess: () => {
       toast.success('Manhwa deleted');
@@ -126,7 +103,6 @@ const AdminPanel: React.FC = () => {
     mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
       const { error } = await supabase.from('profiles').update({ is_banned: true, banned_reason: reason } as any).eq('user_id', userId);
       if (error) throw error;
-      sendEmailNotification('banned', userId, { reason });
     },
     onSuccess: () => {
       toast.success('User banned');
@@ -139,7 +115,6 @@ const AdminPanel: React.FC = () => {
     mutationFn: async (userId: string) => {
       const { error } = await supabase.from('profiles').update({ is_banned: false, banned_reason: null } as any).eq('user_id', userId);
       if (error) throw error;
-      sendEmailNotification('unbanned', userId);
     },
     onSuccess: () => {
       toast.success('User unbanned');
@@ -320,17 +295,8 @@ const AdminPanel: React.FC = () => {
 
   const updateChapterApproval = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      // Get chapter + manga details for email
-      const { data: chapter } = await supabase.from('chapters').select('chapter_number, manga_id, manga(title, creator_id)').eq('id', id).single() as any;
       const { error } = await supabase.from('chapters').update({ approval_status: status } as any).eq('id', id);
       if (error) throw error;
-      if (chapter?.manga) {
-        const event = status === 'APPROVED' ? 'chapter_approved' : 'chapter_rejected';
-        sendEmailNotification(event, chapter.manga.creator_id, {
-          title: chapter.manga.title,
-          chapter_number: chapter.chapter_number,
-        });
-      }
     },
     onSuccess: () => {
       toast.success('Chapter status updated');
@@ -417,12 +383,11 @@ const AdminPanel: React.FC = () => {
                 <div className="brutal-card overflow-hidden">
                   <table className="w-full text-sm">
                     <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                      <th className="px-4 py-3">ID</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Genres</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Actions</th>
+                      <th className="px-4 py-3">Title</th><th className="px-4 py-3">Genres</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Actions</th>
                     </tr></thead>
                     <tbody>
                       {(pendingManga || []).map(m => (
                         <tr key={m.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
-                          <td className="px-4 py-3"><code className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono text-primary">{m.id.slice(0, 8).toUpperCase()}</code></td>
                           <td className="px-4 py-3 font-semibold">{m.title}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{(m.genres || []).join(', ')}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</td>
@@ -434,7 +399,7 @@ const AdminPanel: React.FC = () => {
                           </td>
                         </tr>
                       ))}
-                      {(!pendingManga || pendingManga.length === 0) && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No pending submissions 🎉</td></tr>}
+                      {(!pendingManga || pendingManga.length === 0) && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No pending submissions 🎉</td></tr>}
                     </tbody>
                   </table>
                 </div>
@@ -451,12 +416,11 @@ const AdminPanel: React.FC = () => {
                 <div className="brutal-card overflow-hidden">
                   <table className="w-full text-sm">
                     <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                      <th className="px-4 py-3">ID</th><th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
+                      <th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
                     </tr></thead>
                     <tbody>
                       {pendingChapters.map((c: any) => (
                         <tr key={c.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
-                          <td className="px-4 py-3"><code className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono text-primary">{c.manga_id?.slice(0, 8).toUpperCase()}</code></td>
                           <td className="px-4 py-3 font-semibold">{c.manga?.title || '—'}</td>
                           <td className="px-4 py-3">Ch. {c.chapter_number}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{c.title || '—'}</td>
@@ -469,7 +433,7 @@ const AdminPanel: React.FC = () => {
                           </td>
                         </tr>
                       ))}
-                      {pendingChapters.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No chapters pending review 🎉</td></tr>}
+                      {pendingChapters.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No chapters pending review 🎉</td></tr>}
                     </tbody>
                   </table>
                 </div>
@@ -583,12 +547,11 @@ const AdminPanel: React.FC = () => {
               <div className="brutal-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                    <th className="px-4 py-3">ID</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Approval</th><th className="px-4 py-3">Views</th><th className="px-4 py-3">Actions</th>
+                    <th className="px-4 py-3">Title</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Approval</th><th className="px-4 py-3">Views</th><th className="px-4 py-3">Actions</th>
                   </tr></thead>
                   <tbody>
                     {(allManga || []).map(m => (
                       <tr key={m.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
-                        <td className="px-4 py-3"><code className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono text-primary">{m.id.slice(0, 8).toUpperCase()}</code></td>
                         <td className="px-4 py-3 font-semibold">{m.title}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30">{m.status}</span></td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30">{m.approval_status}</span></td>
@@ -612,7 +575,7 @@ const AdminPanel: React.FC = () => {
                 <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-bold">Ban Appeal Process</p>
-                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:support@komixora.fun" className="text-primary hover:underline font-semibold">support@komixora.fun</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:admin@komixora.fun" className="text-primary hover:underline font-semibold">admin@komixora.fun</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
                 </div>
               </div>
               <div className="brutal-card overflow-hidden">

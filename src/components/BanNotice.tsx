@@ -28,8 +28,8 @@ const BanNotice: React.FC = () => {
               <p className="text-sm font-bold">Appeal this decision</p>
               <p className="text-xs text-muted-foreground mt-1">
                 If you believe this was a mistake, you can submit an appeal by emailing us at{' '}
-                <a href="mailto:support@komixora.fun" className="text-primary hover:underline font-semibold">
-                  support@komixora.fun
+                <a href="mailto:admin@komixora.fun" className="text-primary hover:underline font-semibold">
+                  admin@komixora.fun
                 </a>
               </p>
               <p className="text-xs text-muted-foreground mt-2">

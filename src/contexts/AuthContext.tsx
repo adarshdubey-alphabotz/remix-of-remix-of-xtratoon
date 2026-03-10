@@ -329,13 +329,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (ensured.error) {
             return { success: false, error: ensured.error };
           }
-          // Send welcome email after 5 seconds to avoid rate limits
-          const userId = signUpData.user.id;
-          setTimeout(() => {
-            supabase.functions.invoke('notify-user', {
-              body: { event: 'welcome', user_id: userId, details: { name: displayName } },
-            }).catch(console.error);
-          }, 5000);
         }
 
         setShowAuthModal(false);

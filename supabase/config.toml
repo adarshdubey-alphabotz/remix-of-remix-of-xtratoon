@@ -17,6 +17,3 @@ verify_jwt = false
 
 [functions.publish-scheduled]
 verify_jwt = false
-
-[functions.notify-user]
-verify_jwt = false

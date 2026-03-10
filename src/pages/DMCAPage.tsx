@@ -25,7 +25,7 @@ const DMCAPage: React.FC = () => (
 
         <section className="brutal-card p-6 space-y-3">
           <h2 className="text-foreground font-semibold text-base">How to File a DMCA Takedown Notice</h2>
-          <p>If you believe that content on Komixora infringes your copyright, please send a written notice to <a href="mailto:support@komixora.fun" className="text-primary hover:underline">support@komixora.fun</a> containing:</p>
+          <p>If you believe that content on Komixora infringes your copyright, please send a written notice to <a href="mailto:admin@komixora.fun" className="text-primary hover:underline">admin@komixora.fun</a> containing:</p>
           <ol className="list-decimal ml-5 space-y-2">
             <li>A physical or electronic signature of the copyright owner or authorized agent.</li>
             <li>Identification of the copyrighted work claimed to have been infringed.</li>
@@ -39,7 +39,7 @@ const DMCAPage: React.FC = () => (
         <section className="brutal-card p-6 space-y-3">
           <h2 className="text-foreground font-semibold text-base">Counter-Notification</h2>
           <p>
-            If you believe your content was removed by mistake or misidentification, you may submit a counter-notification to <a href="mailto:support@komixora.fun" className="text-primary hover:underline">support@komixora.fun</a> with the required information under the DMCA.
+            If you believe your content was removed by mistake or misidentification, you may submit a counter-notification to <a href="mailto:admin@komixora.fun" className="text-primary hover:underline">admin@komixora.fun</a> with the required information under the DMCA.
           </p>
         </section>
 
