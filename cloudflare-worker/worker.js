@@ -201,9 +201,9 @@ async function serveBotResponse(url) {
       title: "Komixora — Read Manhwa, Manga & Webtoons Online Free",
       description: "The #1 platform to read manhwa, manga, and webtoons online for free. Discover trending series, follow top creators, and publish your own manhwa.",
     },
-    "/home": {
-      title: "Komixora — Read Manhwa, Manga & Webtoons Online Free",
-      description: "The #1 platform to read manhwa, manga, and webtoons online for free.",
+    "/about": {
+      title: "About Komixora — Read Manhwa, Manga & Webtoons Online Free",
+      description: "Learn about Komixora — the #1 platform to read manhwa, manga, and webtoons online for free.",
     },
     "/browse": {
       title: "Browse Manhwa & Manga — Komixora",
