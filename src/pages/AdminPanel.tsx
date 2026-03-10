@@ -383,11 +383,12 @@ const AdminPanel: React.FC = () => {
                 <div className="brutal-card overflow-hidden">
                   <table className="w-full text-sm">
                     <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                      <th className="px-4 py-3">Title</th><th className="px-4 py-3">Genres</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Actions</th>
+                      <th className="px-4 py-3">TG ID</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Genres</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Actions</th>
                     </tr></thead>
                     <tbody>
                       {(pendingManga || []).map(m => (
                         <tr key={m.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                          <td className="px-4 py-3 font-mono text-xs text-primary" title={m.id}>{m.id.slice(0, 8).toUpperCase()}</td>
                           <td className="px-4 py-3 font-semibold">{m.title}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{(m.genres || []).join(', ')}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</td>
@@ -399,7 +400,7 @@ const AdminPanel: React.FC = () => {
                           </td>
                         </tr>
                       ))}
-                      {(!pendingManga || pendingManga.length === 0) && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No pending submissions 🎉</td></tr>}
+                      {(!pendingManga || pendingManga.length === 0) && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No pending submissions 🎉</td></tr>}
                     </tbody>
                   </table>
                 </div>
@@ -416,11 +417,12 @@ const AdminPanel: React.FC = () => {
                 <div className="brutal-card overflow-hidden">
                   <table className="w-full text-sm">
                     <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                      <th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
+                      <th className="px-4 py-3">TG ID</th><th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
                     </tr></thead>
                     <tbody>
                       {pendingChapters.map((c: any) => (
                         <tr key={c.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                          <td className="px-4 py-3 font-mono text-xs text-primary" title={c.manga_id}>{c.manga_id?.slice(0, 8).toUpperCase()}</td>
                           <td className="px-4 py-3 font-semibold">{c.manga?.title || '—'}</td>
                           <td className="px-4 py-3">Ch. {c.chapter_number}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{c.title || '—'}</td>
@@ -433,7 +435,7 @@ const AdminPanel: React.FC = () => {
                           </td>
                         </tr>
                       ))}
-                      {pendingChapters.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No chapters pending review 🎉</td></tr>}
+                      {pendingChapters.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No chapters pending review 🎉</td></tr>}
                     </tbody>
                   </table>
                 </div>
@@ -575,7 +577,7 @@ const AdminPanel: React.FC = () => {
                 <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-bold">Ban Appeal Process</p>
-                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:admin@komixora.fun" className="text-primary hover:underline font-semibold">admin@komixora.fun</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:support@komixora.fun" className="text-primary hover:underline font-semibold">support@komixora.fun</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
                 </div>
               </div>
               <div className="brutal-card overflow-hidden">
