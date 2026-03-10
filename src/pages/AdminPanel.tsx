@@ -394,7 +394,7 @@ const AdminPanel: React.FC = () => {
                       {(pendingManga || []).map(m => (
                         <tr key={m.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
                           <td className="px-4 py-3 font-mono text-xs text-primary" title={m.id}>{m.id.slice(0, 8).toUpperCase()}</td>
-                          <td className="px-4 py-3 font-semibold">{m.title}</td>
+                          <td className="px-4 py-3 font-semibold">{m.title} {(m as any).is_nsfw && <span className="ml-1 px-1.5 py-0.5 text-[9px] bg-red-500/10 text-red-500 border border-red-500/30 font-bold">🔞 NSFW</span>}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{(m.genres || []).join(', ')}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</td>
                           <td className="px-4 py-3">
