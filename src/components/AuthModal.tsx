@@ -160,10 +160,7 @@ const AuthModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={handleClose}>
       <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" />
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      <div
         className="relative bg-background border-2 border-foreground w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
         style={{ boxShadow: '6px 6px 0 hsl(0 0% 8%)' }}
         onClick={e => e.stopPropagation()}
