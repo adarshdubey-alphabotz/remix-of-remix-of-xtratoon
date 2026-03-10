@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Lock, Save, ArrowLeft, CheckCircle, MapPin, Globe } from 'lucide-react';
+import { User, Lock, Save, ArrowLeft, CheckCircle, MapPin, Globe, Moon, Sun, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNightShift } from '@/components/NightShiftToggle';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.]+$/;
 
@@ -33,6 +34,7 @@ const currencies = ['USD', 'EUR', 'GBP', 'INR', 'BDT', 'JPY', 'KRW', 'CNY', 'BRL
 const ProfileSettings: React.FC = () => {
   const { user, profile, loading, updateProfile, changePassword, isPublisher, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const { nightShift, toggleNightShift } = useNightShift();
 
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -290,6 +292,34 @@ const ProfileSettings: React.FC = () => {
           <button onClick={handleSave} disabled={saving} className="btn-accent rounded-none py-3 px-6 text-sm flex items-center gap-2 disabled:opacity-50">
             <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Profile'}
           </button>
+        </motion.div>
+
+        {/* Eye Protection / Theme */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+          className="border-2 border-foreground bg-background p-6 space-y-5"
+          style={{ boxShadow: '4px 4px 0 hsl(0 0% 8%)' }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <Shield className="w-5 h-5 text-primary" />
+            <h2 className="text-display text-xl tracking-wider">EYE PROTECTION</h2>
+          </div>
+
+          <div className="flex items-center justify-between p-4 border-2 border-foreground/10 rounded-lg">
+            <div className="flex items-center gap-3">
+              {nightShift ? <Moon className="w-5 h-5 text-amber-500" /> : <Sun className="w-5 h-5 text-yellow-500" />}
+              <div>
+                <p className="text-sm font-bold">Night Shift Mode</p>
+                <p className="text-xs text-muted-foreground">Reduces blue light with a warm amber overlay to protect your eyes during late-night reading.</p>
+              </div>
+            </div>
+            <button
+              onClick={toggleNightShift}
+              className={`relative w-12 h-7 rounded-full transition-colors ${nightShift ? 'bg-amber-500' : 'bg-muted'}`}
+            >
+              <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${nightShift ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
         </motion.div>
 
         {/* Password Change */}

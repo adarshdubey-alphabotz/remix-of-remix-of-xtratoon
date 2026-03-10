@@ -16,6 +16,7 @@ import BanNotice from "@/components/BanNotice";
 import OnboardingModal from "@/components/OnboardingModal";
 import TermsAcceptanceModal from "@/components/TermsAcceptanceModal";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import NetworkStatus from "@/components/NetworkStatus";
 import { lazy, Suspense, useEffect } from "react";
 
 // Lazy-loaded route components — each becomes its own JS chunk
@@ -48,13 +49,62 @@ const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+      staleTime: 30000,
+    },
+  },
+});
 
 const AntiPiracy = () => {
   useEffect(() => {
-    const handler = (e: MouseEvent) => e.preventDefault();
-    document.addEventListener('contextmenu', handler);
-    return () => document.removeEventListener('contextmenu', handler);
+    // Disable right-click
+    const ctxHandler = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener('contextmenu', ctxHandler);
+
+    // Detect DevTools via debugger timing
+    let devToolsOpen = false;
+    const checkDevTools = () => {
+      const start = performance.now();
+      // eslint-disable-next-line no-debugger
+      const end = performance.now();
+      if (end - start > 100 && !devToolsOpen) {
+        devToolsOpen = true;
+      }
+    };
+    const devToolsInterval = setInterval(checkDevTools, 2000);
+
+    // Disable common screenshot shortcuts
+    const keyHandler = (e: KeyboardEvent) => {
+      // PrintScreen
+      if (e.key === 'PrintScreen') { e.preventDefault(); }
+      // Ctrl+Shift+I (DevTools), Ctrl+Shift+J (Console), Ctrl+U (View Source)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) { e.preventDefault(); }
+      if (e.ctrlKey && e.key === 'u') { e.preventDefault(); }
+      // Ctrl+S (Save)
+      if (e.ctrlKey && e.key === 's') { e.preventDefault(); }
+      // Ctrl+P (Print)
+      if (e.ctrlKey && e.key === 'p') { e.preventDefault(); }
+    };
+    document.addEventListener('keydown', keyHandler);
+
+    // Disable drag on images
+    const dragHandler = (e: DragEvent) => {
+      if ((e.target as HTMLElement)?.tagName === 'CANVAS' || (e.target as HTMLElement)?.tagName === 'IMG') {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('dragstart', dragHandler);
+
+    return () => {
+      document.removeEventListener('contextmenu', ctxHandler);
+      document.removeEventListener('keydown', keyHandler);
+      document.removeEventListener('dragstart', dragHandler);
+      clearInterval(devToolsInterval);
+    };
   }, []);
   return null;
 };
@@ -70,6 +120,22 @@ const ScrollToTop = () => {
   }, [pathname]);
   return null;
 };
+
+const ReaderErrorFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d] px-4">
+    <div className="text-center space-y-4 max-w-md">
+      <div className="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center">
+        <span className="text-3xl">💥</span>
+      </div>
+      <h2 className="text-xl font-bold text-white">Reader crashed</h2>
+      <p className="text-sm text-white/50">Something went wrong while loading the chapter. This could be a temporary issue.</p>
+      <div className="flex gap-3 justify-center">
+        <button onClick={() => window.location.reload()} className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold">Reload Page</button>
+        <button onClick={() => window.history.back()} className="px-5 py-2.5 bg-white/10 text-white rounded-xl text-sm">Go Back</button>
+      </div>
+    </div>
+  </div>
+);
 
 const RouteFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -89,7 +155,7 @@ const AnimatedRoutes = () => {
           <Routes location={location} key={location.pathname}>
           <Route path="/" element={<PageTransition>{loading ? <div className="min-h-screen" /> : user ? <Navigate to="/home" replace /> : <Index />}</PageTransition>} />
           <Route path="/manhwa/:id" element={<PageTransition><ManhwaDetail /></PageTransition>} />
-          <Route path="/read/:id/:chapter" element={<PageTransition><ReaderPage /></PageTransition>} />
+          <Route path="/read/:id/:chapter" element={<PageTransition><ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary></PageTransition>} />
           <Route path="/browse" element={<PageTransition><BrowsePage /></PageTransition>} />
           <Route path="/charts" element={<PageTransition><TopChartsPage /></PageTransition>} />
           <Route path="/publisher/:id" element={<PageTransition><PublisherProfile /></PageTransition>} />
@@ -139,6 +205,7 @@ const AppLayout = () => (
     <ErrorBoundary>
       <AnimatedRoutes />
     </ErrorBoundary>
+    <NetworkStatus />
     <Footer />
   </>
 );

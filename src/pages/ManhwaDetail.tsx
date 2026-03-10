@@ -170,7 +170,22 @@ const ManhwaDetail: React.FC = () => {
   };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center pt-16"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
-  if (!manhwa) return <div className="min-h-screen flex items-center justify-center pt-16"><p className="text-muted-foreground">Manhwa not found</p></div>;
+  if (!manhwa) return (
+    <div className="min-h-screen flex items-center justify-center pt-16 px-4">
+      <div className="text-center max-w-md">
+        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/30 flex items-center justify-center">
+          <Eye className="w-10 h-10 text-muted-foreground/30" />
+        </div>
+        <h1 className="font-display text-3xl tracking-wider mb-3">CONTENT NOT AVAILABLE</h1>
+        <p className="text-muted-foreground mb-2">This manhwa may have been removed, rejected, or doesn't exist.</p>
+        <p className="text-xs text-muted-foreground/60 mb-6">If you believe this is a mistake, contact <a href="mailto:support@komixora.fun" className="text-primary hover:underline">support@komixora.fun</a></p>
+        <div className="flex gap-3 justify-center">
+          <a href="/browse" className="btn-accent rounded-none text-sm inline-flex">Browse Manhwa</a>
+          <a href="/" className="px-4 py-2 border-2 border-foreground text-sm font-bold hover:bg-muted transition-colors">Home</a>
+        </div>
+      </div>
+    </div>
+  );
 
   const pageUrl = `https://komixora.fun/manhwa/${manhwa.slug}`;
   const allChapters = chapters || [];
