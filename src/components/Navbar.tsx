@@ -271,7 +271,7 @@ const Navbar: React.FC = () => {
               <AnimatePresence>
                 {userMenuOpen && (
                   <>
-                    <div className="fixed inset-0" onClick={() => setUserMenuOpen(false)} />
+                    <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                      <motion.div
                        variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
                        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
