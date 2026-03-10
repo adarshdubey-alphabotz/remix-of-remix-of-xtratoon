@@ -449,7 +449,7 @@ const CommunityPage: React.FC = () => {
                         </div>
                       </div>
                     </article>
-                  </ScrollReveal>
+                  </div>
                 );
               })}
             </div>
