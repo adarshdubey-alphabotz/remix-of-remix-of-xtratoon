@@ -451,11 +451,12 @@ const AdminPanel: React.FC = () => {
                 <div className="brutal-card overflow-hidden">
                   <table className="w-full text-sm">
                     <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                      <th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
+                      <th className="px-4 py-3">ID</th><th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
                     </tr></thead>
                     <tbody>
                       {pendingChapters.map((c: any) => (
                         <tr key={c.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                          <td className="px-4 py-3"><code className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono text-primary">{c.manga_id?.slice(0, 8).toUpperCase()}</code></td>
                           <td className="px-4 py-3 font-semibold">{c.manga?.title || '—'}</td>
                           <td className="px-4 py-3">Ch. {c.chapter_number}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{c.title || '—'}</td>
