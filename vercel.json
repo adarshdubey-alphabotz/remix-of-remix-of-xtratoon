@@ -1,7 +1,9 @@
 {
   "rewrites": [
     { "source": "/api/img", "destination": "https://api.komixora.fun/functions/v1/telegram-proxy" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/sitemap.xml", "destination": "https://api.komixora.fun/functions/v1/sitemap" },
+    { "source": "/sitemap-index.xml", "destination": "https://api.komixora.fun/functions/v1/sitemap" },
+    { "source": "/((?!robots\\.txt|favicon\\.ico|assets/|images/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
