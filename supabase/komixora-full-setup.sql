@@ -783,6 +783,87 @@ CREATE POLICY "Admins can view all payout requests" ON public.payout_requests FO
 CREATE POLICY "Users can insert own payout requests" ON public.payout_requests FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Admins can update payout requests" ON public.payout_requests FOR UPDATE USING (has_role(auth.uid(), 'admin'));
 
+-- =============== TRIGGERS ===============
+
+-- New user signup → create profile + reader role
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- New manga submission → admin notification
+CREATE TRIGGER on_new_manga_submission
+  AFTER INSERT ON public.manga
+  FOR EACH ROW EXECUTE FUNCTION public.notify_admin_new_submission();
+
+-- Manga approval status → notify publisher (in-app)
+CREATE TRIGGER on_manga_status_change
+  AFTER UPDATE OF approval_status ON public.manga
+  FOR EACH ROW EXECUTE FUNCTION public.notify_publisher_manga_status();
+
+-- Manga approved → Google indexing
+CREATE TRIGGER on_manga_approved_google
+  AFTER UPDATE OF approval_status ON public.manga
+  FOR EACH ROW EXECUTE FUNCTION public.notify_google_on_manga_approved();
+
+-- New chapter → admin notification
+CREATE TRIGGER on_new_chapter_upload
+  AFTER INSERT ON public.chapters
+  FOR EACH ROW EXECUTE FUNCTION public.notify_admin_new_chapter();
+
+-- Chapter approval → notify publisher (in-app)
+CREATE TRIGGER on_chapter_status_change
+  AFTER UPDATE OF approval_status ON public.chapters
+  FOR EACH ROW EXECUTE FUNCTION public.notify_publisher_chapter_status();
+
+-- Chapter approved → Google indexing
+CREATE TRIGGER on_chapter_approved_google
+  AFTER UPDATE OF approval_status ON public.chapters
+  FOR EACH ROW EXECUTE FUNCTION public.notify_google_on_chapter_approved();
+
+-- Chapter approved → notify followers (in-app)
+CREATE TRIGGER on_chapter_approved_notify_followers
+  AFTER UPDATE OF approval_status ON public.chapters
+  FOR EACH ROW
+  WHEN (NEW.approval_status = 'APPROVED')
+  EXECUTE FUNCTION public.notify_followers_new_chapter();
+
+-- New report → admin notification
+CREATE TRIGGER on_new_report
+  AFTER INSERT ON public.reports
+  FOR EACH ROW EXECUTE FUNCTION public.notify_admin_new_report();
+
+-- User unbanned → in-app notification
+CREATE TRIGGER on_user_unbanned
+  AFTER UPDATE OF is_banned ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.notify_user_unbanned();
+
+-- New follower → in-app notification
+CREATE TRIGGER on_new_follower
+  AFTER INSERT ON public.follows
+  FOR EACH ROW EXECUTE FUNCTION public.notify_new_follower();
+
+-- Community replies count
+CREATE TRIGGER on_reply_insert AFTER INSERT ON public.community_replies
+  FOR EACH ROW EXECUTE FUNCTION public.update_community_replies_count();
+CREATE TRIGGER on_reply_delete AFTER DELETE ON public.community_replies
+  FOR EACH ROW EXECUTE FUNCTION public.update_community_replies_count();
+
+-- Community likes count
+CREATE TRIGGER on_like_insert AFTER INSERT ON public.community_post_likes
+  FOR EACH ROW EXECUTE FUNCTION public.update_community_likes_count();
+CREATE TRIGGER on_like_delete AFTER DELETE ON public.community_post_likes
+  FOR EACH ROW EXECUTE FUNCTION public.update_community_likes_count();
+
+-- Updated_at auto-update
+CREATE TRIGGER set_updated_at_manga BEFORE UPDATE ON public.manga
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER set_updated_at_chapters BEFORE UPDATE ON public.chapters
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER set_updated_at_profiles BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER set_updated_at_community_posts BEFORE UPDATE ON public.community_posts
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
 -- =============== REALTIME ===============
 ALTER PUBLICATION supabase_realtime ADD TABLE public.user_notifications;
 
