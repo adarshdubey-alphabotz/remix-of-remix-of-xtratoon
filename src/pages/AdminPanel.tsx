@@ -320,8 +320,17 @@ const AdminPanel: React.FC = () => {
 
   const updateChapterApproval = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      // Get chapter + manga details for email
+      const { data: chapter } = await supabase.from('chapters').select('chapter_number, manga_id, manga(title, creator_id)').eq('id', id).single() as any;
       const { error } = await supabase.from('chapters').update({ approval_status: status } as any).eq('id', id);
       if (error) throw error;
+      if (chapter?.manga) {
+        const event = status === 'APPROVED' ? 'chapter_approved' : 'chapter_rejected';
+        sendEmailNotification(event, chapter.manga.creator_id, {
+          title: chapter.manga.title,
+          chapter_number: chapter.chapter_number,
+        });
+      }
     },
     onSuccess: () => {
       toast.success('Chapter status updated');
