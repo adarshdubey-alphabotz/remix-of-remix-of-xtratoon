@@ -298,6 +298,34 @@ const ProfileSettings: React.FC = () => {
           </button>
         </motion.div>
 
+        {/* Eye Protection / Theme */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+          className="border-2 border-foreground bg-background p-6 space-y-5"
+          style={{ boxShadow: '4px 4px 0 hsl(0 0% 8%)' }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <Shield className="w-5 h-5 text-primary" />
+            <h2 className="text-display text-xl tracking-wider">EYE PROTECTION</h2>
+          </div>
+
+          <div className="flex items-center justify-between p-4 border-2 border-foreground/10 rounded-lg">
+            <div className="flex items-center gap-3">
+              {nightShift ? <Moon className="w-5 h-5 text-amber-500" /> : <Sun className="w-5 h-5 text-yellow-500" />}
+              <div>
+                <p className="text-sm font-bold">Night Shift Mode</p>
+                <p className="text-xs text-muted-foreground">Reduces blue light with a warm amber overlay to protect your eyes during late-night reading.</p>
+              </div>
+            </div>
+            <button
+              onClick={toggleNightShift}
+              className={`relative w-12 h-7 rounded-full transition-colors ${nightShift ? 'bg-amber-500' : 'bg-muted'}`}
+            >
+              <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${nightShift ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+        </motion.div>
+
         {/* Password Change */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
