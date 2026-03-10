@@ -89,9 +89,11 @@ const LibraryStatusButton: React.FC<Props> = ({ mangaId, compact = false }) => {
       <button
         onClick={() => {
           if (!user) { setAuthTab('login'); setShowAuthModal(true); return; }
+          if (pending) return;
           setOpen(!open);
         }}
-        className={`btn-outline rounded-none text-sm flex items-center gap-2 ${currentStatus ? 'border-primary/50 bg-primary/5' : ''}`}
+        disabled={pending}
+        className={`btn-outline rounded-none text-sm flex items-center gap-2 ${currentStatus ? 'border-primary/50 bg-primary/5' : ''} disabled:opacity-60`}
       >
         <Icon className={`w-4 h-4 ${currentInfo?.color || ''} ${currentStatus ? 'fill-current' : ''}`} />
         {!compact && (currentInfo?.label || 'Add to Library')}
