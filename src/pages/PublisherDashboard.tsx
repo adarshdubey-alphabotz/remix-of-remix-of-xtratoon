@@ -25,6 +25,7 @@ const PublisherDashboard: React.FC = () => {
   const [uploadDesc, setUploadDesc] = useState('');
   const [uploadGenres, setUploadGenres] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState('ONGOING');
+  const [isNsfw, setIsNsfw] = useState(false);
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [copyrightChecked, setCopyrightChecked] = useState(false);
@@ -154,7 +155,8 @@ const PublisherDashboard: React.FC = () => {
           genres: [...uploadGenres, ...customTags.map(t => t.charAt(0).toUpperCase() + t.slice(1))],
           status: uploadStatus,
           approval_status: 'PENDING',
-        })
+          is_nsfw: isNsfw,
+        } as any)
         .select()
         .single();
 
@@ -208,7 +210,7 @@ const PublisherDashboard: React.FC = () => {
       }
 
       toast.success(`Manhwa submitted with Chapter 1 (${pageResult.pages_uploaded} pages)! Admin will review within 48 hours.`);
-      setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false);
+      setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false); setIsNsfw(false);
       setCoverFile(null); setCoverPreview(null); setCh1Files([]); setCh1Title('');
       queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
       setActiveTab('works');
@@ -499,13 +501,38 @@ const PublisherDashboard: React.FC = () => {
                   <textarea value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} rows={4} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors resize-none" />
                 </div>
 
-                <div>
-                  <label className="text-sm font-semibold block mb-1.5">Status</label>
-                  <select value={uploadStatus} onChange={e => setUploadStatus(e.target.value)} className="px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary">
-                    <option value="ONGOING">Ongoing</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="HIATUS">Hiatus</option>
-                  </select>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div>
+                    <label className="text-sm font-semibold block mb-1.5">Status</label>
+                    <select value={uploadStatus} onChange={e => setUploadStatus(e.target.value)} className="px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary">
+                      <option value="ONGOING">Ongoing</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="HIATUS">Hiatus</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold block mb-1.5">Content Rating</label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsNsfw(false)}
+                        className={`px-4 py-2.5 text-sm font-bold border-2 transition-all ${!isNsfw ? 'border-green-500 bg-green-500/10 text-green-600' : 'border-foreground/20 text-muted-foreground hover:border-foreground'}`}
+                      >
+                        All Ages
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsNsfw(true)}
+                        className={`px-4 py-2.5 text-sm font-bold border-2 transition-all ${isNsfw ? 'border-red-500 bg-red-500/10 text-red-600' : 'border-foreground/20 text-muted-foreground hover:border-foreground'}`}
+                      >
+                        🔞 NSFW / 18+
+                      </button>
+                    </div>
+                    {isNsfw && (
+                      <p className="text-[10px] text-red-500 mt-1">This manhwa will show a content warning before readers can access it.</p>
+                    )}
+                  </div>
                 </div>
 
                 <div>

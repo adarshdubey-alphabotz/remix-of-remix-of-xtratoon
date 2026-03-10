@@ -63,10 +63,15 @@ const AdminPanel: React.FC = () => {
     enabled: isAdmin,
   });
 
+  const [reportFilter, setReportFilter] = useState<'PENDING' | 'ALL'>('PENDING');
   const { data: reports } = useQuery({
-    queryKey: ['admin-reports'],
+    queryKey: ['admin-reports', reportFilter],
     queryFn: async () => {
-      const { data } = await supabase.from('reports' as any).select('*, manga(title, slug)').order('created_at', { ascending: false }).limit(50);
+      let query = supabase.from('reports' as any).select('*, manga(title, slug)').order('created_at', { ascending: false }).limit(50);
+      if (reportFilter === 'PENDING') {
+        query = query.eq('status', 'PENDING');
+      }
+      const { data } = await query;
       return (data || []) as any[];
     },
     enabled: isAdmin,
@@ -389,7 +394,7 @@ const AdminPanel: React.FC = () => {
                       {(pendingManga || []).map(m => (
                         <tr key={m.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
                           <td className="px-4 py-3 font-mono text-xs text-primary" title={m.id}>{m.id.slice(0, 8).toUpperCase()}</td>
-                          <td className="px-4 py-3 font-semibold">{m.title}</td>
+                          <td className="px-4 py-3 font-semibold">{m.title} {(m as any).is_nsfw && <span className="ml-1 px-1.5 py-0.5 text-[9px] bg-red-500/10 text-red-500 border border-red-500/30 font-bold">🔞 NSFW</span>}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{(m.genres || []).join(', ')}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</td>
                           <td className="px-4 py-3">
@@ -445,7 +450,13 @@ const AdminPanel: React.FC = () => {
 
           {activeTab === 'reports' && (
             <div>
-              <h2 className="text-display text-3xl mb-4 tracking-wider">REPORTS</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-display text-3xl tracking-wider">REPORTS</h2>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setReportFilter('PENDING')} className={`px-3 py-1.5 text-xs font-bold border transition-colors ${reportFilter === 'PENDING' ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500' : 'border-foreground/20 text-muted-foreground hover:bg-muted'}`}>Pending</button>
+                  <button onClick={() => setReportFilter('ALL')} className={`px-3 py-1.5 text-xs font-bold border transition-colors ${reportFilter === 'ALL' ? 'bg-primary/10 text-primary border-primary' : 'border-foreground/20 text-muted-foreground hover:bg-muted'}`}>All</button>
+                </div>
+              </div>
               <div className="brutal-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">

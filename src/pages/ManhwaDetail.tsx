@@ -44,6 +44,7 @@ const ManhwaDetail: React.FC = () => {
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [nsfwAccepted, setNsfwAccepted] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   // Parallax scroll
@@ -201,6 +202,42 @@ const ManhwaDetail: React.FC = () => {
 
   const creatorName = creatorProfile?.display_name || creatorProfile?.username || 'Unknown';
   const creatorLink = creatorProfile?.username ? `/publisher/${creatorProfile.username}` : '#';
+
+  // NSFW gate
+  const isNsfw = (manhwa as any).is_nsfw === true;
+
+  if (isNsfw && !nsfwAccepted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-16 px-4 bg-background">
+        <div className="text-center max-w-md">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-red-500/10 border-2 border-red-500/30 flex items-center justify-center">
+            <span className="text-5xl">🔞</span>
+          </div>
+          <h1 className="font-display text-3xl tracking-wider mb-3 text-red-500">MATURE CONTENT</h1>
+          <p className="text-muted-foreground mb-2">
+            <strong>"{manhwa.title}"</strong> has been marked as <span className="text-red-500 font-bold">NSFW / 18+</span> by the publisher.
+          </p>
+          <p className="text-xs text-muted-foreground/60 mb-6">
+            This content may contain material not suitable for all audiences. By continuing, you confirm that you are at least 18 years old.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => setNsfwAccepted(true)}
+              className="px-6 py-3 bg-red-500 text-white text-sm font-bold border-2 border-red-600 hover:bg-red-600 transition-colors"
+            >
+              I'm 18+ — Continue
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-6 py-3 border-2 border-foreground text-sm font-bold hover:bg-muted transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-16 bg-background">
