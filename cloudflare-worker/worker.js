@@ -35,6 +35,13 @@ export default {
         return new Response(null, { status: 204, headers: corsHeaders });
       }
 
+      // OAuth/auth paths must redirect to Supabase directly (not proxy)
+      // because Google OAuth requires direct redirects, not proxied requests
+      if (url.pathname.startsWith("/auth/")) {
+        const targetUrl = SUPABASE_URL + url.pathname + url.search;
+        return Response.redirect(targetUrl, 302);
+      }
+
       // Forward request to Supabase
       const targetUrl = SUPABASE_URL + url.pathname + url.search;
       const headers = new Headers(request.headers);
