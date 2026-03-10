@@ -180,7 +180,7 @@ const Navbar: React.FC = () => {
               <AnimatePresence>
                 {genreOpen && (
                   <>
-                    <div className="fixed inset-0" onClick={() => setGenreOpen(false)} />
+                    <div className="fixed inset-0 z-40" onClick={() => setGenreOpen(false)} />
                     <motion.div
                       variants={dropdownVariants}
                       initial="hidden" animate="visible" exit="exit"
