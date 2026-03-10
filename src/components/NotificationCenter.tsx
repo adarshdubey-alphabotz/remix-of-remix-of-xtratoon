@@ -14,6 +14,7 @@ const typeIcons: Record<string, React.ReactNode> = {
   chapter_approved: <Check className="w-4 h-4 text-green-500" />,
   manga_rejected: <XCircle className="w-4 h-4 text-destructive" />,
   chapter_rejected: <XCircle className="w-4 h-4 text-destructive" />,
+  unbanned: <Check className="w-4 h-4 text-green-500" />,
 };
 
 interface Props {
