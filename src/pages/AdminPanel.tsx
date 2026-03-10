@@ -362,6 +362,10 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'announcements' && (
+            <AdminAnnouncementManager />
+          )}
+
           {activeTab === 'revenue' && (
             <AdminRevenueAnalytics />
           )}
