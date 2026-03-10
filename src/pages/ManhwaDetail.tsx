@@ -311,8 +311,8 @@ const ManhwaDetail: React.FC = () => {
           })
         }}
       />
-      {/* Parallax Hero */}
-      <div ref={heroRef} className="relative h-72 sm:h-80 lg:h-[420px] overflow-hidden">
+      {/* Hero */}
+      <div className="relative h-72 sm:h-80 lg:h-[420px] overflow-hidden">
         {coverUrl && (
           <div className="absolute inset-0 scale-110">
             <img src={coverUrl} alt="" className="w-full h-full object-cover blur-md opacity-40" />
