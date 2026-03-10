@@ -237,7 +237,7 @@ const AdminSettings: React.FC = () => {
                   <h3 className="text-sm font-bold mb-3">Platform Info</h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between"><span className="text-muted-foreground">Platform</span><span className="font-medium">Komixora</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Contact</span><span className="font-medium text-primary">admin@komixora.fun</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Contact</span><span className="font-medium text-primary">support@komixora.fun</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Auth</span><span className="font-medium">Email + Password</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Storage</span><span className="font-medium">Telegram CDN</span></div>
                   </div>
