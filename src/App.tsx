@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { AnimatePresence } from "framer-motion";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
@@ -150,10 +150,10 @@ const AnimatedRoutes = () => {
   return (
     <>
       <ScrollToTop />
-      <AnimatePresence mode="wait">
         <Suspense fallback={<RouteFallback />}>
-          <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<PageTransition>{loading ? <div className="min-h-screen" /> : user ? <Navigate to="/home" replace /> : <Index />}</PageTransition>} />
+          <Routes location={location}>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/about" element={<PageTransition><Index /></PageTransition>} />
           <Route path="/manhwa/:id" element={<PageTransition><ManhwaDetail /></PageTransition>} />
           <Route path="/read/:id/:chapter" element={<PageTransition><ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary></PageTransition>} />
           <Route path="/browse" element={<PageTransition><BrowsePage /></PageTransition>} />
@@ -186,7 +186,6 @@ const AnimatedRoutes = () => {
           <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
         </Routes>
         </Suspense>
-      </AnimatePresence>
     </>
   );
 };
