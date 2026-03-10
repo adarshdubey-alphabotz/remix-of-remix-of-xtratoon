@@ -136,6 +136,7 @@ const ProfileSettings: React.FC = () => {
     }
 
     setSuccess('Profile updated!');
+    toast.success('Profile updated successfully!');
     await refreshProfile();
     setSaving(false);
   };
