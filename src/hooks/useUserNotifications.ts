@@ -12,7 +12,7 @@ export const useUserNotifications = () => {
     queryFn: async () => {
       if (!user) return [];
       const { data } = await supabase
-        .from('user_notifications' as any)
+        .from('user_notifications')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_read', false)
@@ -51,7 +51,7 @@ export const useUserNotifications = () => {
 
   const markRead = async (id: string) => {
     await supabase
-      .from('user_notifications' as any)
+      .from('user_notifications')
       .update({ is_read: true })
       .eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['user-notifications', user?.id] });
@@ -59,13 +59,13 @@ export const useUserNotifications = () => {
 
   const markAllRead = async () => {
     if (!user || notifications.length === 0) return;
-    const ids = notifications.map((n: any) => n.id);
-    for (const id of ids) {
-      await supabase
-        .from('user_notifications' as any)
-        .update({ is_read: true })
-        .eq('id', id);
-    }
+    // Batch update all unread notifications at once
+    const { error } = await supabase
+      .from('user_notifications')
+      .update({ is_read: true })
+      .eq('user_id', user.id)
+      .eq('is_read', false);
+    if (error) console.error('markAllRead error:', error);
     queryClient.invalidateQueries({ queryKey: ['user-notifications', user?.id] });
   };
 

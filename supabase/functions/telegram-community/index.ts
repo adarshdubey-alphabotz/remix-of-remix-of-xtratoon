@@ -92,6 +92,52 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create_post") {
+      // ─── NSFW Image Detection using AI ───
+      if (!isAdmin && image_urls && image_urls.length > 0) {
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        if (LOVABLE_API_KEY) {
+          try {
+            const imageContent = image_urls.slice(0, 3).map((url: string) => ({
+              type: "image_url" as const,
+              image_url: { url },
+            }));
+            const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+              },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash-lite",
+                messages: [{
+                  role: "user",
+                  content: [
+                    { type: "text", text: "Analyze these images. Are any of them NSFW, pornographic, sexually explicit, or contain nudity? Reply ONLY with 'SAFE' or 'NSFW'. Nothing else." },
+                    ...imageContent,
+                  ],
+                }],
+                max_tokens: 10,
+              }),
+            });
+            const aiData = await aiRes.json();
+            const verdict = aiData?.choices?.[0]?.message?.content?.trim()?.toUpperCase() || "";
+            if (verdict.includes("NSFW")) {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  error: "🔞 Your image was detected as NSFW/explicit content. This is not allowed in the community section.",
+                  nsfw_detected: true,
+                }),
+                { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+              );
+            }
+          } catch (e) {
+            console.error("NSFW detection error:", e);
+            // Don't block post if AI check fails
+          }
+        }
+      }
+
       let tgMessageId: number | null = null;
 
       if (image_url) {

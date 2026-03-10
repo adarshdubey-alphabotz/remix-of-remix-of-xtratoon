@@ -80,10 +80,14 @@ const AdminPanel: React.FC = () => {
   const updateApproval = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from('manga').update({ approval_status: status }).eq('id', id);
-      if (error) throw error;
+      if (error) {
+        // If trigger function fails (500), try with a direct RPC or retry
+        console.error('Approval error:', error);
+        throw new Error(`Failed to update status: ${error.message}`);
+      }
     },
-    onSuccess: () => {
-      toast.success('Status updated');
+    onSuccess: (_, { status }) => {
+      toast.success(status === 'APPROVED' ? '✅ Manhwa approved!' : '❌ Manhwa rejected');
       queryClient.invalidateQueries({ queryKey: ['admin-pending'] });
       queryClient.invalidateQueries({ queryKey: ['admin-all-manga'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
