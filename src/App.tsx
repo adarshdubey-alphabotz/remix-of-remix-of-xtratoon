@@ -153,7 +153,8 @@ const AnimatedRoutes = () => {
       <AnimatePresence mode="wait">
         <Suspense fallback={<RouteFallback />}>
           <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<PageTransition>{loading ? <div className="min-h-screen" /> : user ? <Navigate to="/home" replace /> : <Index />}</PageTransition>} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/about" element={<PageTransition><Index /></PageTransition>} />
           <Route path="/manhwa/:id" element={<PageTransition><ManhwaDetail /></PageTransition>} />
           <Route path="/read/:id/:chapter" element={<PageTransition><ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary></PageTransition>} />
           <Route path="/browse" element={<PageTransition><BrowsePage /></PageTransition>} />
