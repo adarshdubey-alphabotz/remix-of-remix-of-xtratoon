@@ -474,7 +474,7 @@ const ManhwaDetail: React.FC = () => {
                 )}
                 <LibraryStatusButton mangaId={manhwa.id} />
                 <MagneticButton>
-                  <button onClick={handleToggleLike} className="btn-outline rounded-none text-sm"><Heart className={`w-4 h-4 ${isLiked ? 'fill-primary text-primary' : ''}`} /> {isLiked ? 'Liked' : 'Like'}</button>
+                  <button onClick={handleToggleLike} disabled={likePending} className="btn-outline rounded-none text-sm disabled:opacity-60"><Heart className={`w-4 h-4 ${isLiked ? 'fill-primary text-primary' : ''}`} /> {isLiked ? 'Liked' : 'Like'}</button>
                 </MagneticButton>
                 <SocialShareMenu title={manhwa.title} description={manhwa.description || undefined} coverUrl={coverUrl} />
                 <QRShareButton url={pageUrl} title={manhwa.title} />
