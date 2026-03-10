@@ -450,7 +450,13 @@ const AdminPanel: React.FC = () => {
 
           {activeTab === 'reports' && (
             <div>
-              <h2 className="text-display text-3xl mb-4 tracking-wider">REPORTS</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-display text-3xl tracking-wider">REPORTS</h2>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setReportFilter('PENDING')} className={`px-3 py-1.5 text-xs font-bold border transition-colors ${reportFilter === 'PENDING' ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500' : 'border-foreground/20 text-muted-foreground hover:bg-muted'}`}>Pending</button>
+                  <button onClick={() => setReportFilter('ALL')} className={`px-3 py-1.5 text-xs font-bold border transition-colors ${reportFilter === 'ALL' ? 'bg-primary/10 text-primary border-primary' : 'border-foreground/20 text-muted-foreground hover:bg-muted'}`}>All</button>
+                </div>
+              </div>
               <div className="brutal-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">

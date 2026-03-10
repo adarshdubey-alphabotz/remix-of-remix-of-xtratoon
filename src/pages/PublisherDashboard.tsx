@@ -501,13 +501,38 @@ const PublisherDashboard: React.FC = () => {
                   <textarea value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} rows={4} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors resize-none" />
                 </div>
 
-                <div>
-                  <label className="text-sm font-semibold block mb-1.5">Status</label>
-                  <select value={uploadStatus} onChange={e => setUploadStatus(e.target.value)} className="px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary">
-                    <option value="ONGOING">Ongoing</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="HIATUS">Hiatus</option>
-                  </select>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div>
+                    <label className="text-sm font-semibold block mb-1.5">Status</label>
+                    <select value={uploadStatus} onChange={e => setUploadStatus(e.target.value)} className="px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary">
+                      <option value="ONGOING">Ongoing</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="HIATUS">Hiatus</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold block mb-1.5">Content Rating</label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsNsfw(false)}
+                        className={`px-4 py-2.5 text-sm font-bold border-2 transition-all ${!isNsfw ? 'border-green-500 bg-green-500/10 text-green-600' : 'border-foreground/20 text-muted-foreground hover:border-foreground'}`}
+                      >
+                        All Ages
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsNsfw(true)}
+                        className={`px-4 py-2.5 text-sm font-bold border-2 transition-all ${isNsfw ? 'border-red-500 bg-red-500/10 text-red-600' : 'border-foreground/20 text-muted-foreground hover:border-foreground'}`}
+                      >
+                        🔞 NSFW / 18+
+                      </button>
+                    </div>
+                    {isNsfw && (
+                      <p className="text-[10px] text-red-500 mt-1">This manhwa will show a content warning before readers can access it.</p>
+                    )}
+                  </div>
                 </div>
 
                 <div>
