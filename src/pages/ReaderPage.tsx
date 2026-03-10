@@ -105,7 +105,25 @@ const ReaderPage: React.FC = () => {
     enabled: !!manga,
   });
 
-  // ── Canvas rendering with watermark ──
+  // Preload next chapter pages in background
+  useEffect(() => {
+    if (!manga || !adjacentChapters?.next) return;
+    const nextChNum = adjacentChapters.next;
+    const preloadNextChapter = async () => {
+      const { data: nextCh } = await supabase.from('chapters').select('id').eq('manga_id', manga.id).eq('chapter_number', nextChNum).maybeSingle();
+      if (!nextCh) return;
+      const { data: nextPages } = await supabase.from('chapter_pages').select('id').eq('chapter_id', nextCh.id).order('page_number').limit(3);
+      (nextPages || []).forEach(p => {
+        const img = new Image();
+        img.src = getPageImageUrl(p.id);
+      });
+    };
+    // Start preloading after a short delay to not compete with current chapter
+    const timer = setTimeout(preloadNextChapter, 3000);
+    return () => clearTimeout(timer);
+  }, [manga?.id, adjacentChapters?.next]);
+
+
   const renderPageToCanvas = useCallback(async (pageData: any, canvas: HTMLCanvasElement) => {
     const pageNum = pageData.page_number;
     if (loadingRef.current.has(pageNum) || renderedPagesRef.current.has(pageNum)) return;
