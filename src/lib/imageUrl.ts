@@ -13,7 +13,7 @@ export function getPageImageUrl(pageId: string): string {
   if (isProd) {
     return `/api/img?${params}`;
   }
-  return `https://${projectId}.supabase.co/functions/v1/telegram-proxy?${params}`;
+  return `${supabaseUrl}/functions/v1/telegram-proxy?${params}`;
 }
 
 /** Use for covers/banners where we only have a file_id or http URL */
