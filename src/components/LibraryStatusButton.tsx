@@ -22,6 +22,7 @@ const LibraryStatusButton: React.FC<Props> = ({ mangaId, compact = false }) => {
   const { user, setShowAuthModal, setAuthTab } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
 
   const { data: libraryEntry } = useQuery({
     queryKey: ['library-status', mangaId, user?.id],
