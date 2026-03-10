@@ -112,7 +112,7 @@ const Footer: React.FC = () => (
       {/* Bottom bar */}
       <div className="mt-12 pt-6 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-xs text-muted-foreground flex items-center gap-1">
-          © 2026 Komixora. Made with <Heart className="w-3 h-3 text-primary fill-primary inline" /> by Akane Sakuramori.
+          © 2026 Komixora — A division of <span className="font-semibold text-foreground">Xtratoon</span>.
         </p>
         <div className="flex items-center gap-4">
           <a
