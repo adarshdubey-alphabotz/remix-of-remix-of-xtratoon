@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.stremio-addon]
 verify_jwt = false
+
+[functions.notify-google]
+verify_jwt = false
+
+[functions.publish-scheduled]
+verify_jwt = false
