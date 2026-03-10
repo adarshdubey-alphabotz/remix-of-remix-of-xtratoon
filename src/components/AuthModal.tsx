@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Eye, EyeOff, BookOpen, Pen } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 
-
-
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
+
+// Simple client-side rate limiter
+const useRateLimit = (maxAttempts: number, windowMs: number) => {
+  const attemptsRef = useRef<number[]>([]);
+  const check = useCallback(() => {
+    const now = Date.now();
+    attemptsRef.current = attemptsRef.current.filter(t => now - t < windowMs);
+    if (attemptsRef.current.length >= maxAttempts) {
+      const oldest = attemptsRef.current[0];
+      const waitSec = Math.ceil((windowMs - (now - oldest)) / 1000);
+      return { allowed: false, waitSec };
+    }
+    attemptsRef.current.push(now);
+    return { allowed: true, waitSec: 0 };
+  }, [maxAttempts, windowMs]);
+  return check;
+};
 
 const AuthModal: React.FC = () => {
   const { showAuthModal, setShowAuthModal, authTab, setAuthTab, login, signup } = useAuth();
@@ -20,6 +34,9 @@ const AuthModal: React.FC = () => {
   const [forgotMode, setForgotMode] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Rate limit: 5 attempts per 60 seconds
+  const checkRate = useRateLimit(5, 60000);
 
   if (!showAuthModal) return null;
 
@@ -53,6 +70,8 @@ const AuthModal: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const { allowed, waitSec } = checkRate();
+    if (!allowed) { setError(`Too many attempts. Try again in ${waitSec}s`); return; }
     setSubmitting(true);
 
     if (!email || !password) {
@@ -69,6 +88,8 @@ const AuthModal: React.FC = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const { allowed, waitSec } = checkRate();
+    if (!allowed) { setError(`Too many attempts. Try again in ${waitSec}s`); return; }
     setSubmitting(true);
 
     if (!displayName || !email || !password) {
@@ -146,10 +167,7 @@ const AuthModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={handleClose}>
       <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" />
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      <div
         className="relative bg-background border-2 border-foreground w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
         style={{ boxShadow: '6px 6px 0 hsl(0 0% 8%)' }}
         onClick={e => e.stopPropagation()}
@@ -303,7 +321,7 @@ const AuthModal: React.FC = () => {
             </button>
           )}
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 };
