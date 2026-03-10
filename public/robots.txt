@@ -33,3 +33,4 @@ Disallow: /library
 Disallow: /reset-password
 
 Sitemap: https://komixora.fun/sitemap.xml
+Sitemap: https://api.komixora.fun/functions/v1/sitemap
