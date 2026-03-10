@@ -257,7 +257,7 @@ const AdminSettings: React.FC = () => {
                     <div>
                       <p className="text-sm font-bold">Ban Appeal Process</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Banned users email <a href="mailto:admin@komixora.fun" className="text-primary hover:underline font-semibold">admin@komixora.fun</a> to appeal. Review and unban below.
+                        Banned users email <a href="mailto:support@komixora.fun" className="text-primary hover:underline font-semibold">support@komixora.fun</a> to appeal. Review and unban below.
                       </p>
                     </div>
                   </div>

@@ -39,7 +39,7 @@ const DMCAPage: React.FC = () => (
         <section className="brutal-card p-6 space-y-3">
           <h2 className="text-foreground font-semibold text-base">Counter-Notification</h2>
           <p>
-            If you believe your content was removed by mistake or misidentification, you may submit a counter-notification to <a href="mailto:admin@komixora.fun" className="text-primary hover:underline">admin@komixora.fun</a> with the required information under the DMCA.
+            If you believe your content was removed by mistake or misidentification, you may submit a counter-notification to <a href="mailto:support@komixora.fun" className="text-primary hover:underline">support@komixora.fun</a> with the required information under the DMCA.
           </p>
         </section>
 
