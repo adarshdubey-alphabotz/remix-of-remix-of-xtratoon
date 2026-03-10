@@ -448,7 +448,7 @@ const ManhwaDetail: React.FC = () => {
                   </h2>
                   <div className="border-2 border-foreground overflow-hidden rounded-lg" style={{ boxShadow: '4px 4px 0 hsl(var(--foreground))' }}>
                     {visibleChapters.map((ch, i) => (
-                      <motion.div key={ch.id} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: Math.min(i * 0.03, 0.3) }}>
+                      <div key={ch.id}>
                         <Link to={`/read/${manhwa.slug}/chapter-${ch.chapter_number}`} className={`flex items-center justify-between px-4 py-3.5 hover:bg-primary/5 transition-colors text-sm group ${i !== visibleChapters.length - 1 ? 'border-b border-foreground/10' : ''}`}>
                           <div className="flex items-center gap-3">
                             <span className="text-muted-foreground font-mono text-xs w-8 text-right">#{ch.chapter_number}</span>
@@ -459,7 +459,7 @@ const ManhwaDetail: React.FC = () => {
                             <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                           </div>
                         </Link>
-                      </motion.div>
+                      </div>
                     ))}
                     {allChapters.length > 10 && (
                       <button onClick={() => setShowAllChapters(!showAllChapters)} className="w-full py-3.5 text-sm font-semibold hover:bg-primary/5 transition-colors border-t border-foreground/10" style={{ color: 'hsl(var(--dynamic-accent, var(--primary)))' }}>
