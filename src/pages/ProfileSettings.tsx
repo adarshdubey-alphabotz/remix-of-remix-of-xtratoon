@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Lock, Save, ArrowLeft, CheckCircle, MapPin, Globe } from 'lucide-react';
+import { User, Lock, Save, ArrowLeft, CheckCircle, MapPin, Globe, Moon, Sun, Shield } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNightShift } from '@/components/NightShiftToggle';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
