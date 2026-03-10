@@ -35,6 +35,9 @@ const AuthModal: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Rate limit: 5 attempts per 60 seconds
+  const checkRate = useRateLimit(5, 60000);
+
   if (!showAuthModal) return null;
 
   const reset = () => {
