@@ -120,6 +120,22 @@ const ScrollToTop = () => {
   return null;
 };
 
+const ReaderErrorFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d] px-4">
+    <div className="text-center space-y-4 max-w-md">
+      <div className="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center">
+        <span className="text-3xl">💥</span>
+      </div>
+      <h2 className="text-xl font-bold text-white">Reader crashed</h2>
+      <p className="text-sm text-white/50">Something went wrong while loading the chapter. This could be a temporary issue.</p>
+      <div className="flex gap-3 justify-center">
+        <button onClick={() => window.location.reload()} className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold">Reload Page</button>
+        <button onClick={() => window.history.back()} className="px-5 py-2.5 bg-white/10 text-white rounded-xl text-sm">Go Back</button>
+      </div>
+    </div>
+  </div>
+);
+
 const RouteFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
