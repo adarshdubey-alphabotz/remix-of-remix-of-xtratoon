@@ -417,7 +417,7 @@ const AdminPanel: React.FC = () => {
                 <div className="brutal-card overflow-hidden">
                   <table className="w-full text-sm">
                     <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                      <th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
+                      <th className="px-4 py-3">TG ID</th><th className="px-4 py-3">Manhwa</th><th className="px-4 py-3">Chapter</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Uploaded</th><th className="px-4 py-3">Actions</th>
                     </tr></thead>
                     <tbody>
                       {pendingChapters.map((c: any) => (
