@@ -86,7 +86,7 @@ const ManhwaDetail: React.FC = () => {
 
   useEffect(() => {
     if (!manhwa) return;
-    supabase.from('manga').update({ views: (manhwa.views || 0) + 1 }).eq('id', manhwa.id).then(() => {});
+    supabase.rpc('increment_manga_views', { p_manga_id: manhwa.id }).then(() => {});
   }, [manhwa?.id]);
 
   const { data: chapters } = useQuery({
