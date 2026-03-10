@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bell, BookOpen, Heart, MessageCircle, Users, Info, Check, XCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
