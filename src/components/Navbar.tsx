@@ -55,6 +55,14 @@ const Navbar: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
   };
 
+  // Close all dropdowns on route change
+  useEffect(() => {
+    setGenreOpen(false);
+    setUserMenuOpen(false);
+    setNotifOpen(false);
+    setMobileOpen(false);
+  }, [location.pathname]);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
@@ -180,7 +188,7 @@ const Navbar: React.FC = () => {
               <AnimatePresence>
                 {genreOpen && (
                   <>
-                    <div className="fixed inset-0" onClick={() => setGenreOpen(false)} />
+                    <div className="fixed inset-0 z-40" onClick={() => setGenreOpen(false)} />
                     <motion.div
                       variants={dropdownVariants}
                       initial="hidden" animate="visible" exit="exit"
@@ -271,7 +279,7 @@ const Navbar: React.FC = () => {
               <AnimatePresence>
                 {userMenuOpen && (
                   <>
-                    <div className="fixed inset-0" onClick={() => setUserMenuOpen(false)} />
+                    <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                      <motion.div
                        variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
                        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
