@@ -70,6 +70,8 @@ const AuthModal: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const { allowed, waitSec } = checkRate();
+    if (!allowed) { setError(`Too many attempts. Try again in ${waitSec}s`); return; }
     setSubmitting(true);
 
     if (!email || !password) {
