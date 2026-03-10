@@ -225,7 +225,8 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     );
   };
 
-  const totalComments = comments.reduce((sum, c) => sum + 1 + (c.replies?.length || 0), 0);
+  const countThread = (comment: Comment): number => 1 + (comment.replies?.reduce((sum, reply) => sum + countThread(reply), 0) || 0);
+  const totalComments = comments.reduce((sum, c) => sum + countThread(c), 0);
 
   return (
     <section className="space-y-4">
