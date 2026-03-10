@@ -513,6 +513,8 @@ const ReaderPage: React.FC = () => {
       <style>{`
         .reader-canvas { -webkit-touch-callout: none; -webkit-user-select: none; pointer-events: none; will-change: transform; }
         @media print { body { display: none !important; } }
+        * { -webkit-print-color-adjust: exact !important; }
+        @page { size: 0; }
         input[type=range]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: hsl(var(--primary)); cursor: pointer; }
         input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: hsl(var(--primary)); border: 0; cursor: pointer; }
       `}</style>
