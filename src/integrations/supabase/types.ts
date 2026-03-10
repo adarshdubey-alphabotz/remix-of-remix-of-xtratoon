@@ -324,6 +324,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_pinned: boolean
           manga_id: string
           parent_id: string | null
           telegram_message_id: number | null
@@ -335,6 +336,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          is_pinned?: boolean
           manga_id: string
           parent_id?: string | null
           telegram_message_id?: number | null
@@ -346,6 +348,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_pinned?: boolean
           manga_id?: string
           parent_id?: string | null
           telegram_message_id?: number | null
