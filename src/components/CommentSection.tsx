@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -33,6 +33,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+  const submitLockRef = useRef(false);
 
   const isCreator = !!user && !!creatorId && user.id === creatorId;
 
@@ -94,20 +95,25 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
   const handleSubmit = async () => {
     if (!user) { toast.error('Please login to comment'); return; }
-    if (!content.trim()) return;
+    if (!content.trim() || submitting || submitLockRef.current) return;
+
+    submitLockRef.current = true;
     setSubmitting(true);
 
-    const commentData: any = {
-      manga_id: mangaId,
-      user_id: user.id,
-      content: content.trim(),
-      parent_id: replyTo?.id || null,
-    };
+    try {
+      const commentData: any = {
+        manga_id: mangaId,
+        user_id: user.id,
+        content: content.trim(),
+        parent_id: replyTo?.id || null,
+      };
 
-    const { error } = await supabase.from('comments' as any).insert(commentData);
-    if (error) {
-      toast.error(error.message);
-    } else {
+      const { error } = await supabase.from('comments' as any).insert(commentData);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
       toast.success('Comment posted!');
       setContent('');
       setReplyTo(null);
@@ -119,8 +125,10 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` },
         body: JSON.stringify({ manga_id: mangaId, manga_title: mangaTitle, content: content.trim(), parent_id: replyTo?.id || null }),
       }).catch(() => {});
+    } finally {
+      setSubmitting(false);
+      submitLockRef.current = false;
     }
-    setSubmitting(false);
   };
 
   const handleDelete = async (commentId: string) => {
@@ -217,7 +225,8 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     );
   };
 
-  const totalComments = comments.reduce((sum, c) => sum + 1 + (c.replies?.length || 0), 0);
+  const countThread = (comment: Comment): number => 1 + (comment.replies?.reduce((sum, reply) => sum + countThread(reply), 0) || 0);
+  const totalComments = comments.reduce((sum, c) => sum + countThread(c), 0);
 
   return (
     <section className="space-y-4">

@@ -22,6 +22,7 @@ const LibraryStatusButton: React.FC<Props> = ({ mangaId, compact = false }) => {
   const { user, setShowAuthModal, setAuthTab } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
 
   const { data: libraryEntry } = useQuery({
     queryKey: ['library-status', mangaId, user?.id],
@@ -47,29 +48,38 @@ const LibraryStatusButton: React.FC<Props> = ({ mangaId, compact = false }) => {
       setShowAuthModal(true);
       return;
     }
+    if (pending) return;
 
     setOpen(false);
+    setPending(true);
 
-    if (currentStatus === status) {
-      // Remove from library
-      await supabase.from('user_library').delete().eq('user_id', user.id).eq('manga_id', mangaId);
-      toast.success('Removed from library');
-    } else if (currentStatus) {
-      // Update status
-      await supabase.from('user_library').update({ status }).eq('user_id', user.id).eq('manga_id', mangaId);
-      toast.success(`Status updated to ${STATUSES.find(s => s.key === status)?.label}`);
-    } else {
-      // Add to library
-      await supabase.from('user_library').upsert(
-        { user_id: user.id, manga_id: mangaId, status },
-        { onConflict: 'user_id,manga_id' }
-      );
-      toast.success('Added to library!');
+    try {
+      if (currentStatus === status) {
+        const { error } = await supabase.from('user_library').delete().eq('user_id', user.id).eq('manga_id', mangaId);
+        if (error) throw error;
+        toast.success('Removed from library');
+      } else if (currentStatus) {
+        const { error } = await supabase.from('user_library').update({ status }).eq('user_id', user.id).eq('manga_id', mangaId);
+        if (error) throw error;
+        toast.success(`Status updated to ${STATUSES.find(s => s.key === status)?.label}`);
+      } else {
+        const { error } = await supabase.from('user_library').upsert(
+          { user_id: user.id, manga_id: mangaId, status },
+          { onConflict: 'user_id,manga_id' }
+        );
+        if (error) throw error;
+        toast.success('Added to library!');
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['library-status', mangaId] });
+      queryClient.invalidateQueries({ queryKey: ['in-library', mangaId] });
+      queryClient.invalidateQueries({ queryKey: ['my-library'] });
+      queryClient.invalidateQueries({ queryKey: ['manhwa-detail'] });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update library status');
+    } finally {
+      setPending(false);
     }
-
-    queryClient.invalidateQueries({ queryKey: ['library-status', mangaId] });
-    queryClient.invalidateQueries({ queryKey: ['in-library', mangaId] });
-    queryClient.invalidateQueries({ queryKey: ['my-library'] });
   };
 
   const Icon = currentInfo?.icon || Bookmark;
@@ -79,9 +89,11 @@ const LibraryStatusButton: React.FC<Props> = ({ mangaId, compact = false }) => {
       <button
         onClick={() => {
           if (!user) { setAuthTab('login'); setShowAuthModal(true); return; }
+          if (pending) return;
           setOpen(!open);
         }}
-        className={`btn-outline rounded-none text-sm flex items-center gap-2 ${currentStatus ? 'border-primary/50 bg-primary/5' : ''}`}
+        disabled={pending}
+        className={`btn-outline rounded-none text-sm flex items-center gap-2 ${currentStatus ? 'border-primary/50 bg-primary/5' : ''} disabled:opacity-60`}
       >
         <Icon className={`w-4 h-4 ${currentInfo?.color || ''} ${currentStatus ? 'fill-current' : ''}`} />
         {!compact && (currentInfo?.label || 'Add to Library')}
