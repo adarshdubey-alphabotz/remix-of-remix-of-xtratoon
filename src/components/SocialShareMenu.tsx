@@ -101,13 +101,18 @@ const SocialShareMenu: React.FC<SocialShareMenuProps> = ({ title, url, descripti
               {platforms.map((p) => (
                 <a
                   key={p.name}
-                  href={p.action === 'copy' ? undefined : p.url}
-                  target={p.action === 'copy' ? undefined : '_blank'}
+                  href={p.action === 'copy' || p.action === 'instagram' ? undefined : p.url}
+                  target={p.action === 'copy' || p.action === 'instagram' ? undefined : '_blank'}
                   rel="noopener noreferrer"
                   onClick={(e) => {
                     if (p.action === 'copy') {
                       e.preventDefault();
                       handleCopy();
+                    } else if (p.action === 'instagram') {
+                      e.preventDefault();
+                      // Copy link for manual paste into IG Story
+                      navigator.clipboard.writeText(shareUrl);
+                      toast.success('Link copied! Open Instagram → Story → paste link sticker');
                     }
                     setOpen(false);
                   }}

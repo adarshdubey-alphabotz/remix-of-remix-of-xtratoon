@@ -127,6 +127,7 @@ const AppLayout = () => (
     <JsonLd />
     <BanNotice />
     <Navbar />
+    <AnnouncementBanner />
     <AuthModal />
     <SpotlightSearch />
     <OnboardingModal />
