@@ -586,6 +586,7 @@ export type Database = {
           genres: string[] | null
           id: string
           is_featured: boolean | null
+          is_nsfw: boolean
           language: string | null
           likes: number | null
           rating_average: number | null
@@ -607,6 +608,7 @@ export type Database = {
           genres?: string[] | null
           id?: string
           is_featured?: boolean | null
+          is_nsfw?: boolean
           language?: string | null
           likes?: number | null
           rating_average?: number | null
@@ -628,6 +630,7 @@ export type Database = {
           genres?: string[] | null
           id?: string
           is_featured?: boolean | null
+          is_nsfw?: boolean
           language?: string | null
           likes?: number | null
           rating_average?: number | null
