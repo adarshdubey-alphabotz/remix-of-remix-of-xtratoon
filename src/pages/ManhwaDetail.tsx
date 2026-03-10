@@ -48,12 +48,6 @@ const ManhwaDetail: React.FC = () => {
   const [likePending, setLikePending] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
-  // Parallax scroll
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const overlayOpacity = useTransform(scrollYProgress, [0, 0.5], [0.3, 0.9]);
-  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '15%']);
-
   const { data: manhwa, isLoading } = useQuery({
     queryKey: ['manhwa-detail', id],
     queryFn: async () => {
