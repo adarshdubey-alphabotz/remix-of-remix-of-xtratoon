@@ -32,7 +32,7 @@ export const HeroParallax = ({
     offset: ["start start", "end start"],
   });
 
-  const springConfig = { stiffness: 80, damping: 40, mass: 0.5 };
+  const springConfig = { stiffness: 120, damping: 50, mass: 0.3 };
 
   // Track whether scroll-driven movement is done (scrollYProgress >= 0.5)
   const [autoScroll, setAutoScroll] = useState(false);
