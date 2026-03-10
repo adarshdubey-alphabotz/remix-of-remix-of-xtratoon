@@ -86,7 +86,7 @@ const ManhwaDetail: React.FC = () => {
 
   useEffect(() => {
     if (!manhwa) return;
-    supabase.from('manga').update({ views: (manhwa.views || 0) + 1 }).eq('id', manhwa.id).then(() => {});
+    supabase.rpc('increment_manga_views', { p_manga_id: manhwa.id }).then(() => {});
   }, [manhwa?.id]);
 
   const { data: chapters } = useQuery({
@@ -139,14 +139,28 @@ const ManhwaDetail: React.FC = () => {
   const handleToggleLike = async () => {
     if (!user) { toast.error('Please login first'); return; }
     if (!manhwa) return;
-    if (isLiked) {
+    
+    // Check actual like status from DB to avoid stale state
+    const { data: existingLike } = await supabase.from('manga_likes').select('id').eq('user_id', user.id).eq('manga_id', manhwa.id).maybeSingle();
+    
+    if (existingLike) {
       await supabase.from('manga_likes').delete().eq('user_id', user.id).eq('manga_id', manhwa.id);
-      await supabase.from('manga').update({ likes: Math.max((manhwa.likes || 0) - 1, 0) }).eq('id', manhwa.id);
+      // Get actual count
+      const { count } = await supabase.from('manga_likes').select('id', { count: 'exact', head: true }).eq('manga_id', manhwa.id);
+      await supabase.from('manga').update({ likes: count || 0 }).eq('id', manhwa.id);
       toast.success('Unliked');
     } else {
       const { error } = await supabase.from('manga_likes').insert({ user_id: user.id, manga_id: manhwa.id });
-      if (error) { toast.error(error.message); return; }
-      await supabase.from('manga').update({ likes: (manhwa.likes || 0) + 1 }).eq('id', manhwa.id);
+      if (error) {
+        if (error.code === '23505') {
+          // Already liked, just refresh
+          queryClient.invalidateQueries({ queryKey: ['is-liked', manhwa.id] });
+          return;
+        }
+        toast.error(error.message); return;
+      }
+      const { count } = await supabase.from('manga_likes').select('id', { count: 'exact', head: true }).eq('manga_id', manhwa.id);
+      await supabase.from('manga').update({ likes: count || 0 }).eq('id', manhwa.id);
       toast.success('Liked! ❤️');
     }
     queryClient.invalidateQueries({ queryKey: ['is-liked', manhwa.id] });
