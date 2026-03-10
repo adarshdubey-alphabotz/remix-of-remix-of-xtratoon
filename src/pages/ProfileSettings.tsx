@@ -37,6 +37,8 @@ const currencies = ['USD', 'EUR', 'GBP', 'INR', 'BDT', 'JPY', 'KRW', 'CNY', 'BRL
 const ProfileSettings: React.FC = () => {
   const { user, profile, loading, updateProfile, changePassword, isPublisher, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const { nightShift, toggleNightShift } = useNightShift();
+  const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
