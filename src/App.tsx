@@ -15,6 +15,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import BanNotice from "@/components/BanNotice";
 import OnboardingModal from "@/components/OnboardingModal";
 import TermsAcceptanceModal from "@/components/TermsAcceptanceModal";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { lazy, Suspense, useEffect } from "react";
 
 // Lazy-loaded route components — each becomes its own JS chunk
@@ -126,6 +127,7 @@ const AppLayout = () => (
     <JsonLd />
     <BanNotice />
     <Navbar />
+    <AnnouncementBanner />
     <AuthModal />
     <SpotlightSearch />
     <OnboardingModal />

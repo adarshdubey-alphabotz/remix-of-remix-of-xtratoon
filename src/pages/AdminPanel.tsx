@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail, BadgeCheck, DollarSign } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail, BadgeCheck, DollarSign, Megaphone } from 'lucide-react';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import AdminRevenueAnalytics from '@/components/AdminRevenueAnalytics';
 import AdminPayoutManager from '@/components/AdminPayoutManager';
+import AdminAnnouncementManager from '@/components/AdminAnnouncementManager';
 
 const AdminPanel: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -307,6 +308,7 @@ const AdminPanel: React.FC = () => {
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'announcements', label: 'Announcements', icon: <Megaphone className="w-4 h-4" /> },
     { id: 'revenue', label: 'Revenue', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'payouts', label: 'Payouts', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'submissions', label: 'Manga', icon: <FileText className="w-4 h-4" /> },
@@ -358,6 +360,10 @@ const AdminPanel: React.FC = () => {
                 ))}
               </div>
             </div>
+          )}
+
+          {activeTab === 'announcements' && (
+            <AdminAnnouncementManager />
           )}
 
           {activeTab === 'revenue' && (
