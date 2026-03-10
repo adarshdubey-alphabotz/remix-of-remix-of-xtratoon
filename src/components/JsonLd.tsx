@@ -95,6 +95,75 @@ const JsonLd: React.FC = () => (
         })
       }}
     />
+
+    {/* Speakable — helps AI assistants (ChatGPT, Perplexity, Google AI) cite your content */}
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Komixora — Read Manhwa, Manga & Webtoons Online Free",
+          "url": SITE_URL,
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": ["h1", "h2", ".speakable"]
+          },
+          "mainEntity": {
+            "@type": "ItemList",
+            "name": "Popular Manhwa on Komixora",
+            "description": "Top trending manhwa, manga and webtoon series available to read for free on Komixora.",
+            "itemListOrder": "https://schema.org/ItemListOrderDescending",
+            "numberOfItems": 500
+          }
+        })
+      }}
+    />
+
+    {/* FAQPage for AI engines to extract answers */}
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Komixora?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Komixora is a free online platform to read manhwa, manga, and webtoons in HD quality. It features thousands of series across all genres with daily updates from world-class creators."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Komixora free to use?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, Komixora is completely free for readers. Chapters are unlocked through a short ad view, and 100% of the ad revenue goes directly to the creators."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do creators earn money on Komixora?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Creators earn 100% of ad revenue generated when readers unlock their chapters. Komixora takes zero platform cuts. Payouts are processed monthly via PayPal, UPI, bKash, Binance, and USDT."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I publish my manhwa on Komixora?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Create a publisher account on Komixora, upload your manhwa chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one."
+              }
+            }
+          ]
+        })
+      }}
+    />
   </>
 );
 
