@@ -422,6 +422,7 @@ const AdminPanel: React.FC = () => {
                     <tbody>
                       {pendingChapters.map((c: any) => (
                         <tr key={c.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                          <td className="px-4 py-3 font-mono text-xs text-primary" title={c.manga_id}>{c.manga_id?.slice(0, 8).toUpperCase()}</td>
                           <td className="px-4 py-3 font-semibold">{c.manga?.title || '—'}</td>
                           <td className="px-4 py-3">Ch. {c.chapter_number}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{c.title || '—'}</td>
