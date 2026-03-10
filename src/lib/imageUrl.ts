@@ -28,5 +28,5 @@ export function getImageUrl(fileIdOrUrl: string | null | undefined): string | nu
     return `/api/img?${params}`;
   }
 
-  return `https://${projectId}.supabase.co/functions/v1/telegram-proxy?${params}`;
+  return `${supabaseUrl}/functions/v1/telegram-proxy?${params}`;
 }
