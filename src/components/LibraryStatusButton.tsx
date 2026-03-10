@@ -48,29 +48,38 @@ const LibraryStatusButton: React.FC<Props> = ({ mangaId, compact = false }) => {
       setShowAuthModal(true);
       return;
     }
+    if (pending) return;
 
     setOpen(false);
+    setPending(true);
 
-    if (currentStatus === status) {
-      // Remove from library
-      await supabase.from('user_library').delete().eq('user_id', user.id).eq('manga_id', mangaId);
-      toast.success('Removed from library');
-    } else if (currentStatus) {
-      // Update status
-      await supabase.from('user_library').update({ status }).eq('user_id', user.id).eq('manga_id', mangaId);
-      toast.success(`Status updated to ${STATUSES.find(s => s.key === status)?.label}`);
-    } else {
-      // Add to library
-      await supabase.from('user_library').upsert(
-        { user_id: user.id, manga_id: mangaId, status },
-        { onConflict: 'user_id,manga_id' }
-      );
-      toast.success('Added to library!');
+    try {
+      if (currentStatus === status) {
+        const { error } = await supabase.from('user_library').delete().eq('user_id', user.id).eq('manga_id', mangaId);
+        if (error) throw error;
+        toast.success('Removed from library');
+      } else if (currentStatus) {
+        const { error } = await supabase.from('user_library').update({ status }).eq('user_id', user.id).eq('manga_id', mangaId);
+        if (error) throw error;
+        toast.success(`Status updated to ${STATUSES.find(s => s.key === status)?.label}`);
+      } else {
+        const { error } = await supabase.from('user_library').upsert(
+          { user_id: user.id, manga_id: mangaId, status },
+          { onConflict: 'user_id,manga_id' }
+        );
+        if (error) throw error;
+        toast.success('Added to library!');
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['library-status', mangaId] });
+      queryClient.invalidateQueries({ queryKey: ['in-library', mangaId] });
+      queryClient.invalidateQueries({ queryKey: ['my-library'] });
+      queryClient.invalidateQueries({ queryKey: ['manhwa-detail'] });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update library status');
+    } finally {
+      setPending(false);
     }
-
-    queryClient.invalidateQueries({ queryKey: ['library-status', mangaId] });
-    queryClient.invalidateQueries({ queryKey: ['in-library', mangaId] });
-    queryClient.invalidateQueries({ queryKey: ['my-library'] });
   };
 
   const Icon = currentInfo?.icon || Bookmark;
