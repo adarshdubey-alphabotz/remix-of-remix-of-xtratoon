@@ -364,7 +364,17 @@ const ReaderPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
   );
   if (!chapterData || !manga) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]"><p className="text-white/50">Chapter not found</p></div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0d0d0d] px-4 text-center gap-4">
+      <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
+        <ImageIcon className="w-8 h-8 text-white/20" />
+      </div>
+      <p className="text-white/70 text-lg font-semibold">Chapter not found</p>
+      <p className="text-white/40 text-sm max-w-xs">This chapter may not exist, was removed, or is still pending approval.</p>
+      <div className="flex gap-3">
+        <button onClick={() => navigate(-1)} className="px-4 py-2 bg-white/10 text-white text-sm rounded-xl hover:bg-white/15 transition-colors">Go Back</button>
+        <button onClick={() => navigate('/')} className="px-4 py-2 bg-primary text-primary-foreground text-sm rounded-xl font-semibold">Home</button>
+      </div>
+    </div>
   );
 
   // Swipe animation variants
