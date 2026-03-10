@@ -227,9 +227,20 @@ const ExplorePage: React.FC = () => {
 
   const featured = manga.find(m => m.is_featured) || manga[0];
   const topByViews = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
-  const recentlyAdded = manga.slice(0, 8);
+  const recentlyAdded = [...manga].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 8);
   const topCharts = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6);
   const highRated = manga.filter(m => Number(m.rating_average) >= 4.0).slice(0, 8);
+
+  // Genre-specific sections
+  const topAction = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'action')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
+  const topRomance = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'romance')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
+  const topFantasy = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'fantasy')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
+  const mostBookmarked = [...manga].sort((a, b) => (b.bookmarks || 0) - (a.bookmarks || 0)).slice(0, 8);
+
+  // Top this week (created in the last 7 days sorted by views)
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const topThisWeek = manga.filter(m => new Date(m.created_at) >= oneWeekAgo).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
 
   return (
     <div className="min-h-screen bg-background pt-20">
