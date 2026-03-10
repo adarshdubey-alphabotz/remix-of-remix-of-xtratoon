@@ -156,15 +156,56 @@ const ReaderPage: React.FC = () => {
     canvas.height = img.naturalHeight;
     ctx.drawImage(img, 0, 0);
 
+    // Multi-layer watermark system
     if (user?.email) {
+      // Layer 1: Diagonal email watermark (very subtle)
       ctx.save();
-      ctx.globalAlpha = 0.015;
+      ctx.globalAlpha = 0.012;
       ctx.fillStyle = '#ffffff';
       ctx.font = '14px monospace';
       for (let y = 50; y < canvas.height; y += 120) {
         for (let x = 30; x < canvas.width; x += 300) {
           ctx.save(); ctx.translate(x, y); ctx.rotate(-0.3);
           ctx.fillText(user.email, 0, 0); ctx.restore();
+        }
+      }
+      ctx.restore();
+
+      // Layer 2: Komixora branding watermark (barely visible)
+      ctx.save();
+      ctx.globalAlpha = 0.018;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 18px sans-serif';
+      for (let y = 100; y < canvas.height; y += 200) {
+        for (let x = 80; x < canvas.width; x += 350) {
+          ctx.save(); ctx.translate(x, y); ctx.rotate(0.2);
+          ctx.fillText('KOMIXORA', 0, 0); ctx.restore();
+        }
+      }
+      ctx.restore();
+
+      // Layer 3: Invisible user ID hash (forensic)
+      ctx.save();
+      ctx.globalAlpha = 0.004;
+      ctx.fillStyle = '#888888';
+      ctx.font = '10px monospace';
+      const hash = user.id?.slice(0, 12) || '';
+      for (let y = 30; y < canvas.height; y += 80) {
+        for (let x = 10; x < canvas.width; x += 250) {
+          ctx.fillText(hash, x, y);
+        }
+      }
+      ctx.restore();
+    } else {
+      // Anon users get stronger branding watermark
+      ctx.save();
+      ctx.globalAlpha = 0.025;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px sans-serif';
+      for (let y = 80; y < canvas.height; y += 150) {
+        for (let x = 50; x < canvas.width; x += 300) {
+          ctx.save(); ctx.translate(x, y); ctx.rotate(-0.25);
+          ctx.fillText('KOMIXORA.FUN', 0, 0); ctx.restore();
         }
       }
       ctx.restore();
