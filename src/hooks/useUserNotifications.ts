@@ -12,7 +12,7 @@ export const useUserNotifications = () => {
     queryFn: async () => {
       if (!user) return [];
       const { data } = await supabase
-        .from('user_notifications' as any)
+        .from('user_notifications')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_read', false)
