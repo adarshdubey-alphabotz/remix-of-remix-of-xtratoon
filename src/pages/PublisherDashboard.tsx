@@ -210,7 +210,7 @@ const PublisherDashboard: React.FC = () => {
       }
 
       toast.success(`Manhwa submitted with Chapter 1 (${pageResult.pages_uploaded} pages)! Admin will review within 48 hours.`);
-      setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false);
+      setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false); setIsNsfw(false);
       setCoverFile(null); setCoverPreview(null); setCh1Files([]); setCh1Title('');
       queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
       setActiveTab('works');
