@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Heart, BookOpen, Users, Shield } from 'lucide-react';
+import { Instagram, BookOpen, Users, Shield } from 'lucide-react';
 import mascotImg from '@/assets/mascot-character.png';
 
 const TelegramIcon = () => (
