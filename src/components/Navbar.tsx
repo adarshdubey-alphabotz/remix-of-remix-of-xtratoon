@@ -55,6 +55,14 @@ const Navbar: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
   };
 
+  // Close all dropdowns on route change
+  useEffect(() => {
+    setGenreOpen(false);
+    setUserMenuOpen(false);
+    setNotifOpen(false);
+    setMobileOpen(false);
+  }, [location.pathname]);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
