@@ -298,14 +298,16 @@ const PublisherDashboard: React.FC = () => {
       }
 
       const schedLabel = scheduledAt ? ` (scheduled for ${new Date(scheduledAt).toLocaleString()})` : '';
+      const nextNum = chapterNumber + 1;
       toast.success(`Chapter ${chapterNumber} uploaded!${schedLabel} (${result.pages_uploaded} pages) — Admin will review before publishing.`);
       setPageFiles([]);
       setChapterTitle('');
-      setChapterNumber(prev => prev + 1);
       setScheduleEnabled(false);
       setScheduledDate('');
       setScheduledTime('');
-      queryClient.invalidateQueries({ queryKey: ['creator-chapters'] });
+      await queryClient.invalidateQueries({ queryKey: ['creator-chapters'] });
+      // Force next chapter number after query refetch settles
+      setChapterNumber(nextNum);
     } catch (err: any) {
       toast.error(err.message || 'Failed to upload chapter');
     } finally {
