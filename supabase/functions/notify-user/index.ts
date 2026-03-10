@@ -28,7 +28,7 @@ const EMAIL_TEMPLATES: Record<string, { subject: string; body: (details?: any) =
           <h2 style="color:#dc2626;margin:0 0 16px;">Account Suspended</h2>
           <p style="color:#333;line-height:1.6;">Your account has been suspended for violating our community guidelines.</p>
           ${d?.reason ? `<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:12px 16px;margin:16px 0;"><strong>Reason:</strong> ${d.reason}</div>` : ''}
-          <p style="color:#333;line-height:1.6;">If you believe this was a mistake, you can appeal by contacting us at <a href="mailto:admin@komixora.fun" style="color:#6366f1;">admin@komixora.fun</a></p>
+          <p style="color:#333;line-height:1.6;">If you believe this was a mistake, you can appeal by contacting us at <a href="mailto:support@komixora.fun" style="color:#6366f1;">support@komixora.fun</a></p>
         </div>
         <div style="background:#f5f5f5;padding:16px 32px;text-align:center;font-size:12px;color:#666;">
           © ${new Date().getFullYear()} Komixora. All rights reserved.
@@ -142,7 +142,7 @@ const EMAIL_TEMPLATES: Record<string, { subject: string; body: (details?: any) =
           <h2 style="color:#dc2626;margin:0 0 16px;">Content Removed</h2>
           <p style="color:#333;line-height:1.6;">Your content <strong>"${d?.title || 'Unknown'}"</strong> has been removed by an administrator for violating our guidelines.</p>
           ${d?.reason ? `<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:12px 16px;margin:16px 0;"><strong>Reason:</strong> ${d.reason}</div>` : ''}
-          <p style="color:#333;line-height:1.6;">If you have questions, contact us at <a href="mailto:admin@komixora.fun" style="color:#6366f1;">admin@komixora.fun</a></p>
+          <p style="color:#333;line-height:1.6;">If you have questions, contact us at <a href="mailto:support@komixora.fun" style="color:#6366f1;">support@komixora.fun</a></p>
         </div>
         <div style="background:#f5f5f5;padding:16px 32px;text-align:center;font-size:12px;color:#666;">
           © ${new Date().getFullYear()} Komixora. All rights reserved.

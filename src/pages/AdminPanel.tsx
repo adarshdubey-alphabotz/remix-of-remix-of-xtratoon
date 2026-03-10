@@ -612,7 +612,7 @@ const AdminPanel: React.FC = () => {
                 <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-bold">Ban Appeal Process</p>
-                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:admin@komixora.fun" className="text-primary hover:underline font-semibold">admin@komixora.fun</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Banned users must email <a href="mailto:support@komixora.fun" className="text-primary hover:underline font-semibold">support@komixora.fun</a> to submit an appeal. Review appeals and use the unban button below to restore access.</p>
                 </div>
               </div>
               <div className="brutal-card overflow-hidden">
