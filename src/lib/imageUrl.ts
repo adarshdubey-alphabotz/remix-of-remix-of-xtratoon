@@ -4,7 +4,7 @@
  * For chapter pages: use page_id (never expose telegram_file_id)
  * For covers: use file_id through proxy
  */
-const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const isProd = import.meta.env.PROD;
 
 /** Use for chapter pages — hides the telegram_file_id */
