@@ -55,7 +55,9 @@ const PostDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!post?.id) return;
-    supabase.from('community_posts' as any).update({ views_count: (post.views_count || 0) + 1 }).eq('id', post.id).then(() => {});
+    supabase.rpc('increment_community_post_views', { p_post_id: post.id }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['community-post', postId] });
+    });
   }, [post?.id]);
 
   const { data: creator } = useQuery({
