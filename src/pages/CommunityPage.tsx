@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import EmptyState from '@/components/EmptyState';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,9 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFollowingIds } from '@/hooks/useFollow';
 import { Heart, MessageCircle, ImagePlus, Trash2, User, Loader2, Search, Hash, X, TrendingUp, Eye, Bookmark, Share2, Pin } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import { toast } from 'sonner';
-import ScrollReveal from '@/components/ScrollReveal';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
 import SharePostModal from '@/components/SharePostModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
@@ -102,6 +101,25 @@ const CommunityPage: React.FC = () => {
       return (data || []) as any[];
     },
   });
+
+  // Realtime: auto-refresh on new posts, likes, replies
+  useEffect(() => {
+    const channel = supabase
+      .channel('community-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_post_likes' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+        queryClient.invalidateQueries({ queryKey: ['community-likes'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_replies' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
 
   const pinPostMutation = useMutation({
     mutationFn: async ({ postId, pinned }: { postId: string; pinned: boolean }) => {
@@ -300,7 +318,7 @@ const CommunityPage: React.FC = () => {
               {(['for-you', 'following'] as const).map(t => (
                 <button key={t} onClick={() => setTab(t)} className={`flex-1 py-3 text-sm font-semibold transition-all relative ${tab === t ? 'text-foreground' : 'text-muted-foreground hover:bg-muted/30'}`}>
                   {t === 'for-you' ? 'For you' : 'Following'}
-                  {tab === t && <motion.div layoutId="community-tab" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-1 bg-primary rounded-full" />}
+                  {tab === t && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-1 bg-primary rounded-full" />}
                 </button>
               ))}
             </div>
@@ -386,7 +404,7 @@ const CommunityPage: React.FC = () => {
                 const images = post.image_urls?.length > 0 ? post.image_urls : post.image_url ? [post.image_url] : [];
 
                 return (
-                  <ScrollReveal key={post.id} delay={i * 0.03}>
+                  <div key={post.id}>
                     <article className="px-4 py-3 border-b border-border/30 hover:bg-muted/20 transition-colors cursor-pointer" onClick={(e) => { if ((e.target as HTMLElement).closest('button, a')) return; navigate(`/community/post/${post.id}`); }}>
                       {post.is_pinned && (
                         <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-2 pl-[52px]">
@@ -449,7 +467,7 @@ const CommunityPage: React.FC = () => {
                         </div>
                       </div>
                     </article>
-                  </ScrollReveal>
+                  </div>
                 );
               })}
             </div>
