@@ -143,33 +143,29 @@ const ManhwaDetail: React.FC = () => {
 
   const handleToggleLike = async () => {
     if (!user) { toast.error('Please login first'); return; }
-    if (!manhwa) return;
-    
-    // Check actual like status from DB to avoid stale state
-    const { data: existingLike } = await supabase.from('manga_likes').select('id').eq('user_id', user.id).eq('manga_id', manhwa.id).maybeSingle();
-    
-    if (existingLike) {
-      await supabase.from('manga_likes').delete().eq('user_id', user.id).eq('manga_id', manhwa.id);
-      // Get actual count
-      const { count } = await supabase.from('manga_likes').select('id', { count: 'exact', head: true }).eq('manga_id', manhwa.id);
-      await supabase.from('manga').update({ likes: count || 0 }).eq('id', manhwa.id);
-      toast.success('Unliked');
-    } else {
-      const { error } = await supabase.from('manga_likes').insert({ user_id: user.id, manga_id: manhwa.id });
-      if (error) {
-        if (error.code === '23505') {
-          // Already liked, just refresh
-          queryClient.invalidateQueries({ queryKey: ['is-liked', manhwa.id] });
-          return;
-        }
-        toast.error(error.message); return;
+    if (!manhwa || likePending) return;
+
+    setLikePending(true);
+    try {
+      const currentlyLiked = !!isLiked;
+
+      if (currentlyLiked) {
+        const { error } = await supabase.from('manga_likes').delete().eq('user_id', user.id).eq('manga_id', manhwa.id);
+        if (error) throw error;
+        toast.success('Unliked');
+      } else {
+        const { error } = await supabase.from('manga_likes').insert({ user_id: user.id, manga_id: manhwa.id });
+        if (error && error.code !== '23505') throw error;
+        toast.success('Liked! ❤️');
       }
-      const { count } = await supabase.from('manga_likes').select('id', { count: 'exact', head: true }).eq('manga_id', manhwa.id);
-      await supabase.from('manga').update({ likes: count || 0 }).eq('id', manhwa.id);
-      toast.success('Liked! ❤️');
+
+      queryClient.invalidateQueries({ queryKey: ['is-liked', manhwa.id, user.id] });
+      queryClient.invalidateQueries({ queryKey: ['manhwa-detail', id] });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update like');
+    } finally {
+      setLikePending(false);
     }
-    queryClient.invalidateQueries({ queryKey: ['is-liked', manhwa.id] });
-    queryClient.invalidateQueries({ queryKey: ['manhwa-detail', id] });
   };
 
   const handleReport = async () => {
