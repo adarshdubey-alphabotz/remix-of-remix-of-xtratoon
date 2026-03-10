@@ -324,6 +324,31 @@ const PublisherDashboard: React.FC = () => {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const deleteChapter = useMutation({
+    mutationFn: async (chapterId: string) => {
+      await supabase.from('chapter_pages').delete().eq('chapter_id', chapterId);
+      const { error } = await supabase.from('chapters').delete().eq('id', chapterId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Chapter deleted');
+      queryClient.invalidateQueries({ queryKey: ['creator-chapters'] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const swapChapterNumbers = async (chA: any, chB: any) => {
+    const numA = chA.chapter_number;
+    const numB = chB.chapter_number;
+    // Use a temp number to avoid unique constraint conflicts
+    const tempNum = 99999;
+    await supabase.from('chapters').update({ chapter_number: tempNum } as any).eq('id', chA.id);
+    await supabase.from('chapters').update({ chapter_number: numA } as any).eq('id', chB.id);
+    await supabase.from('chapters').update({ chapter_number: numB } as any).eq('id', chA.id);
+    toast.success(`Swapped Ch.${numA} ↔ Ch.${numB}`);
+    queryClient.invalidateQueries({ queryKey: ['creator-chapters'] });
+  };
+
   const toggleGenre = (g: string) => {
     setUploadGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
   };
