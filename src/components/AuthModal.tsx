@@ -314,7 +314,7 @@ const AuthModal: React.FC = () => {
             </button>
           )}
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 };
