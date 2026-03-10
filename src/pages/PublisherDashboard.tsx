@@ -151,7 +151,7 @@ const PublisherDashboard: React.FC = () => {
           title: uploadTitle,
           slug,
           description: uploadDesc,
-          genres: uploadGenres,
+          genres: [...uploadGenres, ...customTags.map(t => t.charAt(0).toUpperCase() + t.slice(1))],
           status: uploadStatus,
           approval_status: 'PENDING',
         })
