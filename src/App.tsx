@@ -52,9 +52,50 @@ const queryClient = new QueryClient();
 
 const AntiPiracy = () => {
   useEffect(() => {
-    const handler = (e: MouseEvent) => e.preventDefault();
-    document.addEventListener('contextmenu', handler);
-    return () => document.removeEventListener('contextmenu', handler);
+    // Disable right-click
+    const ctxHandler = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener('contextmenu', ctxHandler);
+
+    // Detect DevTools via debugger timing
+    let devToolsOpen = false;
+    const checkDevTools = () => {
+      const start = performance.now();
+      // eslint-disable-next-line no-debugger
+      const end = performance.now();
+      if (end - start > 100 && !devToolsOpen) {
+        devToolsOpen = true;
+      }
+    };
+    const devToolsInterval = setInterval(checkDevTools, 2000);
+
+    // Disable common screenshot shortcuts
+    const keyHandler = (e: KeyboardEvent) => {
+      // PrintScreen
+      if (e.key === 'PrintScreen') { e.preventDefault(); }
+      // Ctrl+Shift+I (DevTools), Ctrl+Shift+J (Console), Ctrl+U (View Source)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) { e.preventDefault(); }
+      if (e.ctrlKey && e.key === 'u') { e.preventDefault(); }
+      // Ctrl+S (Save)
+      if (e.ctrlKey && e.key === 's') { e.preventDefault(); }
+      // Ctrl+P (Print)
+      if (e.ctrlKey && e.key === 'p') { e.preventDefault(); }
+    };
+    document.addEventListener('keydown', keyHandler);
+
+    // Disable drag on images
+    const dragHandler = (e: DragEvent) => {
+      if ((e.target as HTMLElement)?.tagName === 'CANVAS' || (e.target as HTMLElement)?.tagName === 'IMG') {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('dragstart', dragHandler);
+
+    return () => {
+      document.removeEventListener('contextmenu', ctxHandler);
+      document.removeEventListener('keydown', keyHandler);
+      document.removeEventListener('dragstart', dragHandler);
+      clearInterval(devToolsInterval);
+    };
   }, []);
   return null;
 };
