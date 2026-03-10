@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/img", "destination": "https://api.komixora.fun/functions/v1/telegram-proxy" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
