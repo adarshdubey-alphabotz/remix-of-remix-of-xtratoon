@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Sparkles, Flame, Loader2 } from 'lucide-react';
+import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Sparkles, Flame, Loader2, Heart, Swords, BookHeart, Wand2 } from 'lucide-react';
 import BecauseYouRead from '@/components/BecauseYouRead';
 import DynamicMeta from '@/components/DynamicMeta';
 
@@ -227,9 +227,20 @@ const ExplorePage: React.FC = () => {
 
   const featured = manga.find(m => m.is_featured) || manga[0];
   const topByViews = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
-  const recentlyAdded = manga.slice(0, 8);
+  const recentlyAdded = [...manga].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 8);
   const topCharts = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6);
   const highRated = manga.filter(m => Number(m.rating_average) >= 4.0).slice(0, 8);
+
+  // Genre-specific sections
+  const topAction = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'action')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
+  const topRomance = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'romance')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
+  const topFantasy = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'fantasy')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
+  const mostBookmarked = [...manga].sort((a, b) => (b.bookmarks || 0) - (a.bookmarks || 0)).slice(0, 8);
+
+  // Top this week (created in the last 7 days sorted by views)
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const topThisWeek = manga.filter(m => new Date(m.created_at) >= oneWeekAgo).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
 
   return (
     <div className="min-h-screen bg-background pt-20">
@@ -302,6 +313,28 @@ const ExplorePage: React.FC = () => {
             {highRated.length > 0 && (
               <ScrollSection title="FEATURED PICKS" icon={<TrendingUp className="w-5 h-5" />} items={highRated} creatorMap={creatorMap}
                 badge={(m) => Number(m.rating_average) >= 4.5 ? { text: '★ TOP RATED', color: 'bg-yellow-500/90 text-black' } : null} />
+            )}
+
+            {topThisWeek.length > 0 && (
+              <ScrollSection title="NEW THIS WEEK" icon={<Sparkles className="w-5 h-5" />} items={topThisWeek} creatorMap={creatorMap}
+                badge={(_, i) => i === 0 ? { text: 'TRENDING', color: 'bg-primary text-primary-foreground' } : null} />
+            )}
+
+            {topAction.length > 0 && (
+              <ScrollSection title="TOP IN ACTION" icon={<Swords className="w-5 h-5" />} items={topAction} viewAllLink="/browse" creatorMap={creatorMap} />
+            )}
+
+            {topRomance.length > 0 && (
+              <ScrollSection title="TOP IN ROMANCE" icon={<BookHeart className="w-5 h-5" />} items={topRomance} viewAllLink="/browse" creatorMap={creatorMap} />
+            )}
+
+            {topFantasy.length > 0 && (
+              <ScrollSection title="TOP IN FANTASY" icon={<Wand2 className="w-5 h-5" />} items={topFantasy} viewAllLink="/browse" creatorMap={creatorMap} />
+            )}
+
+            {mostBookmarked.length > 0 && (
+              <ScrollSection title="MOST BOOKMARKED" icon={<Bookmark className="w-5 h-5" />} items={mostBookmarked} creatorMap={creatorMap}
+                badge={(m) => (m.bookmarks || 0) > 100 ? { text: `${formatViews(m.bookmarks || 0)} saves`, color: 'bg-foreground text-background' } : null} />
             )}
           </div>
         </>

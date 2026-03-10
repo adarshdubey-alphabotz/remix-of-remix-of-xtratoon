@@ -25,6 +25,8 @@ const PublisherDashboard: React.FC = () => {
   const [uploadDesc, setUploadDesc] = useState('');
   const [uploadGenres, setUploadGenres] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState('ONGOING');
+  const [customTags, setCustomTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [copyrightChecked, setCopyrightChecked] = useState(false);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -149,7 +151,7 @@ const PublisherDashboard: React.FC = () => {
           title: uploadTitle,
           slug,
           description: uploadDesc,
-          genres: uploadGenres,
+          genres: [...uploadGenres, ...customTags.map(t => t.charAt(0).toUpperCase() + t.slice(1))],
           status: uploadStatus,
           approval_status: 'PENDING',
         })
@@ -467,6 +469,56 @@ const PublisherDashboard: React.FC = () => {
                       <button key={g} type="button" onClick={() => toggleGenre(g)} className={`px-2.5 py-1 text-xs border transition-all font-medium ${uploadGenres.includes(g) ? 'border-primary bg-primary/10 text-primary' : 'border-foreground/20 hover:border-foreground'}`}>{g}</button>
                     ))}
                   </div>
+                </div>
+
+                {/* Custom Tags */}
+                <div>
+                  <label className="text-sm font-semibold block mb-2">Custom Tags <span className="text-xs text-muted-foreground font-normal">(optional — add your own tags)</span></label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      value={tagInput}
+                      onChange={e => setTagInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ',') {
+                          e.preventDefault();
+                          const tag = tagInput.trim().toLowerCase();
+                          if (tag && !customTags.includes(tag) && customTags.length < 10) {
+                            setCustomTags(prev => [...prev, tag]);
+                            setTagInput('');
+                          }
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors"
+                      placeholder="Type a tag and press Enter"
+                      maxLength={30}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tag = tagInput.trim().toLowerCase();
+                        if (tag && !customTags.includes(tag) && customTags.length < 10) {
+                          setCustomTags(prev => [...prev, tag]);
+                          setTagInput('');
+                        }
+                      }}
+                      className="px-3 py-2 text-xs font-bold border-2 border-foreground hover:border-primary transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {customTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {customTags.map(tag => (
+                        <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs border border-primary bg-primary/10 text-primary font-medium">
+                          #{tag}
+                          <button type="button" onClick={() => setCustomTags(prev => prev.filter(t => t !== tag))} className="hover:text-destructive">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-muted-foreground mt-1">Max 10 tags. Press Enter or comma to add.</p>
                 </div>
 
                 {/* Chapter 1 Upload - Required */}

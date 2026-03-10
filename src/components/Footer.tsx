@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Heart, BookOpen, Users, Shield } from 'lucide-react';
+import { Instagram, BookOpen, Users, Shield } from 'lucide-react';
 import mascotImg from '@/assets/mascot-character.png';
 
 const TelegramIcon = () => (
@@ -102,6 +102,9 @@ const Footer: React.FC = () => (
             <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link>
             <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link>
             <Link to="/content-guidelines" className="text-sm text-muted-foreground hover:text-primary transition-colors">Content Guidelines</Link>
+            <Link to="/disclaimer" className="text-sm text-muted-foreground hover:text-primary transition-colors">Disclaimer</Link>
+            <Link to="/dmca" className="text-sm text-muted-foreground hover:text-primary transition-colors">DMCA Policy</Link>
+            <Link to="/cookie-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Cookie Policy</Link>
           </nav>
         </div>
       </div>
@@ -109,7 +112,7 @@ const Footer: React.FC = () => (
       {/* Bottom bar */}
       <div className="mt-12 pt-6 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-xs text-muted-foreground flex items-center gap-1">
-          © 2026 Komixora. Made with <Heart className="w-3 h-3 text-primary fill-primary inline" /> by Akane Sakuramori.
+          © 2026 Komixora — A division of <span className="font-semibold text-foreground">Xtratoon</span>.
         </p>
         <div className="flex items-center gap-4">
           <a

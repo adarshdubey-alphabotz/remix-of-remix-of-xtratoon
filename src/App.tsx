@@ -38,6 +38,9 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const ContentGuidelines = lazy(() => import("./pages/ContentGuidelines"));
+const DisclaimerPage = lazy(() => import("./pages/DisclaimerPage"));
+const DMCAPage = lazy(() => import("./pages/DMCAPage"));
+const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
 const BlogListPage = lazy(() => import("./pages/BlogListPage"));
 const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor"));
@@ -100,11 +103,14 @@ const AnimatedRoutes = () => {
           <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
           <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
           <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
-          <Route path="/content-guidelines" element={<PageTransition><ContentGuidelines /></PageTransition>} />
-          <Route path="/blog" element={<PageTransition><BlogListPage /></PageTransition>} />
-          <Route path="/blog/:slug" element={<PageTransition><BlogDetailPage /></PageTransition>} />
-          <Route path="/admin/blog" element={<PageTransition><AdminBlogEditor /></PageTransition>} />
-          <Route path="/admin/settings" element={<PageTransition><AdminSettings /></PageTransition>} />
+           <Route path="/content-guidelines" element={<PageTransition><ContentGuidelines /></PageTransition>} />
+           <Route path="/disclaimer" element={<PageTransition><DisclaimerPage /></PageTransition>} />
+           <Route path="/dmca" element={<PageTransition><DMCAPage /></PageTransition>} />
+           <Route path="/cookie-policy" element={<PageTransition><CookiePolicyPage /></PageTransition>} />
+           <Route path="/blog" element={<PageTransition><BlogListPage /></PageTransition>} />
+           <Route path="/blog/:slug" element={<PageTransition><BlogDetailPage /></PageTransition>} />
+           <Route path="/admin/blog" element={<PageTransition><AdminBlogEditor /></PageTransition>} />
+           <Route path="/admin/settings" element={<PageTransition><AdminSettings /></PageTransition>} />
           
           <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
         </Routes>
