@@ -9,7 +9,6 @@ import { Heart, MessageCircle, ImagePlus, Trash2, User, Loader2, Search, Hash, X
 import { Link, useNavigate } from 'react-router-dom';
 
 import { toast } from 'sonner';
-import ScrollReveal from '@/components/ScrollReveal';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
 import SharePostModal from '@/components/SharePostModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
