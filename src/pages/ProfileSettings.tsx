@@ -148,7 +148,7 @@ const ProfileSettings: React.FC = () => {
     if (newPassword !== confirmPassword) { setPassError('Passwords do not match'); return; }
     setPassSubmitting(true);
     const res = await changePassword(newPassword);
-    if (res.success) { setPassSuccess('Password changed!'); setNewPassword(''); setConfirmPassword(''); }
+    if (res.success) { setPassSuccess('Password changed!'); toast.success('Password changed successfully!'); setNewPassword(''); setConfirmPassword(''); }
     else setPassError(res.error || 'Failed');
     setPassSubmitting(false);
   };
