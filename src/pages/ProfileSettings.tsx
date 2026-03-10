@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, Lock, Save, ArrowLeft, CheckCircle, MapPin, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.]+$/;
 
@@ -135,6 +136,7 @@ const ProfileSettings: React.FC = () => {
     }
 
     setSuccess('Profile updated!');
+    toast.success('Profile updated successfully!');
     await refreshProfile();
     setSaving(false);
   };
@@ -146,7 +148,7 @@ const ProfileSettings: React.FC = () => {
     if (newPassword !== confirmPassword) { setPassError('Passwords do not match'); return; }
     setPassSubmitting(true);
     const res = await changePassword(newPassword);
-    if (res.success) { setPassSuccess('Password changed!'); setNewPassword(''); setConfirmPassword(''); }
+    if (res.success) { setPassSuccess('Password changed!'); toast.success('Password changed successfully!'); setNewPassword(''); setConfirmPassword(''); }
     else setPassError(res.error || 'Failed');
     setPassSubmitting(false);
   };
