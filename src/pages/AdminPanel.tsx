@@ -72,10 +72,28 @@ const AdminPanel: React.FC = () => {
     enabled: isAdmin,
   });
 
+  // Helper: send email notification (fire-and-forget)
+  const sendEmailNotification = async (event: string, userId: string, details?: any) => {
+    try {
+      await supabase.functions.invoke('notify-user', {
+        body: { event, user_id: userId, details },
+      });
+    } catch (e) {
+      console.error('Email notification failed:', e);
+    }
+  };
+
   const updateApproval = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      // Get manga details for email
+      const { data: manga } = await supabase.from('manga').select('title, creator_id').eq('id', id).single();
       const { error } = await supabase.from('manga').update({ approval_status: status }).eq('id', id);
       if (error) throw error;
+      // Send email notification
+      if (manga) {
+        const event = status === 'APPROVED' ? 'manga_approved' : 'manga_rejected';
+        sendEmailNotification(event, manga.creator_id, { title: manga.title });
+      }
     },
     onSuccess: () => {
       toast.success('Status updated');
@@ -88,8 +106,13 @@ const AdminPanel: React.FC = () => {
 
   const deleteManga = useMutation({
     mutationFn: async (id: string) => {
+      // Get manga info for email before deleting
+      const { data: manga } = await supabase.from('manga').select('title, creator_id').eq('id', id).single();
       const { error } = await supabase.from('manga').delete().eq('id', id);
       if (error) throw error;
+      if (manga) {
+        sendEmailNotification('content_deleted', manga.creator_id, { title: manga.title });
+      }
     },
     onSuccess: () => {
       toast.success('Manhwa deleted');
@@ -103,6 +126,7 @@ const AdminPanel: React.FC = () => {
     mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
       const { error } = await supabase.from('profiles').update({ is_banned: true, banned_reason: reason } as any).eq('user_id', userId);
       if (error) throw error;
+      sendEmailNotification('banned', userId, { reason });
     },
     onSuccess: () => {
       toast.success('User banned');
@@ -115,6 +139,7 @@ const AdminPanel: React.FC = () => {
     mutationFn: async (userId: string) => {
       const { error } = await supabase.from('profiles').update({ is_banned: false, banned_reason: null } as any).eq('user_id', userId);
       if (error) throw error;
+      sendEmailNotification('unbanned', userId);
     },
     onSuccess: () => {
       toast.success('User unbanned');
