@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Eye, EyeOff, BookOpen, Pen } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 
-
-
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
+
+// Simple client-side rate limiter
+const useRateLimit = (maxAttempts: number, windowMs: number) => {
+  const attemptsRef = useRef<number[]>([]);
+  const check = useCallback(() => {
+    const now = Date.now();
+    attemptsRef.current = attemptsRef.current.filter(t => now - t < windowMs);
+    if (attemptsRef.current.length >= maxAttempts) {
+      const oldest = attemptsRef.current[0];
+      const waitSec = Math.ceil((windowMs - (now - oldest)) / 1000);
+      return { allowed: false, waitSec };
+    }
+    attemptsRef.current.push(now);
+    return { allowed: true, waitSec: 0 };
+  }, [maxAttempts, windowMs]);
+  return check;
+};
 
 const AuthModal: React.FC = () => {
   const { showAuthModal, setShowAuthModal, authTab, setAuthTab, login, signup } = useAuth();
