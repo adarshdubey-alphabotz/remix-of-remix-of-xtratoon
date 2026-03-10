@@ -314,6 +314,28 @@ const ExplorePage: React.FC = () => {
               <ScrollSection title="FEATURED PICKS" icon={<TrendingUp className="w-5 h-5" />} items={highRated} creatorMap={creatorMap}
                 badge={(m) => Number(m.rating_average) >= 4.5 ? { text: '★ TOP RATED', color: 'bg-yellow-500/90 text-black' } : null} />
             )}
+
+            {topThisWeek.length > 0 && (
+              <ScrollSection title="NEW THIS WEEK" icon={<Sparkles className="w-5 h-5" />} items={topThisWeek} creatorMap={creatorMap}
+                badge={(_, i) => i === 0 ? { text: 'TRENDING', color: 'bg-primary text-primary-foreground' } : null} />
+            )}
+
+            {topAction.length > 0 && (
+              <ScrollSection title="TOP IN ACTION" icon={<Swords className="w-5 h-5" />} items={topAction} viewAllLink="/browse" creatorMap={creatorMap} />
+            )}
+
+            {topRomance.length > 0 && (
+              <ScrollSection title="TOP IN ROMANCE" icon={<BookHeart className="w-5 h-5" />} items={topRomance} viewAllLink="/browse" creatorMap={creatorMap} />
+            )}
+
+            {topFantasy.length > 0 && (
+              <ScrollSection title="TOP IN FANTASY" icon={<Wand2 className="w-5 h-5" />} items={topFantasy} viewAllLink="/browse" creatorMap={creatorMap} />
+            )}
+
+            {mostBookmarked.length > 0 && (
+              <ScrollSection title="MOST BOOKMARKED" icon={<Bookmark className="w-5 h-5" />} items={mostBookmarked} creatorMap={creatorMap}
+                badge={(m) => (m.bookmarks || 0) > 100 ? { text: `${formatViews(m.bookmarks || 0)} saves`, color: 'bg-foreground text-background' } : null} />
+            )}
           </div>
         </>
        )}
