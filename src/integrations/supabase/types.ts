@@ -1003,6 +1003,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_community_post_views: {
+        Args: { p_post_id: string }
+        Returns: undefined
+      }
+      increment_manga_views: {
+        Args: { p_manga_id: string }
+        Returns: undefined
+      }
       record_ad_impression: {
         Args: {
           p_chapter_id: string
