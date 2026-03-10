@@ -313,59 +313,40 @@ const ManhwaDetail: React.FC = () => {
       />
       {/* Parallax Hero */}
       <div ref={heroRef} className="relative h-72 sm:h-80 lg:h-[420px] overflow-hidden">
-        {/* Layer 1: Background image with parallax */}
         {coverUrl && (
-          <motion.div className="absolute inset-0 scale-110" style={{ y: bgY }}>
+          <div className="absolute inset-0 scale-110">
             <img src={coverUrl} alt="" className="w-full h-full object-cover blur-md opacity-40" />
-          </motion.div>
+          </div>
         )}
-
-        {/* Layer 2: Gradient overlay with scroll-linked opacity */}
-        <motion.div
+        <div
           className="absolute inset-0"
           style={{
-            opacity: overlayOpacity,
+            opacity: 0.6,
             background: `linear-gradient(to bottom, hsla(var(--dynamic-accent, var(--primary)) / 0.08), hsl(var(--background) / 0.7) 50%, hsl(var(--background)))`,
           }}
         />
-
-        {/* Layer 3: Static gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background" />
-
-        {/* Layer 4: Content with parallax */}
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 pb-6"
-          style={{ y: contentY }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 pb-6">
           <button onClick={() => navigate('/home')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors group font-medium">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
           </button>
           <div className="flex gap-4 sm:gap-6 items-end">
             {coverUrl ? (
-              <motion.img
+              <img
                 src={coverUrl}
                 alt={manhwa.title}
                 className="w-28 sm:w-36 lg:w-44 aspect-[3/4] object-cover flex-shrink-0 border-2 border-foreground rounded-lg"
                 style={{
                   boxShadow: '4px 4px 0 hsl(var(--foreground)), 0 8px 32px -8px hsla(var(--dynamic-accent, var(--primary)) / 0.4)',
                 }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
               />
             ) : (
-              <motion.div
+              <div
                 className="w-28 sm:w-36 lg:w-44 aspect-[3/4] bg-primary/20 flex-shrink-0 border-2 border-foreground rounded-lg flex items-center justify-center"
                 style={{ boxShadow: '4px 4px 0 hsl(var(--foreground))' }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
               >
                 <span className="text-4xl font-display text-primary/50">{manhwa.title[0]}</span>
-              </motion.div>
+              </div>
             )}
             <div className="flex-1 min-w-0">
               <h1 className="text-display text-3xl sm:text-5xl lg:text-6xl leading-tight mb-2 truncate tracking-wider">{manhwa.title}</h1>
@@ -376,21 +357,10 @@ const ManhwaDetail: React.FC = () => {
                   {manhwa.status}
                 </span>
               </div>
-
-              {/* Publisher/Creator info */}
-              <motion.div
-                className="flex items-center gap-2 mt-2.5"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
+              <div className="flex items-center gap-2 mt-2.5">
                 <span className="text-xs text-muted-foreground">Published by</span>
                 <ProfileHoverCard userId={manhwa.creator_id} username={creatorProfile?.username || undefined}>
-                  <Link
-                    to={creatorLink}
-                    className="flex items-center gap-1.5 group/creator"
-                    onClick={e => e.stopPropagation()}
-                  >
+                  <Link to={creatorLink} className="flex items-center gap-1.5 group/creator" onClick={e => e.stopPropagation()}>
                     {creatorProfile?.avatar_url ? (
                       <img src={creatorProfile.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover border border-border/50" />
                     ) : (
@@ -398,31 +368,22 @@ const ManhwaDetail: React.FC = () => {
                         <User className="w-3 h-3 text-muted-foreground" />
                       </div>
                     )}
-                    <span
-                      className="text-xs font-semibold group-hover/creator:underline transition-colors"
-                      style={{ color: 'hsl(var(--dynamic-accent, var(--primary)))' }}
-                    >
+                    <span className="text-xs font-semibold group-hover/creator:underline transition-colors" style={{ color: 'hsl(var(--dynamic-accent, var(--primary)))' }}>
                       {creatorName}
                     </span>
                   </Link>
                 </ProfileHoverCard>
-              </motion.div>
-
+              </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {(manhwa.genres || []).map((g: string) => (
-                  <Link
-                    key={g}
-                    to={`/browse?genre=${g}`}
-                    className="px-2.5 py-1 text-xs border border-foreground/20 hover:border-primary hover:text-primary transition-colors font-medium rounded-md"
-                    style={{ '--tw-border-opacity': 0.3 } as any}
-                  >
+                  <Link key={g} to={`/browse?genre=${g}`} className="px-2.5 py-1 text-xs border border-foreground/20 hover:border-primary hover:text-primary transition-colors font-medium rounded-md">
                     {g}
                   </Link>
                 ))}
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
