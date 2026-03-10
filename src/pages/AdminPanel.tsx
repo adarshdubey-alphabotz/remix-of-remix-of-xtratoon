@@ -583,11 +583,12 @@ const AdminPanel: React.FC = () => {
               <div className="brutal-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                    <th className="px-4 py-3">Title</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Approval</th><th className="px-4 py-3">Views</th><th className="px-4 py-3">Actions</th>
+                    <th className="px-4 py-3">ID</th><th className="px-4 py-3">Title</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Approval</th><th className="px-4 py-3">Views</th><th className="px-4 py-3">Actions</th>
                   </tr></thead>
                   <tbody>
                     {(allManga || []).map(m => (
                       <tr key={m.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                        <td className="px-4 py-3"><code className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono text-primary">{m.id.slice(0, 8).toUpperCase()}</code></td>
                         <td className="px-4 py-3 font-semibold">{m.title}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30">{m.status}</span></td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30">{m.approval_status}</span></td>
