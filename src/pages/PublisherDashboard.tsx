@@ -25,6 +25,8 @@ const PublisherDashboard: React.FC = () => {
   const [uploadDesc, setUploadDesc] = useState('');
   const [uploadGenres, setUploadGenres] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState('ONGOING');
+  const [customTags, setCustomTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [copyrightChecked, setCopyrightChecked] = useState(false);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
