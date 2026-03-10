@@ -63,10 +63,15 @@ const AdminPanel: React.FC = () => {
     enabled: isAdmin,
   });
 
+  const [reportFilter, setReportFilter] = useState<'PENDING' | 'ALL'>('PENDING');
   const { data: reports } = useQuery({
-    queryKey: ['admin-reports'],
+    queryKey: ['admin-reports', reportFilter],
     queryFn: async () => {
-      const { data } = await supabase.from('reports' as any).select('*, manga(title, slug)').order('created_at', { ascending: false }).limit(50);
+      let query = supabase.from('reports' as any).select('*, manga(title, slug)').order('created_at', { ascending: false }).limit(50);
+      if (reportFilter === 'PENDING') {
+        query = query.eq('status', 'PENDING');
+      }
+      const { data } = await query;
       return (data || []) as any[];
     },
     enabled: isAdmin,
