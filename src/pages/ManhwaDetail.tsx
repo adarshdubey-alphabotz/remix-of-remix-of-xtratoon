@@ -45,6 +45,7 @@ const ManhwaDetail: React.FC = () => {
   const [reportDetails, setReportDetails] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [nsfwAccepted, setNsfwAccepted] = useState(false);
+  const [likePending, setLikePending] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   // Parallax scroll
