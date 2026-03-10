@@ -263,12 +263,15 @@ const AuthModal: React.FC = () => {
                 setError('');
                 setSubmitting(true);
                 try {
-                  const result = await lovable.auth.signInWithOAuth('google', {
-                    redirect_uri: window.location.origin,
-                    extraParams: { prompt: 'select_account' },
+                  const { error: oauthError } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                      redirectTo: window.location.origin,
+                      queryParams: { prompt: 'select_account' },
+                    },
                   });
-                  if (result?.error) {
-                    setError(result.error.message || 'Google sign-in failed');
+                  if (oauthError) {
+                    setError(oauthError.message || 'Google sign-in failed');
                   }
                 } catch (err: any) {
                   setError(err.message || 'Google sign-in failed');
