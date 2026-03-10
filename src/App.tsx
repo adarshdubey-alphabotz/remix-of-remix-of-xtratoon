@@ -150,9 +150,8 @@ const AnimatedRoutes = () => {
   return (
     <>
       <ScrollToTop />
-      <AnimatePresence mode="wait">
         <Suspense fallback={<RouteFallback />}>
-          <Routes location={location} key={location.pathname}>
+          <Routes location={location}>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/about" element={<PageTransition><Index /></PageTransition>} />
           <Route path="/manhwa/:id" element={<PageTransition><ManhwaDetail /></PageTransition>} />
