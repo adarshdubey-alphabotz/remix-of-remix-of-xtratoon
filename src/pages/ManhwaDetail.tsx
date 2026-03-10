@@ -327,7 +327,7 @@ const ManhwaDetail: React.FC = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background" />
         <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 pb-6">
-          <button onClick={() => navigate('/home')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors group font-medium">
+          <button onClick={() => navigate('/')} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors group font-medium">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
           </button>
           <div className="flex gap-4 sm:gap-6 items-end">

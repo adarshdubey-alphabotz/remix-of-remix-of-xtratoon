@@ -69,7 +69,7 @@ const Footer: React.FC = () => (
             <BookOpen className="w-3.5 h-3.5" /> DISCOVER
           </h4>
           <nav className="flex flex-col gap-2">
-            <Link to="/home" className="text-sm text-muted-foreground hover:text-primary transition-colors">Explore</Link>
+            <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Explore</Link>
             <Link to="/browse" className="text-sm text-muted-foreground hover:text-primary transition-colors">Browse All</Link>
             <Link to="/charts" className="text-sm text-muted-foreground hover:text-primary transition-colors">Top Charts</Link>
             <Link to="/library" className="text-sm text-muted-foreground hover:text-primary transition-colors">My Library</Link>

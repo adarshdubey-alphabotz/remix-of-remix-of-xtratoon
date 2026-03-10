@@ -929,7 +929,7 @@ const ProfilePage: React.FC = () => {
           <div className="text-center py-12">
             <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground">Your library is empty</p>
-            <Link to="/explore" className="text-primary text-sm hover:underline mt-2 block">Browse manhwa →</Link>
+            <Link to="/" className="text-primary text-sm hover:underline mt-2 block">Browse manhwa →</Link>
           </div>
         ) : (
           libraryItems.map((item: any) => (

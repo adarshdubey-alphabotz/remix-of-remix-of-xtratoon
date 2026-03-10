@@ -95,7 +95,7 @@ const Navbar: React.FC = () => {
   const { unreadCount: userUnreadCount } = useUserNotifications();
 
   const navItems = [
-    { to: '/home', label: 'Home', icon: Home },
+    { to: '/', label: 'Home', icon: Home },
     { to: '/browse', label: 'Browse', icon: Search },
     { to: '/charts', label: 'Charts', icon: BarChart3 },
     { to: '/community', label: 'Community', icon: MessageSquare },

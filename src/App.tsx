@@ -131,9 +131,9 @@ const AnimatedRoutes = () => {
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>
         <Routes location={location}>
-          <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route path="/home" element={<ExplorePage />} />
-          <Route path="/explore" element={<Navigate to="/home" replace />} />
+          <Route path="/" element={<ExplorePage />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
+          <Route path="/explore" element={<Navigate to="/" replace />} />
           <Route path="/about" element={<Index />} />
           <Route path="/manhwa/:id" element={<ManhwaDetail />} />
           <Route path="/read/:id/:chapter" element={<ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary>} />
