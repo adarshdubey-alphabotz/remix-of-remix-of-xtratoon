@@ -125,11 +125,15 @@ const ManhwaDetail: React.FC = () => {
     if (!manhwa) return;
     if (inLibrary) {
       await supabase.from('user_library').delete().eq('user_id', user.id).eq('manga_id', manhwa.id);
+      // Update bookmark count from actual data
+      const { count } = await supabase.from('user_library').select('id', { count: 'exact', head: true }).eq('manga_id', manhwa.id);
+      await supabase.from('manga').update({ bookmarks: count || 0 }).eq('id', manhwa.id);
       toast.success('Removed from library');
     } else {
       const { error } = await supabase.from('user_library').upsert({ user_id: user.id, manga_id: manhwa.id, status: 'reading' }, { onConflict: 'user_id,manga_id' });
       if (error) { toast.error(error.message); return; }
-      await supabase.from('manga').update({ bookmarks: (manhwa.bookmarks || 0) + 1 }).eq('id', manhwa.id);
+      const { count } = await supabase.from('user_library').select('id', { count: 'exact', head: true }).eq('manga_id', manhwa.id);
+      await supabase.from('manga').update({ bookmarks: count || 0 }).eq('id', manhwa.id);
       toast.success('Added to library!');
     }
     queryClient.invalidateQueries({ queryKey: ['in-library', manhwa.id] });

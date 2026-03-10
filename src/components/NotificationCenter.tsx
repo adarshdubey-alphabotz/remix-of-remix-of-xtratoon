@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bell, BookOpen, Heart, MessageCircle, Users, Info, Check, XCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -40,7 +41,7 @@ const NotificationCenter: React.FC<Props> = ({
   const showAdmin = isAdmin && adminMode && adminNotifications.length > 0;
   const totalCount = userUnreadCount + (showAdmin ? adminNotifications.length : 0);
 
-  const handleNotifClick = (n: any, isAdminNotif = false) => {
+  const handleNotifClick = async (n: any, isAdminNotif = false) => {
     if (isAdminNotif) {
       onMarkAdminRead?.(n.id);
       onClose();
@@ -51,7 +52,14 @@ const NotificationCenter: React.FC<Props> = ({
       if (n.type === 'new_chapter' && n.reference_id) navigate(`/manhwa/${n.reference_id}`);
       else if ((n.type === 'manga_approved' || n.type === 'chapter_approved') && n.reference_id) navigate(`/manhwa/${n.reference_id}`);
       else if ((n.type === 'manga_rejected' || n.type === 'chapter_rejected')) navigate('/dashboard');
-      else if (n.type === 'new_post' && n.reference_id) navigate('/community');
+      else if (n.type === 'new_post' && n.reference_id) navigate(`/community/post/${n.reference_id}`);
+      else if (n.type === 'new_follower' && n.reference_id) {
+        // reference_id is the follower's user_id, look up their username
+        const { data: followerProfile } = await supabase.from('profiles').select('username').eq('user_id', n.reference_id).single();
+        if (followerProfile?.username) navigate(`/publisher/${followerProfile.username}`);
+        else navigate(`/community`);
+      }
+      else if (n.type === 'unbanned') navigate('/profile');
     }
   };
 
