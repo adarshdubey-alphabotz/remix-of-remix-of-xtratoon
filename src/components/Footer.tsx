@@ -102,6 +102,9 @@ const Footer: React.FC = () => (
             <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link>
             <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link>
             <Link to="/content-guidelines" className="text-sm text-muted-foreground hover:text-primary transition-colors">Content Guidelines</Link>
+            <Link to="/disclaimer" className="text-sm text-muted-foreground hover:text-primary transition-colors">Disclaimer</Link>
+            <Link to="/dmca" className="text-sm text-muted-foreground hover:text-primary transition-colors">DMCA Policy</Link>
+            <Link to="/cookie-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors">Cookie Policy</Link>
           </nav>
         </div>
       </div>
