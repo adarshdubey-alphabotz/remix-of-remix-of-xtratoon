@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon, DollarSign } from 'lucide-react';
+import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon, DollarSign, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 import CreatorAnalytics from '@/components/CreatorAnalytics';
 import CreatorEarnings from '@/components/CreatorEarnings';
