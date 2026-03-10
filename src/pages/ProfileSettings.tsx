@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, Lock, Save, ArrowLeft, CheckCircle, MapPin, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.]+$/;
 
