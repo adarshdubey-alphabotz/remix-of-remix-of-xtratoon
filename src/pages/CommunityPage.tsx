@@ -300,7 +300,7 @@ const CommunityPage: React.FC = () => {
               {(['for-you', 'following'] as const).map(t => (
                 <button key={t} onClick={() => setTab(t)} className={`flex-1 py-3 text-sm font-semibold transition-all relative ${tab === t ? 'text-foreground' : 'text-muted-foreground hover:bg-muted/30'}`}>
                   {t === 'for-you' ? 'For you' : 'Following'}
-                  {tab === t && <motion.div layoutId="community-tab" className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-1 bg-primary rounded-full" />}
+                  {tab === t && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-1 bg-primary rounded-full" />}
                 </button>
               ))}
             </div>
