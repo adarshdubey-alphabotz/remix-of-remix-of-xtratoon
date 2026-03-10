@@ -89,13 +89,13 @@ const Navbar: React.FC = () => {
   };
   const isActive = (path: string) => location.pathname === path;
   const isReaderPage = location.pathname.startsWith('/read/');
-  const isHomePage = location.pathname === '/' || location.pathname === '/home';
+  const isHomePage = location.pathname === '/';
 
   // User notifications
   const { unreadCount: userUnreadCount } = useUserNotifications();
 
   const navItems = [
-    { to: '/home', label: 'Home', icon: Home },
+    { to: '/', label: 'Home', icon: Home },
     { to: '/browse', label: 'Browse', icon: Search },
     { to: '/charts', label: 'Charts', icon: BarChart3 },
     { to: '/community', label: 'Community', icon: MessageSquare },
