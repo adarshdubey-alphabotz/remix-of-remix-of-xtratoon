@@ -25,6 +25,7 @@ const PublisherDashboard: React.FC = () => {
   const [uploadDesc, setUploadDesc] = useState('');
   const [uploadGenres, setUploadGenres] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState('ONGOING');
+  const [isNsfw, setIsNsfw] = useState(false);
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [copyrightChecked, setCopyrightChecked] = useState(false);
