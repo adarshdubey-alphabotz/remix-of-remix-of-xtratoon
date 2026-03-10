@@ -6,9 +6,6 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNightShift } from '@/components/NightShiftToggle';
-import { motion } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.]+$/;
 
