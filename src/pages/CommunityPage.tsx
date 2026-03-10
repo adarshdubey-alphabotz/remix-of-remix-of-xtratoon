@@ -386,7 +386,7 @@ const CommunityPage: React.FC = () => {
                 const images = post.image_urls?.length > 0 ? post.image_urls : post.image_url ? [post.image_url] : [];
 
                 return (
-                  <ScrollReveal key={post.id} delay={i * 0.03}>
+                  <div key={post.id}>
                     <article className="px-4 py-3 border-b border-border/30 hover:bg-muted/20 transition-colors cursor-pointer" onClick={(e) => { if ((e.target as HTMLElement).closest('button, a')) return; navigate(`/community/post/${post.id}`); }}>
                       {post.is_pinned && (
                         <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-2 pl-[52px]">
