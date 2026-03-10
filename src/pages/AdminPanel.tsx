@@ -388,6 +388,7 @@ const AdminPanel: React.FC = () => {
                     <tbody>
                       {(pendingManga || []).map(m => (
                         <tr key={m.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
+                          <td className="px-4 py-3 font-mono text-xs text-primary" title={m.id}>{m.id.slice(0, 8).toUpperCase()}</td>
                           <td className="px-4 py-3 font-semibold">{m.title}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{(m.genres || []).join(', ')}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</td>
