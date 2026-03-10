@@ -95,20 +95,25 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
   const handleSubmit = async () => {
     if (!user) { toast.error('Please login to comment'); return; }
-    if (!content.trim()) return;
+    if (!content.trim() || submitting || submitLockRef.current) return;
+
+    submitLockRef.current = true;
     setSubmitting(true);
 
-    const commentData: any = {
-      manga_id: mangaId,
-      user_id: user.id,
-      content: content.trim(),
-      parent_id: replyTo?.id || null,
-    };
+    try {
+      const commentData: any = {
+        manga_id: mangaId,
+        user_id: user.id,
+        content: content.trim(),
+        parent_id: replyTo?.id || null,
+      };
 
-    const { error } = await supabase.from('comments' as any).insert(commentData);
-    if (error) {
-      toast.error(error.message);
-    } else {
+      const { error } = await supabase.from('comments' as any).insert(commentData);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
       toast.success('Comment posted!');
       setContent('');
       setReplyTo(null);
@@ -120,8 +125,10 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` },
         body: JSON.stringify({ manga_id: mangaId, manga_title: mangaTitle, content: content.trim(), parent_id: replyTo?.id || null }),
       }).catch(() => {});
+    } finally {
+      setSubmitting(false);
+      submitLockRef.current = false;
     }
-    setSubmitting(false);
   };
 
   const handleDelete = async (commentId: string) => {
