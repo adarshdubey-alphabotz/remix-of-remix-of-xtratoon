@@ -66,18 +66,20 @@ const MyLibrary: React.FC = () => {
           </h1>
         </ScrollReveal>
 
-        <div className="flex gap-0 border-2 border-foreground mb-6 w-fit overflow-x-auto" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }}>
-          {([
-            { key: 'reading' as const, label: 'Reading' },
-            { key: 'completed' as const, label: 'Completed' },
-            { key: 'plan' as const, label: 'Plan to Read' },
-            { key: 'dropped' as const, label: 'Dropped' },
-            { key: 'liked' as const, label: '❤️ Liked' },
-          ]).map((t, i) => (
-            <button key={t.key} onClick={() => setTab(t.key)} className={`px-4 py-2 text-sm font-bold transition-all whitespace-nowrap ${i > 0 ? 'border-l-2 border-foreground' : ''} ${tab === t.key ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'}`}>
-              {t.label}
-            </button>
-          ))}
+        <div className="overflow-x-auto -mx-4 px-4 mb-6">
+          <div className="flex gap-0 border-2 border-foreground w-max min-w-0" style={{ boxShadow: '3px 3px 0 hsl(0 0% 8%)' }}>
+            {([
+              { key: 'reading' as const, label: 'Reading' },
+              { key: 'completed' as const, label: 'Completed' },
+              { key: 'plan' as const, label: 'Plan' },
+              { key: 'dropped' as const, label: 'Dropped' },
+              { key: 'liked' as const, label: '❤️ Liked' },
+            ]).map((t, i) => (
+              <button key={t.key} onClick={() => setTab(t.key)} className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${i > 0 ? 'border-l-2 border-foreground' : ''} ${tab === t.key ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-foreground'}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {isLoading ? (
