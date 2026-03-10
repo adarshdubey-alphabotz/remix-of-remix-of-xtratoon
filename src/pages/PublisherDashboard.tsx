@@ -407,11 +407,32 @@ const PublisherDashboard: React.FC = () => {
                         ))}
                         {(!myManga || myManga.length === 0) && (
                           <tr>
-                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                              No works yet.{' '}
-                              <button onClick={() => setActiveTab('create')} className="text-primary font-semibold hover:underline">
-                                Create your first manhwa!
-                              </button>
+                            <td colSpan={4} className="px-4 py-0">
+                              <div className="py-10 text-center space-y-4">
+                                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+                                  <BookOpen className="w-8 h-8 text-primary" />
+                                </div>
+                                <h3 className="font-display text-xl tracking-wider">WELCOME, CREATOR!</h3>
+                                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                  Your journey starts here. Create your first manhwa, upload chapters, and build your audience.
+                                </p>
+                                <div className="flex flex-col sm:flex-row gap-2 justify-center items-center text-xs text-muted-foreground">
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 border border-foreground/10 rounded-lg">
+                                    <span className="text-primary font-bold">1</span> Create manhwa + upload Ch.1
+                                  </div>
+                                  <ChevronRight className="w-3 h-3 hidden sm:block" />
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 border border-foreground/10 rounded-lg">
+                                    <span className="text-primary font-bold">2</span> Admin reviews & approves
+                                  </div>
+                                  <ChevronRight className="w-3 h-3 hidden sm:block" />
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 border border-foreground/10 rounded-lg">
+                                    <span className="text-primary font-bold">3</span> Readers discover your work!
+                                  </div>
+                                </div>
+                                <button onClick={() => setActiveTab('create')} className="btn-accent rounded-none text-sm inline-flex items-center gap-2 px-6 py-3">
+                                  <Plus className="w-4 h-4" /> Create Your First Manhwa
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         )}
