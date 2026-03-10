@@ -2,10 +2,9 @@ import React, { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin } from 'lucide-react';
+import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin, Link2 } from 'lucide-react';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface Comment {
   id: string;
@@ -25,6 +24,14 @@ interface Props {
   mangaTitle: string;
   creatorId?: string;
 }
+
+const DEPTH_COLORS = [
+  'border-primary/40',
+  'border-blue-400/40',
+  'border-green-400/40',
+  'border-yellow-400/40',
+  'border-pink-400/40',
+];
 
 const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => {
   const { user, isAdmin } = useAuth();
@@ -60,11 +67,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       const topLevel: Comment[] = [];
 
       for (const c of allComments) {
-        const comment: Comment = {
-          ...c,
-          profile: profileMap.get(c.user_id) || null,
-          replies: [],
-        };
+        const comment: Comment = { ...c, profile: profileMap.get(c.user_id) || null, replies: [] };
         commentMap.set(c.id, comment);
       }
 
@@ -81,7 +84,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
         c.replies?.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       }
 
-      // Sort: pinned first, then by date
       topLevel.sort((a, b) => {
         if (a.is_pinned && !b.is_pinned) return -1;
         if (!a.is_pinned && b.is_pinned) return 1;
@@ -109,14 +111,15 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       };
 
       const { error } = await supabase.from('comments' as any).insert(commentData);
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
+      if (error) { toast.error(error.message); return; }
 
       toast.success('Comment posted!');
       setContent('');
       setReplyTo(null);
+      // Auto-expand parent replies so user sees their new reply
+      if (replyTo) {
+        setExpandedReplies(prev => new Set(prev).add(replyTo.id));
+      }
       queryClient.invalidateQueries({ queryKey: ['comments', mangaId] });
 
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -159,6 +162,11 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     });
   };
 
+  const copyPermalink = (commentId: string) => {
+    const url = `${window.location.origin}${window.location.pathname}#comment-${commentId}`;
+    navigator.clipboard.writeText(url).then(() => toast.success('Link copied!')).catch(() => {});
+  };
+
   const canPin = isAdmin || isCreator;
 
   const CommentItem: React.FC<{ comment: Comment; depth?: number }> = ({ comment, depth = 0 }) => {
@@ -166,9 +174,14 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     const initial = displayName[0]?.toUpperCase() || 'A';
     const hasReplies = (comment.replies?.length || 0) > 0;
     const isExpanded = expandedReplies.has(comment.id);
+    const depthColor = DEPTH_COLORS[depth % DEPTH_COLORS.length];
+    const maxDepthMobile = depth >= 3;
 
     return (
-      <div className={`${depth > 0 ? 'ml-6 border-l-2 border-border/40 pl-4' : ''}`}>
+      <div
+        id={`comment-${comment.id}`}
+        className={`${depth > 0 ? `ml-3 sm:ml-6 border-l-2 ${depthColor} pl-3 sm:pl-4` : ''} ${maxDepthMobile ? 'ml-1 sm:ml-6' : ''}`}
+      >
         {comment.is_pinned && depth === 0 && (
           <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-1 pl-11">
             <Pin className="w-3 h-3" /> Pinned
@@ -185,14 +198,20 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
               <span className="text-sm font-semibold">{displayName}</span>
               {comment.profile?.is_verified && <VerifiedBadge size="sm" />}
               <span className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleString()}</span>
+              {depth > 0 && comment.parent_id && (
+                <span className="text-[10px] text-muted-foreground/60 italic">↳ reply</span>
+              )}
             </div>
-            <p className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap">{comment.content}</p>
-            <div className="flex items-center gap-3 mt-1.5">
+            <p className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap break-words">{comment.content}</p>
+            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
               {user && (
-                <button onClick={() => { setReplyTo(comment); }} className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1">
+                <button onClick={() => setReplyTo(comment)} className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1">
                   <Reply className="w-3 h-3" /> Reply
                 </button>
               )}
+              <button onClick={() => copyPermalink(comment.id)} className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1">
+                <Link2 className="w-3 h-3" /> Link
+              </button>
               {canPin && depth === 0 && (
                 <button onClick={() => handleTogglePin(comment)} className={`text-xs transition-colors inline-flex items-center gap-1 ${comment.is_pinned ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
                   <Pin className="w-3 h-3" /> {comment.is_pinned ? 'Unpin' : 'Pin'}
@@ -212,21 +231,44 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
             </div>
           </div>
         </div>
-        <AnimatePresence>
-          {hasReplies && isExpanded && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-              {comment.replies!.map(reply => (
-                <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {hasReplies && isExpanded && (
+          <div>
+            {comment.replies!.map(reply => (
+              <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
+            ))}
+          </div>
+        )}
       </div>
     );
   };
 
   const countThread = (comment: Comment): number => 1 + (comment.replies?.reduce((sum, reply) => sum + countThread(reply), 0) || 0);
   const totalComments = comments.reduce((sum, c) => sum + countThread(c), 0);
+
+  // Scroll to comment if URL has hash
+  React.useEffect(() => {
+    const hash = window.location.hash;
+    if (hash?.startsWith('#comment-') && !isLoading && comments.length > 0) {
+      const commentId = hash.replace('#comment-', '');
+      // Expand all parent threads to reveal the comment
+      const findAndExpand = (list: Comment[], target: string): boolean => {
+        for (const c of list) {
+          if (c.id === target) return true;
+          if (c.replies?.length) {
+            if (findAndExpand(c.replies, target)) {
+              setExpandedReplies(prev => new Set(prev).add(c.id));
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+      findAndExpand(comments, commentId);
+      setTimeout(() => {
+        document.getElementById(`comment-${commentId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+    }
+  }, [isLoading, comments]);
 
   return (
     <section className="space-y-4">
@@ -239,7 +281,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
         {replyTo && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 px-3 py-2 rounded-lg">
             <Reply className="w-3 h-3" />
-            Replying to {replyTo.profile?.display_name || replyTo.profile?.username || 'someone'}
+            Replying to <span className="font-semibold text-foreground">{replyTo.profile?.display_name || replyTo.profile?.username || 'someone'}</span>
             <button onClick={() => setReplyTo(null)} className="ml-auto text-destructive hover:underline">Cancel</button>
           </div>
         )}
@@ -249,8 +291,9 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
             onChange={e => setContent(e.target.value)}
             rows={2}
             className="flex-1 px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl resize-none"
-            placeholder={user ? 'Write a comment...' : 'Login to comment'}
+            placeholder={user ? (replyTo ? `Reply to ${replyTo.profile?.display_name || 'comment'}...` : 'Write a comment...') : 'Login to comment'}
             disabled={!user}
+            onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSubmit(); }}
           />
           <button
             onClick={handleSubmit}
