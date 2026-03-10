@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFollowingIds } from '@/hooks/useFollow';
 import { Heart, MessageCircle, ImagePlus, Trash2, User, Loader2, Search, Hash, X, TrendingUp, Eye, Bookmark, Share2, Pin } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import { toast } from 'sonner';
 import ScrollReveal from '@/components/ScrollReveal';
 import ProfileHoverCard from '@/components/ProfileHoverCard';
