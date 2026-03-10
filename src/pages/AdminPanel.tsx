@@ -308,6 +308,7 @@ const AdminPanel: React.FC = () => {
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'announcements', label: 'Announcements', icon: <Megaphone className="w-4 h-4" /> },
     { id: 'revenue', label: 'Revenue', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'payouts', label: 'Payouts', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'submissions', label: 'Manga', icon: <FileText className="w-4 h-4" /> },
