@@ -415,7 +415,7 @@ const HomePage: React.FC = () => {
                 </Link>
               </motion.div>
 
-              <motion.div className="flex gap-8 pt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9, duration: 0.7 }}>
+              <motion.div className="flex gap-8 pt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9, duration: 0.5 }}>
                 {[
                   { value: '10M+', label: 'Readers' },
                   { value: '500+', label: 'Series' },
@@ -423,7 +423,7 @@ const HomePage: React.FC = () => {
                 ].map(s => (
                   <div key={s.label}>
                     <div className="text-xl sm:text-2xl font-display text-primary tracking-wider">{s.value}</div>
-                    <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-widest">{s.label}</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-widest whitespace-nowrap">{s.label}</div>
                   </div>
                 ))}
               </motion.div>
