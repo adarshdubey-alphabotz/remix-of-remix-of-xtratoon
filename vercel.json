@@ -2,27 +2,27 @@
   "rewrites": [
     {
       "source": "/api/img",
-      "destination": "https://api.komixora.fun/functions/v1/telegram-proxy"
+      "destination": "https://nyynuigabiwfgvwvjrvh.supabase.co/functions/v1/telegram-proxy"
     },
     {
       "source": "/stremio/:path*",
-      "destination": "https://api.komixora.fun/functions/v1/stremio-addon/:path*"
+      "destination": "https://nyynuigabiwfgvwvjrvh.supabase.co/functions/v1/stremio-addon/:path*"
     },
     {
       "source": "/rest/v1/:path*",
-      "destination": "https://api.komixora.fun/rest/v1/:path*"
+      "destination": "https://nyynuigabiwfgvwvjrvh.supabase.co/rest/v1/:path*"
     },
     {
       "source": "/auth/v1/:path*",
-      "destination": "https://api.komixora.fun/auth/v1/:path*"
+      "destination": "https://nyynuigabiwfgvwvjrvh.supabase.co/auth/v1/:path*"
     },
     {
       "source": "/storage/v1/:path*",
-      "destination": "https://api.komixora.fun/storage/v1/:path*"
+      "destination": "https://nyynuigabiwfgvwvjrvh.supabase.co/storage/v1/:path*"
     },
     {
       "source": "/functions/v1/:path*",
-      "destination": "https://api.komixora.fun/functions/v1/:path*"
+      "destination": "https://nyynuigabiwfgvwvjrvh.supabase.co/functions/v1/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
