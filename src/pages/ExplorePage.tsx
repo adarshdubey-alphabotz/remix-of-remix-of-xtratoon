@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Sparkles, Flame, Loader2 } from 'lucide-react';
+import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Sparkles, Flame, Loader2, Heart, Swords, BookHeart, Wand2 } from 'lucide-react';
 import BecauseYouRead from '@/components/BecauseYouRead';
 import DynamicMeta from '@/components/DynamicMeta';
 
