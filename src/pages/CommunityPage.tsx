@@ -103,6 +103,25 @@ const CommunityPage: React.FC = () => {
     },
   });
 
+  // Realtime: auto-refresh on new posts, likes, replies
+  useEffect(() => {
+    const channel = supabase
+      .channel('community-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_post_likes' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+        queryClient.invalidateQueries({ queryKey: ['community-likes'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_replies' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
+
   const pinPostMutation = useMutation({
     mutationFn: async ({ postId, pinned }: { postId: string; pinned: boolean }) => {
       const { error } = await supabase.from('community_posts' as any).update({ is_pinned: pinned }).eq('id', postId);
