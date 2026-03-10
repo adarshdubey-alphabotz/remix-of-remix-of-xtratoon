@@ -400,7 +400,7 @@ const AdminPanel: React.FC = () => {
                           </td>
                         </tr>
                       ))}
-                      {(!pendingManga || pendingManga.length === 0) && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No pending submissions 🎉</td></tr>}
+                      {(!pendingManga || pendingManga.length === 0) && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No pending submissions 🎉</td></tr>}
                     </tbody>
                   </table>
                 </div>
