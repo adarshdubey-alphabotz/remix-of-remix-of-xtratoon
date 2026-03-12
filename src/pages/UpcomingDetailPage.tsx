@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUrl';
 import { ArrowLeft, ArrowUp, Clock, CheckCircle2, Calendar, Eye, Tag, BookOpen } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 import DynamicMeta from '@/components/DynamicMeta';
 import CommentSection from '@/components/CommentSection';
 import SocialShareMenu from '@/components/SocialShareMenu';
