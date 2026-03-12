@@ -598,7 +598,7 @@ const AdminPanel: React.FC = () => {
               <div className="brutal-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                    <th className="px-4 py-3">Username</th><th className="px-4 py-3">Display Name</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Actions</th>
+                    <th className="px-4 py-3">Username</th><th className="px-4 py-3">Display Name</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Location</th><th className="px-4 py-3">IP</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Actions</th>
                   </tr></thead>
                   <tbody>
                     {(allUsers || []).map((u: any) => (
