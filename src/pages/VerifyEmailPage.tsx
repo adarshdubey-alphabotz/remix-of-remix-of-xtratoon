@@ -78,9 +78,6 @@ const VerifyEmailPage: React.FC = () => {
     }
   };
 
-  // Also support mailto approach
-  const mailtoLink = `mailto:support@komixora.fun?subject=${encodeURIComponent(code)}&body=${encodeURIComponent(`Verification code: ${code}\n\nSent from: ${userEmail}`)}`;
-
   if (!user) return null;
 
   return (
