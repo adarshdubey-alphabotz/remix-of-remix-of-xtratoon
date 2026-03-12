@@ -228,6 +228,15 @@ const CommunityPage: React.FC = () => {
       if (!newContent.trim() && selectedImages.length === 0) throw new Error('Write something or add an image');
       setIsUploading(true);
       
+      // Client-side NSFW check before uploading
+      if (selectedImages.length > 0) {
+        const { checkImagesNSFW } = await import('@/lib/nsfwCheck');
+        const nsfwResult = await checkImagesNSFW(selectedImages);
+        if (nsfwResult?.isNSFW) {
+          throw new Error('🔞 Image #' + (nsfwResult.index + 1) + ' detected as NSFW/explicit. This is not allowed.');
+        }
+      }
+
       // Convert images to data URLs
       const imageDataUrls: string[] = [];
       for (const file of selectedImages) {
