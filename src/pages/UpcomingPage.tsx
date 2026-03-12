@@ -77,7 +77,7 @@ const UpcomingPage: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('chapters')
-        .select('id, chapter_number, title, scheduled_at, manga_id, schedule_verified, is_published, manga!inner(id, title, slug, cover_url, creator_id, genres, status)')
+        .select('id, chapter_number, title, scheduled_at, manga_id, schedule_verified, is_published, manga!inner(id, title, slug, cover_url, creator_id, genres, status, language)')
         .eq('schedule_verified', true)
         .gte('scheduled_at', currentWeek.start.toISOString())
         .lte('scheduled_at', currentWeek.end.toISOString())
@@ -433,7 +433,7 @@ const UpcomingPage: React.FC = () => {
                         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{manga.title}</h3>
                       </Link>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Ch. {item.chapter_number}{item.title ? ` · ${item.title}` : ''}
+                        Ch. {item.chapter_number}{item.title ? ` · ${item.title}` : ''} · <span className="text-primary/70">{(() => { const l = (manga.language || '').toLowerCase(); return l === 'korean' ? 'Manhwa' : l === 'chinese' ? 'Manhua' : l === 'novel' ? 'Novel' : 'Manga'; })()}</span>
                       </p>
                       {isLaunched ? (
                         <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-green-500">

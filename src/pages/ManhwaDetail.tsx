@@ -88,7 +88,7 @@ const ManhwaDetail: React.FC = () => {
     queryKey: ['manhwa-chapters', manhwa?.id],
     queryFn: async () => {
       if (!manhwa) return [];
-      const { data, error } = await supabase.from('chapters').select('*').eq('manga_id', manhwa.id).order('chapter_number', { ascending: true });
+      const { data, error } = await supabase.from('chapters').select('*').eq('manga_id', manhwa.id).eq('is_published', true).order('chapter_number', { ascending: true });
       if (error) throw error;
       return data || [];
     },

@@ -7,7 +7,10 @@
 -- 1. Add schedule_verified column to chapters (if not exists)
 ALTER TABLE public.chapters ADD COLUMN IF NOT EXISTS schedule_verified boolean NOT NULL DEFAULT false;
 
--- 2. Create schedule_upvotes table
+-- 2. Add scheduled_at column to chapters (if not exists)
+ALTER TABLE public.chapters ADD COLUMN IF NOT EXISTS scheduled_at timestamptz DEFAULT NULL;
+
+-- 3. Create schedule_upvotes table
 CREATE TABLE IF NOT EXISTS public.schedule_upvotes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
@@ -21,22 +24,34 @@ CREATE TABLE IF NOT EXISTS public.schedule_upvotes (
 -- Enable RLS
 ALTER TABLE public.schedule_upvotes ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies for schedule_upvotes
-CREATE POLICY "Anyone can view schedule upvotes"
-  ON public.schedule_upvotes FOR SELECT
-  USING (true);
+-- RLS Policies for schedule_upvotes (use IF NOT EXISTS pattern)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'schedule_upvotes' AND policyname = 'Anyone can view schedule upvotes') THEN
+    CREATE POLICY "Anyone can view schedule upvotes"
+      ON public.schedule_upvotes FOR SELECT
+      USING (true);
+  END IF;
+END $$;
 
-CREATE POLICY "Users can upvote"
-  ON public.schedule_upvotes FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'schedule_upvotes' AND policyname = 'Users can upvote') THEN
+    CREATE POLICY "Users can upvote"
+      ON public.schedule_upvotes FOR INSERT
+      TO authenticated
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
+END $$;
 
-CREATE POLICY "Users can remove own upvote"
-  ON public.schedule_upvotes FOR DELETE
-  TO authenticated
-  USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'schedule_upvotes' AND policyname = 'Users can remove own upvote') THEN
+    CREATE POLICY "Users can remove own upvote"
+      ON public.schedule_upvotes FOR DELETE
+      TO authenticated
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
--- 3. Create comment_votes table (for future use, currently not used in UI)
+-- 4. Create comment_votes table
 CREATE TABLE IF NOT EXISTS public.comment_votes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   comment_id uuid NOT NULL REFERENCES public.comments(id) ON DELETE CASCADE,
@@ -48,31 +63,47 @@ CREATE TABLE IF NOT EXISTS public.comment_votes (
 
 ALTER TABLE public.comment_votes ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Anyone can view comment votes"
-  ON public.comment_votes FOR SELECT
-  USING (true);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'comment_votes' AND policyname = 'Anyone can view comment votes') THEN
+    CREATE POLICY "Anyone can view comment votes"
+      ON public.comment_votes FOR SELECT
+      USING (true);
+  END IF;
+END $$;
 
-CREATE POLICY "Users can vote on comments"
-  ON public.comment_votes FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'comment_votes' AND policyname = 'Users can vote on comments') THEN
+    CREATE POLICY "Users can vote on comments"
+      ON public.comment_votes FOR INSERT
+      TO authenticated
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
+END $$;
 
-CREATE POLICY "Users can update own votes"
-  ON public.comment_votes FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'comment_votes' AND policyname = 'Users can update own votes') THEN
+    CREATE POLICY "Users can update own votes"
+      ON public.comment_votes FOR UPDATE
+      TO authenticated
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
-CREATE POLICY "Users can delete own votes"
-  ON public.comment_votes FOR DELETE
-  TO authenticated
-  USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'comment_votes' AND policyname = 'Users can delete own votes') THEN
+    CREATE POLICY "Users can delete own votes"
+      ON public.comment_votes FOR DELETE
+      TO authenticated
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
--- 4. Enable pg_cron and pg_net extensions (needed for auto-publishing)
+-- 5. Enable pg_cron and pg_net extensions (needed for auto-publishing)
 -- NOTE: These may need superuser access on self-hosted
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
--- 5. Optional: Cron job to auto-publish scheduled chapters every 5 minutes
+-- 6. Optional: Cron job to auto-publish scheduled chapters every 5 minutes
 -- Replace YOUR_SUPABASE_URL and YOUR_ANON_KEY with your self-hosted values
 -- SELECT cron.schedule(
 --   'publish-scheduled-chapters',

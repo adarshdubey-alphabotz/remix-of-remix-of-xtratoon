@@ -4,9 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUrl';
-import { ArrowLeft, ArrowUp, Clock, CheckCircle2, Calendar, Eye, BookOpen, Tag } from 'lucide-react';
+import { ArrowLeft, ArrowUp, Clock, CheckCircle2, Calendar, Eye, Tag, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DynamicMeta from '@/components/DynamicMeta';
+import CommentSection from '@/components/CommentSection';
 import { toast } from 'sonner';
 
 function getWeekStart(date: Date) {
@@ -16,6 +17,15 @@ function getWeekStart(date: Date) {
   const monday = new Date(d.setDate(diff));
   monday.setHours(0, 0, 0, 0);
   return monday.toISOString().split('T')[0];
+}
+
+function getContentType(language: string | null | undefined): string {
+  if (!language) return 'Manga';
+  const lang = language.toLowerCase();
+  if (lang === 'korean') return 'Manhwa';
+  if (lang === 'chinese') return 'Manhua';
+  if (lang === 'novel' || lang === 'light novel') return 'Novel';
+  return 'Manga';
 }
 
 const UpcomingDetailPage: React.FC = () => {
@@ -28,15 +38,13 @@ const UpcomingDetailPage: React.FC = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['upcoming-detail', slug, chapterNum],
     queryFn: async () => {
-      // Get manga
       const { data: manga, error: mErr } = await supabase
         .from('manga')
-        .select('id, title, slug, cover_url, banner_url, description, genres, creator_id, status')
+        .select('id, title, slug, cover_url, banner_url, description, genres, creator_id, status, language')
         .eq('slug', slug!)
         .single();
       if (mErr) throw mErr;
 
-      // Get chapter
       const { data: ch, error: cErr } = await supabase
         .from('chapters')
         .select('id, chapter_number, title, scheduled_at, is_published, schedule_verified')
@@ -45,14 +53,12 @@ const UpcomingDetailPage: React.FC = () => {
         .single();
       if (cErr) throw cErr;
 
-      // Get creator profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('username, display_name, avatar_url')
         .eq('user_id', manga.creator_id)
         .single();
 
-      // Get 2 random demo pages from this chapter
       const { data: pages } = await supabase
         .from('chapter_pages')
         .select('id, page_number, telegram_file_id')
@@ -70,7 +76,6 @@ const UpcomingDetailPage: React.FC = () => {
     return getWeekStart(new Date(data.chapter.scheduled_at));
   }, [data]);
 
-  // Upvotes for this chapter
   const { data: upvotes = [] } = useQuery({
     queryKey: ['upvotes-detail', data?.chapter.id],
     queryFn: async () => {
@@ -127,6 +132,7 @@ const UpcomingDetailPage: React.FC = () => {
   const timeUntil = scheduledDate ? scheduledDate.getTime() - Date.now() : 0;
   const hoursLeft = Math.max(0, Math.floor(timeUntil / (1000 * 60 * 60)));
   const minutesLeft = Math.max(0, Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60)));
+  const contentType = getContentType((manga as any).language);
 
   return (
     <div className="min-h-screen pt-20 pb-16 bg-background">
@@ -169,6 +175,16 @@ const UpcomingDetailPage: React.FC = () => {
             <p className="text-muted-foreground text-sm mt-1">
               Chapter {ch.chapter_number}{ch.title ? ` — ${ch.title}` : ''}
             </p>
+
+            {/* Content type badge */}
+            <div className="flex items-center gap-2 mt-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-md border border-primary/30 bg-primary/10 text-primary">
+                <BookOpen className="w-3 h-3" /> {contentType}
+              </span>
+              <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-md border ${manga.status === 'ONGOING' ? 'border-foreground/20 bg-muted text-muted-foreground' : 'border-primary bg-primary/10 text-primary'}`}>
+                {manga.status}
+              </span>
+            </div>
 
             {profile && (
               <Link to={`/publisher/${profile.username}`} className="flex items-center gap-2 mt-3 text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -258,6 +274,11 @@ const UpcomingDetailPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Comments Section */}
+        <div className="mt-8">
+          <CommentSection mangaId={manga.id} mangaTitle={manga.title} creatorId={manga.creator_id} />
+        </div>
 
         {/* Back to Upcoming */}
         <div className="mt-8 text-center">

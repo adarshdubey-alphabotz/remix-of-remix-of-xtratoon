@@ -67,6 +67,10 @@ const ReaderPage: React.FC = () => {
       if (!manga) return null;
       const { data, error } = await supabase.from('chapters').select('*').eq('manga_id', manga.id).eq('chapter_number', chapterNum).single();
       if (error) throw error;
+      // Block reading if chapter is scheduled and not yet published
+      if (data && data.is_published === false) {
+        return null;
+      }
       return data;
     },
     enabled: !!manga,
