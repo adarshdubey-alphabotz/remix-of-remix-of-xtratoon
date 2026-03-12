@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+GIPHYOxFJmzC' React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 
 // Using GIPHY API (free tier, safe search enforced)
-const GIPHY_API_KEY = 'dc6zaTOxFJmzC'; // GIPHY public beta key
+const GIPHY_API_KEY = '7pttpNGd4Th5ehpBQUyu2JjFHTDSW2BD'; // GIPHY public beta key
 const GIPHY_BASE = 'https://api.giphy.com/v1/gifs';
 
 interface GifResult {
