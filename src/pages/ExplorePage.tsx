@@ -62,7 +62,7 @@ const FeaturedHero: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => (
       </p>
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <Link to={`/manhwa/${manhwa.slug}`}>
+        <Link to={`/title/${manhwa.slug}`}>
           <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-foreground text-background font-semibold text-sm border border-border/20 hover:opacity-90 transition-opacity">
             <Play className="w-4 h-4 fill-current" /> Read Now
           </button>
