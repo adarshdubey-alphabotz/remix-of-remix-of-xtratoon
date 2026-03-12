@@ -59,7 +59,6 @@ const SignupPage: React.FC = () => {
     setSubmitting(true);
     const res = await signup({ displayName, email, password, roleType, username: normalized || undefined });
     if (!res.success) setError(res.error || 'Signup failed');
-    else navigate('/verify', { replace: true });
     setSubmitting(false);
   };
 

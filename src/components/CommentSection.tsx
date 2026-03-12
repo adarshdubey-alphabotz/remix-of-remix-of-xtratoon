@@ -100,6 +100,10 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
   const handleSubmit = async () => {
     if (!user) { toast.error('Please login to comment'); return; }
+    if (user.app_metadata?.email_verified !== true) {
+      toast.error('Please verify your email before commenting', { action: { label: 'Verify', onClick: () => window.location.href = '/verify' } });
+      return;
+    }
     if ((!content.trim() && !selectedGif) || submitting || submitLockRef.current) return;
 
     submitLockRef.current = true;
