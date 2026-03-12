@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail, BadgeCheck, DollarSign, Megaphone } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail, BadgeCheck, DollarSign, Megaphone, Search } from 'lucide-react';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -18,6 +18,7 @@ const AdminPanel: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const [verifyUsername, setVerifyUsername] = useState('');
   const [verifyLoading, setVerifyLoading] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
 
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
@@ -55,9 +56,13 @@ const AdminPanel: React.FC = () => {
   });
 
   const { data: allUsers } = useQuery({
-    queryKey: ['admin-users'],
+    queryKey: ['admin-users', userSearch],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(50);
+      let query = supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(100);
+      if (userSearch.trim()) {
+        query = query.or(`username.ilike.%${userSearch.trim()}%,display_name.ilike.%${userSearch.trim()}%,signup_ip.ilike.%${userSearch.trim()}%,signup_country.ilike.%${userSearch.trim()}%`);
+      }
+      const { data } = await query;
       return data || [];
     },
     enabled: isAdmin,
@@ -587,6 +592,18 @@ const AdminPanel: React.FC = () => {
           {activeTab === 'users' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">USERS</h2>
+              {/* Search */}
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    value={userSearch}
+                    onChange={e => setUserSearch(e.target.value)}
+                    placeholder="Search by username, name, IP, or country..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
               {/* Ban appeal info */}
               <div className="brutal-card p-4 mb-4 flex items-start gap-3 border-l-4 border-primary">
                 <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
