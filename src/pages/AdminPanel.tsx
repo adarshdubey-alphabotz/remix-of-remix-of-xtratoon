@@ -18,6 +18,7 @@ const AdminPanel: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const [verifyUsername, setVerifyUsername] = useState('');
   const [verifyLoading, setVerifyLoading] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
 
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
