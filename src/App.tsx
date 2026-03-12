@@ -124,6 +124,12 @@ const ReaderErrorFallback = () => (
   </div>
 );
 
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <p className="text-sm text-muted-foreground">Loading page…</p>
+  </div>
+);
+
 // Verification gate: redirect unverified users to /verify
 const RequireVerification: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
