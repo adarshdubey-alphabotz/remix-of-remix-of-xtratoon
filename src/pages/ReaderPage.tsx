@@ -294,41 +294,21 @@ const ReaderPage: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   });
 
-  // Pinch-to-zoom
+  // Touch handlers - NO zoom, NO pinch, NO double-tap zoom
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      lastTouchRef.current = { dist: Math.sqrt(dx * dx + dy * dy), x: (e.touches[0].clientX + e.touches[1].clientX) / 2, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
-    } else if (e.touches.length === 1) {
+    if (e.touches.length === 1) {
       touchStartXRef.current = e.touches[0].clientX;
-      if (scale > 1) {
-        lastTouchRef.current = { dist: 0, x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
     }
-  }, [scale]);
+    // Ignore multi-touch completely - no pinch zoom
+  }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2 && lastTouchRef.current) {
-      e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const newScale = Math.min(Math.max(scale * (dist / lastTouchRef.current.dist), 1), 5);
-      setScale(newScale);
-      if (newScale <= 1) { setTranslateX(0); setTranslateY(0); }
-      lastTouchRef.current.dist = dist;
-    } else if (e.touches.length === 1 && scale > 1 && lastTouchRef.current) {
-      const touch = e.touches[0];
-      setTranslateX(prev => prev + touch.clientX - lastTouchRef.current!.x);
-      setTranslateY(prev => prev + touch.clientY - lastTouchRef.current!.y);
-      lastTouchRef.current = { dist: 0, x: touch.clientX, y: touch.clientY };
-    }
-  }, [scale]);
+  const handleTouchMove = useCallback((_e: React.TouchEvent) => {
+    // No zoom handling - let native scroll work in strip mode
+  }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    // Swipe detection for page navigation (single touch, not zoomed)
-    if (scale <= 1 && e.changedTouches.length === 1 && displayMode !== 'strip') {
+    // Swipe detection for page navigation (single touch only)
+    if (e.changedTouches.length === 1 && displayMode !== 'strip') {
       const diff = e.changedTouches[0].clientX - touchStartXRef.current;
       const isRTL = readDirection === 'rtl';
       if (Math.abs(diff) > 50) {
@@ -336,21 +316,8 @@ const ReaderPage: React.FC = () => {
         else goToPage(currentPage + (isRTL ? 1 : -1));
       }
     }
-    // Double-tap zoom
-    const now = Date.now();
-    if (now - lastDoubleTapRef.current < 300 && e.changedTouches.length === 1) {
-      if (scale > 1) {
-        resetZoom();
-      } else {
-        setScale(2.5);
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        setTranslateX(-(e.changedTouches[0].clientX - rect.left - rect.width / 2));
-        setTranslateY(-(e.changedTouches[0].clientY - rect.top - rect.height / 2));
-      }
-    }
-    lastDoubleTapRef.current = now;
     lastTouchRef.current = null;
-  }, [scale, displayMode, readDirection, currentPage]);
+  }, [displayMode, readDirection, currentPage]);
 
   const resetZoom = () => { setScale(1); setTranslateX(0); setTranslateY(0); };
 
