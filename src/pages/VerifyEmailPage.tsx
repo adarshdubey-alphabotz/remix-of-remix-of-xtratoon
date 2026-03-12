@@ -29,6 +29,7 @@ const VerifyEmailPage: React.FC = () => {
       });
 
       if (fnError) throw fnError;
+      setCode(data?.code || '');
       setState('waiting');
     } catch (err: any) {
       setError(err.message || 'Failed to send verification email');
