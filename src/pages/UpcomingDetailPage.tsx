@@ -147,6 +147,7 @@ const UpcomingDetailPage: React.FC = () => {
   const isLaunched = ch.is_published;
   const scheduledDate = ch.scheduled_at ? new Date(ch.scheduled_at) : null;
   const timeUntil = scheduledDate ? scheduledDate.getTime() - Date.now() : 0;
+  const isPastDue = timeUntil <= 0;
   const hoursLeft = Math.max(0, Math.floor(timeUntil / (1000 * 60 * 60)));
   const minutesLeft = Math.max(0, Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60)));
   const contentType = getContentType((manga as any).language);
