@@ -4,12 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUrl';
-import { Calendar, ChevronLeft, ChevronRight, ArrowUp, Search, Flame, Users, Clock, CheckCircle2, Trophy, ChevronDown, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowUp, Search, Flame, Users, Clock, CheckCircle2, Trophy, ChevronDown, X, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DynamicMeta from '@/components/DynamicMeta';
 import { toast } from 'sonner';
 
-const DAYS_SHORT = ['s', 'm', 't', 'w', 't', 'f', 's'];
+const DAYS_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -46,6 +46,15 @@ function getCalendarDays(year: number, month: number) {
   return days;
 }
 
+function getContentType(language: string | null | undefined): string {
+  if (!language) return 'Manga';
+  const lang = language.toLowerCase();
+  if (lang === 'korean') return 'Manhwa';
+  if (lang === 'chinese') return 'Manhua';
+  if (lang === 'novel' || lang === 'light novel') return 'Novel';
+  return 'Manga';
+}
+
 const UpcomingPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -62,7 +71,6 @@ const UpcomingPage: React.FC = () => {
   const weekStartStr = currentWeek.start.toISOString().split('T')[0];
   const twoWeekDays = useMemo(() => getTwoWeekDays(selectedDate), [selectedDate]);
 
-  // Close calendar on outside click
   useEffect(() => {
     if (!calendarExpanded) return;
     const handler = (e: MouseEvent) => {
@@ -115,7 +123,7 @@ const UpcomingPage: React.FC = () => {
       if (!searchQuery.trim()) return [];
       const { data, error } = await supabase
         .from('chapters')
-        .select('id, chapter_number, title, scheduled_at, manga_id, schedule_verified, is_published, manga!inner(id, title, slug, cover_url, creator_id, genres)')
+        .select('id, chapter_number, title, scheduled_at, manga_id, schedule_verified, is_published, manga!inner(id, title, slug, cover_url, creator_id, genres, language)')
         .eq('schedule_verified', true)
         .not('scheduled_at', 'is', null)
         .gte('scheduled_at', new Date().toISOString())
@@ -179,30 +187,27 @@ const UpcomingPage: React.FC = () => {
 
   const displayItems = showSearch && searchQuery.trim() ? searchResults : items;
 
-  // Top item for sticky banner
-  const topItem = items[0] as any;
-
   return (
-    <div className="min-h-screen pt-16 pb-20 bg-[hsl(var(--background))]">
+    <div className="min-h-screen pt-16 pb-20 bg-background">
       <DynamicMeta title="Upcoming Releases | Komixora" description="See what's launching this week on Komixora. Vote for your favorites!" />
 
       <div className="max-w-lg mx-auto">
         {/* ─── Calendar Widget ─── */}
         <div ref={calRef} className="relative z-30">
-          <div className="bg-[#1a1a1a] dark:bg-[#111] rounded-b-3xl px-4 pt-4 pb-3">
+          <div className="bg-card border-b border-border px-4 pt-3 pb-2">
             {/* Header row */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <div>
-                <h1 className="text-white text-xl font-bold tracking-tight">Upcoming</h1>
-                <p className="text-white/50 text-xs mt-0.5">In the next 2 weeks</p>
+                <h1 className="text-foreground text-lg font-bold tracking-tight">Upcoming</h1>
+                <p className="text-muted-foreground text-[10px] mt-0.5">Next 2 weeks</p>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setShowSearch(!showSearch)} className="p-2 rounded-full hover:bg-white/10 transition-colors">
-                  {showSearch ? <X className="w-4 h-4 text-white/70" /> : <Search className="w-4 h-4 text-white/70" />}
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => setShowSearch(!showSearch)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                  {showSearch ? <X className="w-3.5 h-3.5 text-muted-foreground" /> : <Search className="w-3.5 h-3.5 text-muted-foreground" />}
                 </button>
-                <button onClick={() => setCalendarExpanded(!calendarExpanded)} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                <button onClick={() => setCalendarExpanded(!calendarExpanded)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
                   <motion.div animate={{ rotate: calendarExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="w-4 h-4 text-white/70" />
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                   </motion.div>
                 </button>
               </div>
@@ -216,7 +221,7 @@ const UpcomingPage: React.FC = () => {
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Search upcoming titles..."
-                    className="w-full px-3 py-2 bg-white/10 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-colors"
+                    className="w-full px-3 py-1.5 bg-muted border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
                     autoFocus
                   />
                 </motion.div>
@@ -224,29 +229,27 @@ const UpcomingPage: React.FC = () => {
             </AnimatePresence>
 
             {/* Day headers */}
-            <div className="grid grid-cols-7 gap-1 mb-1.5">
+            <div className="grid grid-cols-7 gap-0.5 mb-1">
               {DAYS_SHORT.map((d, i) => (
-                <div key={i} className="text-center text-[10px] font-medium text-white/30 uppercase">{d}</div>
+                <div key={i} className="text-center text-[8px] font-medium text-muted-foreground uppercase tracking-wider">{d}</div>
               ))}
             </div>
 
-            {/* 2-week strip (compact) */}
-            <div className="grid grid-cols-7 gap-1">
+            {/* 2-week strip — compact rounded squares */}
+            <div className="grid grid-cols-7 gap-0.5">
               {twoWeekDays.map((day) => {
                 const isToday = day.toDateString() === todayStr;
                 const isSelected = day.toDateString() === selectedDate.toDateString();
                 const hasScheduled = scheduledDates.has(day.toDateString());
-                const isCurrentWeek = day >= currentWeek.start && day <= currentWeek.end;
 
                 return (
                   <button
                     key={day.toISOString()}
                     onClick={() => setSelectedDate(new Date(day))}
-                    className={`relative w-full aspect-square rounded-xl text-xs font-semibold flex items-center justify-center transition-all
-                      ${isSelected ? 'bg-primary text-primary-foreground ring-2 ring-primary/50' : ''}
-                      ${isToday && !isSelected ? 'bg-destructive text-white' : ''}
-                      ${isCurrentWeek && !isSelected && !isToday ? 'bg-white/8 text-white/80' : ''}
-                      ${!isSelected && !isToday && !isCurrentWeek ? 'text-white/40 hover:bg-white/10' : ''}
+                    className={`relative flex items-center justify-center rounded-md text-[11px] font-medium h-7 transition-all
+                      ${isSelected ? 'bg-primary text-primary-foreground' : ''}
+                      ${isToday && !isSelected ? 'bg-foreground text-background' : ''}
+                      ${!isSelected && !isToday ? 'text-muted-foreground hover:bg-muted' : ''}
                     `}
                   >
                     {day.getDate()}
@@ -258,20 +261,20 @@ const UpcomingPage: React.FC = () => {
               })}
             </div>
 
-            {/* Week navigation */}
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
+            {/* Week navigation — minimal */}
+            <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-border">
               <button
                 onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - 7); setSelectedDate(d); }}
-                className="text-[10px] text-white/40 hover:text-white/70 flex items-center gap-0.5 transition-colors"
+                className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
               >
                 <ChevronLeft className="w-3 h-3" /> Prev
               </button>
-              <button onClick={() => setSelectedDate(new Date())} className="text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors">
+              <button onClick={() => setSelectedDate(new Date())} className="text-[10px] text-primary hover:text-primary/80 transition-colors">
                 Today
               </button>
               <button
                 onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() + 7); setSelectedDate(d); }}
-                className="text-[10px] text-white/40 hover:text-white/70 flex items-center gap-0.5 transition-colors"
+                className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
               >
                 Next <ChevronRight className="w-3 h-3" />
               </button>
@@ -286,23 +289,23 @@ const UpcomingPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute left-3 right-3 top-full mt-1 bg-[#1a1a1a] dark:bg-[#111] rounded-2xl border border-white/10 shadow-2xl p-4 z-50"
+                className="absolute left-3 right-3 top-full mt-1 bg-card rounded-2xl border border-border shadow-2xl p-4 z-50"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-                    <ChevronLeft className="w-4 h-4 text-white/60" />
+                  <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                    <ChevronLeft className="w-4 h-4 text-muted-foreground" />
                   </button>
-                  <h3 className="text-sm font-semibold text-white">{MONTHS[calMonth]} {calYear}</h3>
-                  <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-                    <ChevronRight className="w-4 h-4 text-white/60" />
+                  <h3 className="text-sm font-semibold text-foreground">{MONTHS[calMonth]} {calYear}</h3>
+                  <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </button>
                 </div>
-                <div className="grid grid-cols-7 gap-1 mb-1">
+                <div className="grid grid-cols-7 gap-0.5 mb-1">
                   {DAYS_SHORT.map((d, i) => (
-                    <div key={i} className="text-center text-[10px] font-medium text-white/30 uppercase">{d}</div>
+                    <div key={i} className="text-center text-[8px] font-medium text-muted-foreground uppercase">{d}</div>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-0.5">
                   {calDays.map((day, i) => {
                     if (!day) return <div key={`e-${i}`} />;
                     const isToday = day.toDateString() === todayStr;
@@ -312,10 +315,10 @@ const UpcomingPage: React.FC = () => {
                       <button
                         key={day.toISOString()}
                         onClick={() => { setSelectedDate(new Date(day)); setCalendarExpanded(false); }}
-                        className={`relative w-full aspect-square rounded-xl text-xs font-semibold flex items-center justify-center transition-all
+                        className={`relative flex items-center justify-center rounded-md text-[11px] font-medium h-7 transition-all
                           ${isSelected ? 'bg-primary text-primary-foreground' : ''}
-                          ${isToday && !isSelected ? 'bg-destructive text-white' : ''}
-                          ${!isSelected && !isToday ? 'text-white/50 hover:bg-white/10' : ''}
+                          ${isToday && !isSelected ? 'bg-foreground text-background' : ''}
+                          ${!isSelected && !isToday ? 'text-muted-foreground hover:bg-muted' : ''}
                         `}
                       >
                         {day.getDate()}
@@ -331,55 +334,33 @@ const UpcomingPage: React.FC = () => {
           </AnimatePresence>
         </div>
 
-        {/* ─── Top Banner (first item) ─── */}
-        {topItem && !showSearch && (
-          <Link to={`/upcoming/${(topItem.manga as any).slug}/${topItem.chapter_number}`}>
-            <div className="mx-3 mt-3 rounded-2xl bg-[#1a1a1a] dark:bg-[#111] p-3 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
-                {(topItem.manga as any).cover_url ? (
-                  <img src={getImageUrl((topItem.manga as any).cover_url)!} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-primary/30 flex items-center justify-center text-primary text-sm font-bold">{(topItem.manga as any).title[0]}</div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-white/40">
-                  {topItem.is_published ? 'Launched' : 'Upcoming'} • {MONTHS_SHORT[new Date(topItem.scheduled_at).getMonth()]} {new Date(topItem.scheduled_at).getDate()}
-                </p>
-                <p className="text-white text-sm font-semibold line-clamp-1">{(topItem.manga as any).title}</p>
-              </div>
-              {topItem.is_published && <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />}
-            </div>
-          </Link>
-        )}
-
-        {/* ─── Feed Toggle ─── */}
-        <div className="flex gap-2 px-4 mt-4 mb-3">
+        {/* ─── Feed Toggle — underline tab style ─── */}
+        <div className="flex gap-0 px-4 mt-6 mb-4 border-b border-border">
           <button
             onClick={() => setFeedMode('trending')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${feedMode === 'trending' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+            className={`flex items-center gap-1.5 px-4 pb-2 text-xs font-medium transition-all border-b-2 -mb-px ${feedMode === 'trending' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
           >
             <Flame className="w-3.5 h-3.5" /> Trending
           </button>
           <button
             onClick={() => setFeedMode('following')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${feedMode === 'following' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+            className={`flex items-center gap-1.5 px-4 pb-2 text-xs font-medium transition-all border-b-2 -mb-px ${feedMode === 'following' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
           >
             <Users className="w-3.5 h-3.5" /> Following
           </button>
         </div>
 
         {/* ─── Items List ─── */}
-        <div className="px-3 space-y-2.5">
+        <div className="px-3 space-y-3">
           {isLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-[88px] bg-muted/30 rounded-2xl animate-pulse" />
+                <div key={i} className="h-20 bg-muted/30 rounded-xl animate-pulse" />
               ))}
             </>
           ) : displayItems.length === 0 ? (
             <div className="text-center py-16 space-y-3">
-              <Calendar className="w-12 h-12 mx-auto text-muted-foreground/30" />
+              <Calendar className="w-10 h-10 mx-auto text-muted-foreground/30" />
               <p className="text-muted-foreground text-sm font-medium">
                 {showSearch && searchQuery ? 'No upcoming titles match' : feedMode === 'following' ? 'No upcoming from followed creators' : 'No releases this week'}
               </p>
@@ -391,38 +372,31 @@ const UpcomingPage: React.FC = () => {
               const hasVoted = userVotes.has(item.id);
               const isLaunched = item.is_published;
               const scheduledDate = new Date(item.scheduled_at);
-              const isTop3 = i < 3 && feedMode === 'trending' && !showSearch;
+              const contentType = getContentType(manga.language);
 
               return (
                 <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.03, 0.25) }}
-                  className={`relative rounded-2xl border bg-card p-3 transition-all group
-                    ${isTop3 ? 'border-primary/20 shadow-sm' : 'border-border'}
-                  `}
+                  className="rounded-xl border border-border bg-card p-3 transition-all"
                 >
-                  {isTop3 && (
-                    <div className="absolute -top-2 left-3 flex items-center gap-0.5 px-2 py-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full">
-                      <Trophy className="w-2.5 h-2.5" /> #{i + 1}
-                    </div>
-                  )}
-
                   <div className="flex items-center gap-3">
-                    {/* Date column */}
-                    <div className="flex-shrink-0 text-center w-10">
-                      <p className="text-[9px] uppercase text-muted-foreground font-semibold leading-none">{MONTHS_SHORT[scheduledDate.getMonth()]}</p>
-                      <p className="text-xl font-bold text-foreground leading-tight">{scheduledDate.getDate()}</p>
-                    </div>
+                    {/* Rank — inside card, left-aligned */}
+                    {feedMode === 'trending' && !showSearch && (
+                      <span className="text-xs font-bold text-muted-foreground w-4 text-center flex-shrink-0">
+                        {i + 1}
+                      </span>
+                    )}
 
                     {/* Cover */}
                     <Link to={`/upcoming/${manga.slug}/${item.chapter_number}`} className="flex-shrink-0">
-                      <div className="w-12 h-14 rounded-xl overflow-hidden border border-border/40">
+                      <div className="w-11 h-14 rounded-lg overflow-hidden border border-border">
                         {manga.cover_url ? (
                           <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
-                          <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold">{manga.title[0]}</div>
+                          <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">{manga.title[0]}</div>
                         )}
                       </div>
                     </Link>
@@ -433,24 +407,30 @@ const UpcomingPage: React.FC = () => {
                         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{manga.title}</h3>
                       </Link>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Ch. {item.chapter_number}{item.title ? ` · ${item.title}` : ''} · <span className="text-primary/70">{(() => { const l = (manga.language || '').toLowerCase(); return l === 'korean' ? 'Manhwa' : l === 'chinese' ? 'Manhua' : l === 'novel' ? 'Novel' : 'Manga'; })()}</span>
+                        Ch. {item.chapter_number}{item.title ? ` · ${item.title}` : ''}
                       </p>
-                      {isLaunched ? (
-                        <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-green-500">
-                          <CheckCircle2 className="w-3 h-3" /> Complete
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
-                          <Clock className="w-3 h-3" /> Upcoming
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className="text-[10px] text-muted-foreground">{contentType}</span>
+                        <span className="text-muted-foreground/30">·</span>
+                        <span className="text-[10px] text-muted-foreground">{MONTHS_SHORT[scheduledDate.getMonth()]} {scheduledDate.getDate()}</span>
+                        <span className="text-muted-foreground/30">·</span>
+                        {isLaunched ? (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-green-500">
+                            <CheckCircle2 className="w-2.5 h-2.5" /> Launched
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded">
+                            Upcoming
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Upvote / Status */}
+                    {/* Upvote — small ghost icon */}
                     <div className="flex-shrink-0">
                       {isLaunched ? (
                         <Link to={`/title/${manga.slug}`}>
-                          <CheckCircle2 className="w-6 h-6 text-green-500" />
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
                         </Link>
                       ) : (
                         <button
@@ -458,14 +438,12 @@ const UpcomingPage: React.FC = () => {
                             if (!user) { toast.error('Login to vote!'); return; }
                             upvoteMutation.mutate(item.id);
                           }}
-                          className={`flex flex-col items-center gap-0.5 transition-all`}
+                          className="flex flex-col items-center gap-0.5"
                         >
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${hasVoted ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'}`}>
-                            <ArrowUp className="w-4 h-4" />
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${hasVoted ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
+                            <ArrowUp className="w-3.5 h-3.5" />
                           </div>
-                          {votes > 0 && (
-                            <span className={`text-[10px] font-bold ${hasVoted ? 'text-primary' : 'text-muted-foreground'}`}>{votes}</span>
-                          )}
+                          <span className={`text-[9px] font-medium ${hasVoted ? 'text-primary' : 'text-muted-foreground'}`}>{votes}</span>
                         </button>
                       )}
                     </div>
@@ -478,27 +456,31 @@ const UpcomingPage: React.FC = () => {
 
         {/* ─── Weekly Top 5 ─── */}
         {items.length > 0 && !showSearch && (
-          <div className="mx-3 mt-6 rounded-2xl border border-border bg-card p-4">
-            <h4 className="text-sm font-semibold flex items-center gap-2 mb-3 text-foreground">
-              <Trophy className="w-4 h-4 text-primary" /> Weekly Top 5
+          <div className="mx-3 mt-8 mb-6">
+            <h4 className="text-xs font-semibold flex items-center gap-2 mb-3 text-muted-foreground uppercase tracking-wider px-1">
+              <Trophy className="w-3.5 h-3.5" /> Weekly Top 5
             </h4>
-            {items.slice(0, 5).map((item: any, i: number) => {
-              const manga = item.manga;
-              const votes = voteMap.get(item.id) || 0;
-              return (
-                <Link key={item.id} to={`/upcoming/${manga.slug}/${item.chapter_number}`} className="flex items-center gap-3 py-2 hover:bg-muted/40 rounded-xl px-2 transition-colors">
-                  <span className={`text-sm font-bold w-5 text-center ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-orange-500' : 'text-muted-foreground'}`}>{i + 1}</span>
-                  <div className="w-8 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-border/30">
-                    {manga.cover_url ? <img src={getImageUrl(manga.cover_url)!} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/20" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold line-clamp-1">{manga.title}</p>
-                    <p className="text-[10px] text-muted-foreground">Ch.{item.chapter_number}</p>
-                  </div>
-                  <span className="text-xs font-bold text-primary">{votes}↑</span>
-                </Link>
-              );
-            })}
+            <div className="rounded-xl border border-border bg-card divide-y divide-border">
+              {items.slice(0, 5).map((item: any, i: number) => {
+                const manga = item.manga;
+                const votes = voteMap.get(item.id) || 0;
+                return (
+                  <Link key={item.id} to={`/upcoming/${manga.slug}/${item.chapter_number}`} className="flex items-center gap-3 py-2.5 px-3 hover:bg-muted/40 transition-colors">
+                    <span className="text-xs font-bold w-4 text-center text-muted-foreground">{i + 1}</span>
+                    <div className="w-7 h-9 rounded-md overflow-hidden flex-shrink-0 border border-border">
+                      {manga.cover_url ? <img src={getImageUrl(manga.cover_url)!} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-muted" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium line-clamp-1 text-foreground">{manga.title}</p>
+                      <p className="text-[10px] text-muted-foreground">Ch.{item.chapter_number}</p>
+                    </div>
+                    <span className="flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground">
+                      <ArrowUp className="w-3 h-3" /> {votes}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
