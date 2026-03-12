@@ -50,6 +50,8 @@ const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
+const UpcomingPage = lazy(() => import("./pages/UpcomingPage"));
+const UpcomingDetailPage = lazy(() => import("./pages/UpcomingDetailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -137,6 +139,7 @@ const AnimatedRoutes = () => {
           <Route path="/home" element={<Navigate to="/" replace />} />
           <Route path="/explore" element={<Navigate to="/" replace />} />
           <Route path="/about" element={<Index />} />
+          <Route path="/title/:id" element={<ManhwaDetail />} />
           <Route path="/manhwa/:id" element={<ManhwaDetail />} />
           <Route path="/read/:id/:chapter" element={<ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary>} />
           <Route path="/browse" element={<BrowsePage />} />
@@ -145,6 +148,8 @@ const AnimatedRoutes = () => {
           <Route path="/reader/:id" element={<UserProfilePage />} />
           <Route path="/user/:id" element={<UserProfilePage />} />
           <Route path="/dashboard" element={<PublisherDashboard />} />
+          <Route path="/upcoming" element={<UpcomingPage />} />
+          <Route path="/upcoming/:slug/:chapter" element={<UpcomingDetailPage />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/library" element={<MyLibrary />} />
           <Route path="/profile" element={<ProfilePage />} />

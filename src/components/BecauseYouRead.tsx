@@ -105,7 +105,7 @@ const BecauseYouRead: React.FC = () => {
         {recommendations.items.map((m, i) => (
           <motion.div key={m.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ delay: i * 0.06, duration: 0.4 }}>
-            <Link to={`/manhwa/${m.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
+            <Link to={`/title/${m.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
               <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/40 mb-2.5">
                 {m.cover_url ? (
                   <img src={getImageUrl(m.cover_url)!} alt={m.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />

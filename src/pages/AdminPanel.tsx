@@ -309,7 +309,12 @@ const AdminPanel: React.FC = () => {
 
   const updateChapterApproval = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from('chapters').update({ approval_status: status } as any).eq('id', id);
+      // When approving, also verify schedule if chapter has scheduled_at
+      const updateData: any = { approval_status: status };
+      if (status === 'APPROVED') {
+        updateData.schedule_verified = true;
+      }
+      const { error } = await supabase.from('chapters').update(updateData).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -438,7 +443,7 @@ const AdminPanel: React.FC = () => {
                         <tr key={c.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
                           <td className="px-4 py-3 font-mono text-xs text-primary" title={c.manga_id}>{c.manga_id?.slice(0, 8).toUpperCase()}</td>
                           <td className="px-4 py-3 font-semibold">{c.manga?.title || '—'}</td>
-                          <td className="px-4 py-3">Ch. {c.chapter_number}</td>
+                          <td className="px-4 py-3">Ch. {c.chapter_number} {c.scheduled_at ? <span className="text-[10px] ml-1 px-1.5 py-0.5 bg-primary/10 text-primary rounded">📅 Scheduled</span> : ''}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{c.title || '—'}</td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
                           <td className="px-4 py-3">

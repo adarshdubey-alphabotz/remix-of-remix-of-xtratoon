@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
         chapterUrls.push(`${SITE_URL}/read/${body.manga_slug}/${body.chapter_number}`);
       }
       if (body?.manga_slug) {
-        chapterUrls.push(`${SITE_URL}/manhwa/${body.manga_slug}`);
+        chapterUrls.push(`${SITE_URL}/title/${body.manga_slug}`);
       }
     } catch {
       // No body — just do a general sitemap ping

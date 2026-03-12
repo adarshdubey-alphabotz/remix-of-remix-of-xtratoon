@@ -99,7 +99,7 @@ const SpotlightSearch: React.FC = () => {
           id: m.id,
           title: m.title,
           subtitle: (m.genres || []).slice(0, 2).join(', '),
-          path: `/manhwa/${m.slug}`,
+          path: `/title/${m.slug}`,
           icon: <BookOpen className="w-4 h-4 text-primary" />,
         });
       });

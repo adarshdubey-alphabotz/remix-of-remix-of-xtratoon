@@ -197,7 +197,7 @@ const ManhwaDetail: React.FC = () => {
     </div>
   );
 
-  const pageUrl = `https://komixora.fun/manhwa/${manhwa.slug}`;
+  const pageUrl = `https://komixora.fun/title/${manhwa.slug}`;
   const allChapters = chapters || [];
   const visibleChapters = showAllChapters ? allChapters : allChapters.slice(0, 10);
   const firstChapter = allChapters.length > 0 ? allChapters[0] : null;

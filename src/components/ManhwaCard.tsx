@@ -20,7 +20,7 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, index = 0, rank, rankCo
   const slug = manhwa.slug;
 
   return (
-    <Link to={`/manhwa/${slug}`} className="group relative flex-shrink-0 w-40 sm:w-48">
+    <Link to={`/title/${slug}`} className="group relative flex-shrink-0 w-40 sm:w-48">
       {rank && (
         <div
           className="absolute -top-2 -left-2 z-20 w-9 h-9 flex items-center justify-center text-xs font-bold rounded-xl border border-border"

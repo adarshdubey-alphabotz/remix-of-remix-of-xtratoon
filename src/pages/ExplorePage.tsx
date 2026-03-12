@@ -62,7 +62,7 @@ const FeaturedHero: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => (
       </p>
 
       <div className="flex flex-wrap gap-3 mb-6">
-        <Link to={`/manhwa/${manhwa.slug}`}>
+        <Link to={`/title/${manhwa.slug}`}>
           <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-foreground text-background font-semibold text-sm border border-border/20 hover:opacity-90 transition-opacity">
             <Play className="w-4 h-4 fill-current" /> Read Now
           </button>
@@ -81,7 +81,7 @@ const FeaturedHero: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => (
 );
 
 const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; badgeColor?: string; creatorName?: string }> = ({ manhwa, badge, badgeColor, creatorName }) => (
-  <Link to={`/manhwa/${manhwa.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
+  <Link to={`/title/${manhwa.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/40 mb-2.5">
       {manhwa.cover_url ? (
         <img src={resolveCover(manhwa.cover_url)!} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -135,7 +135,7 @@ const ScrollSection: React.FC<{
 );
 
 const RankedItem: React.FC<{ manhwa: MangaItem; rank: number }> = ({ manhwa, rank }) => (
-  <Link to={`/manhwa/${manhwa.slug}`} className="group flex items-center gap-4 py-3 px-4 rounded-2xl hover:bg-muted/40 transition-colors">
+  <Link to={`/title/${manhwa.slug}`} className="group flex items-center gap-4 py-3 px-4 rounded-2xl hover:bg-muted/40 transition-colors">
     <span className={`font-display text-2xl tracking-wider w-8 text-center ${rank === 1 ? 'text-yellow-500' : rank === 2 ? 'text-gray-400' : rank === 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>{rank}</span>
     <div className="w-12 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-border/40">
       {manhwa.cover_url ? <img src={resolveCover(manhwa.cover_url)!} alt={manhwa.title} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/20" />}

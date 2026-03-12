@@ -37,7 +37,7 @@ const FeaturedCard: React.FC<{ manhwa: Manga; index: number }> = ({ manhwa, inde
   const coverSrc = hasCover ? (getImageUrl(manhwa.cover_url) || '') : '';
   return (
     <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: index * 0.1, duration: 0.5 }}>
-      <Link to={`/manhwa/${manhwa.slug}`} className="group block">
+      <Link to={`/title/${manhwa.slug}`} className="group block">
         <div className={`aspect-[2/3] ${!hasCover ? gradient : ''} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
           {hasCover && <img src={coverSrc} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -437,7 +437,7 @@ const HomePage: React.FC = () => {
 
             {featured && (
               <motion.div className="sm:hidden" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }}>
-                <Link to={`/manhwa/${featured.slug}`} className="block">
+                <Link to={`/title/${featured.slug}`} className="block">
                   <div className={`aspect-[16/9] ${featured.cover_url ? '' : getCoverGradient(0)} relative rounded-2xl border border-border overflow-hidden`} style={{ boxShadow: 'var(--shadow-card)' }}>
                     {featured.cover_url && <img src={getImageUrl(featured.cover_url) || ''} alt="" className="absolute inset-0 w-full h-full object-cover" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
