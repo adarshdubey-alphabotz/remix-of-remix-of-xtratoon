@@ -42,9 +42,9 @@ const VerifyEmailPage: React.FC = () => {
       return;
     }
 
-    // If email already confirmed, go home
-    if (user.email_confirmed_at) {
-      navigate('/', { replace: true });
+    // If already verified, go to profile
+    if (Boolean(user.app_metadata?.email_verified)) {
+      navigate('/profile', { replace: true });
       return;
     }
 
