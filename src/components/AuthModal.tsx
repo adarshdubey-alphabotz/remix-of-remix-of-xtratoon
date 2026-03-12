@@ -2,7 +2,6 @@ import React, { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, Eye, EyeOff, BookOpen, Pen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 
