@@ -248,6 +248,12 @@ const UpcomingDetailPage: React.FC = () => {
             <ArrowUp className="w-4 h-4" />
             {voteCount} {voteCount === 1 ? 'Vote' : 'Votes'}
           </button>
+
+          <SocialShareMenu
+            title={`${manga.title} Ch.${ch.chapter_number}`}
+            url={`https://www.komixora.fun/upcoming/${manga.slug}/${ch.chapter_number}`}
+            description={`${manga.title} Chapter ${ch.chapter_number} launching soon on Komixora!`}
+          />
         </div>
 
         {/* Genres */}
