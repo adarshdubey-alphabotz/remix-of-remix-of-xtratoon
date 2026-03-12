@@ -96,11 +96,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     enabled: !!mangaId,
   });
 
-  // Fetch all votes for comments in this manga
-  const commentIds = useMemo(() => {
-    if (!comments.commentMap) return [];
-    return Array.from(comments.commentMap.keys());
-  }, [comments]);
+  const commentIds = useMemo(() => commentsData?.commentIds || [], [commentsData]);
 
   const { data: votes = [] } = useQuery({
     queryKey: ['comment-votes', mangaId],
@@ -109,7 +105,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       const { data } = await supabase
         .from('comment_votes')
         .select('comment_id, user_id, vote')
-        .in('comment_id', commentIds);
+        .in('comment_id', commentIds as string[]);
       return data || [];
     },
     enabled: commentIds.length > 0,
