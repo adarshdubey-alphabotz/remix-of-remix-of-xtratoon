@@ -164,7 +164,7 @@ const UpcomingDetailPage: React.FC = () => {
       {/* Banner */}
       <div className="relative h-48 sm:h-64 overflow-hidden">
         {manga.banner_url || manga.cover_url ? (
-          <img src={getImageUrl(manga.banner_url || manga.cover_url)!} alt="" className="w-full h-full object-cover" />
+          <img src={getImageUrl(manga.banner_url || manga.cover_url)!} alt="" className="w-full h-full object-cover" loading="eager" fetchPriority="high" decoding="async" />
         ) : (
           <div className="w-full h-full bg-primary/20" />
         )}
