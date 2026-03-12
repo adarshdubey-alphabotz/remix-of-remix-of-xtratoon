@@ -77,7 +77,7 @@ const UpcomingPage: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('chapters')
-        .select('id, chapter_number, title, scheduled_at, manga_id, schedule_verified, is_published, manga!inner(id, title, slug, cover_url, creator_id, genres, status)')
+        .select('id, chapter_number, title, scheduled_at, manga_id, schedule_verified, is_published, manga!inner(id, title, slug, cover_url, creator_id, genres, status, language)')
         .eq('schedule_verified', true)
         .gte('scheduled_at', currentWeek.start.toISOString())
         .lte('scheduled_at', currentWeek.end.toISOString())
