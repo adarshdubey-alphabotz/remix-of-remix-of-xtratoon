@@ -95,29 +95,31 @@ const ManhwaDetail: React.FC = () => {
 
   useEffect(() => {
     if (!manhwa?.id || !id) return;
+
     const key = `viewed_manga_${manhwa.id}`;
     if (sessionStorage.getItem(key)) return;
 
-    supabase
-      .rpc('increment_manga_views', { p_manga_id: manhwa.id })
-      .then(({ error }) => {
-        if (error) {
-          console.error('View count error:', error.message);
-          return;
-        }
+    const incrementView = async () => {
+      const { error } = await supabase.rpc('increment_manga_views', { p_manga_id: manhwa.id });
 
-        sessionStorage.setItem(key, '1');
+      if (error) {
+        console.error('View count error:', error.message);
+        return;
+      }
 
-        queryClient.setQueryData(['manhwa-detail', id], (prev: any) =>
-          prev ? { ...prev, views: Number(prev.views || 0) + 1 } : prev
-        );
+      sessionStorage.setItem(key, '1');
 
-        queryClient.invalidateQueries({ queryKey: ['browse-manga'] });
-        queryClient.invalidateQueries({ queryKey: ['explore-manga'] });
-      })
-      .catch((err) => {
-        console.error('View count error:', err);
-      });
+      queryClient.setQueryData(['manhwa-detail', id], (prev: any) =>
+        prev ? { ...prev, views: Number(prev.views || 0) + 1 } : prev
+      );
+
+      queryClient.invalidateQueries({ queryKey: ['browse-manga'] });
+      queryClient.invalidateQueries({ queryKey: ['explore-manga'] });
+    };
+
+    incrementView().catch((err) => {
+      console.error('View count error:', err);
+    });
   }, [manhwa?.id, id, queryClient]);
 
   const { data: chapters } = useQuery({
