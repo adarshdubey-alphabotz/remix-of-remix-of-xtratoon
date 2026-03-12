@@ -17,3 +17,15 @@ verify_jwt = false
 
 [functions.publish-scheduled]
 verify_jwt = false
+
+[functions.super-handler]
+verify_jwt = false
+
+[functions.send-verification]
+verify_jwt = false
+
+[functions.check-verification]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false
