@@ -180,19 +180,18 @@ const ProfileSettings: React.FC = () => {
           {error && <div className="p-3 border-2 border-destructive bg-destructive/5 text-destructive text-sm font-medium">{error}</div>}
           {success && <div className="p-3 border-2 border-primary bg-primary/5 text-primary text-sm font-medium flex items-center gap-2"><CheckCircle className="w-4 h-4" />{success}</div>}
 
-          {/* Role selection */}
+          {/* Role display (locked after signup) */}
           <div>
-            <label className="text-sm font-semibold text-foreground block mb-2">I am a</label>
+            <label className="text-sm font-semibold text-foreground block mb-2">Account Type</label>
             <div className="flex gap-3">
-              <button
-                onClick={() => setRoleType('reader')}
-                className={`flex-1 py-3 text-sm font-bold border-2 transition-colors ${roleType === 'reader' ? 'border-primary bg-primary text-primary-foreground' : 'border-foreground hover:bg-muted'}`}
-              >Reader</button>
-              <button
-                onClick={() => setRoleType('publisher')}
-                className={`flex-1 py-3 text-sm font-bold border-2 transition-colors ${roleType === 'publisher' ? 'border-primary bg-primary text-primary-foreground' : 'border-foreground hover:bg-muted'}`}
-              >Publisher</button>
+              <div className={`flex-1 py-3 text-sm font-bold border-2 text-center ${roleType === 'reader' ? 'border-primary bg-primary text-primary-foreground' : 'border-muted bg-muted/30 text-muted-foreground'}`}>
+                Reader
+              </div>
+              <div className={`flex-1 py-3 text-sm font-bold border-2 text-center ${roleType === 'publisher' ? 'border-primary bg-primary text-primary-foreground' : 'border-muted bg-muted/30 text-muted-foreground'}`}>
+                Publisher
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground mt-1.5">Account type is permanently set at signup and cannot be changed.</p>
           </div>
 
           <div>
