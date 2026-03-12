@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
-import { X, Megaphone, ArrowRight, AlertTriangle, Info, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { X, Info, AlertTriangle, CheckCircle, Megaphone } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-const typeConfig: Record<string, { icon: React.ElementType; bg: string; border: string }> = {
-  info: { icon: Info, bg: 'bg-primary/10', border: 'border-primary/30' },
-  warning: { icon: AlertTriangle, bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
-  success: { icon: CheckCircle, bg: 'bg-green-500/10', border: 'border-green-500/30' },
-  urgent: { icon: Megaphone, bg: 'bg-destructive/10', border: 'border-destructive/30' },
+const icons: Record<string, React.ElementType> = {
+  info: Info,
+  warning: AlertTriangle,
+  success: CheckCircle,
+  urgent: Megaphone,
 };
 
 const AnnouncementBanner: React.FC = () => {
   const [dismissed, setDismissed] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('dismissed-announcements') || '[]');
-    } catch { return []; }
+    try { return JSON.parse(localStorage.getItem('dismissed-announcements') || '[]'); }
+    catch { return []; }
   });
 
   const { data: announcements = [] } = useQuery({
@@ -27,7 +25,7 @@ const AnnouncementBanner: React.FC = () => {
         .eq('is_active', true)
         .lte('starts_at', new Date().toISOString())
         .order('created_at', { ascending: false })
-        .limit(3);
+        .limit(1);
       return (data || []) as any[];
     },
     staleTime: 60000,
@@ -35,6 +33,7 @@ const AnnouncementBanner: React.FC = () => {
   });
 
   const visible = announcements.filter((a: any) => !dismissed.includes(a.id));
+  if (visible.length === 0) return null;
 
   const dismiss = (id: string) => {
     const next = [...dismissed, id];
@@ -42,46 +41,25 @@ const AnnouncementBanner: React.FC = () => {
     try { localStorage.setItem('dismissed-announcements', JSON.stringify(next)); } catch {}
   };
 
-  if (visible.length === 0) return null;
+  const a = visible[0] as any;
+  const Icon = icons[a.type] || Info;
 
   return (
-    <div className="fixed top-20 md:top-[76px] left-0 right-0 z-40 pointer-events-none">
-      <div className="max-w-3xl mx-auto px-4 space-y-2">
-        <AnimatePresence>
-          {visible.map((a: any) => {
-            const config = typeConfig[a.type] || typeConfig.info;
-            const Icon = config.icon;
-            return (
-              <motion.div
-                key={a.id}
-                initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border ${config.bg} ${config.border} backdrop-blur-md`}
-                style={{ boxShadow: '0 4px 20px -4px hsla(0,0%,0%,0.12)' }}
-              >
-                <Icon className="w-5 h-5 flex-shrink-0 text-foreground/70" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">{a.title}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{a.message}</p>
-                </div>
-                {a.link_url && (
-                  <a
-                    href={a.link_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline flex-shrink-0"
-                  >
-                    {a.link_text || 'Learn more'} <ArrowRight className="w-3 h-3" />
-                  </a>
-                )}
-                <button onClick={() => dismiss(a.id)} className="p-1 hover:bg-foreground/10 rounded-full flex-shrink-0 transition-colors">
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+    <div className="w-full bg-primary/5 border-b border-primary/10">
+      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center gap-3">
+        <Icon className="w-4 h-4 text-primary flex-shrink-0" />
+        <div className="flex-1 min-w-0 flex items-center gap-2 text-xs">
+          <span className="font-semibold text-foreground truncate">{a.title}</span>
+          <span className="text-muted-foreground truncate hidden sm:inline">— {a.message}</span>
+          {a.link_url && (
+            <a href={a.link_url} target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline flex-shrink-0">
+              {a.link_text || 'Learn more'}
+            </a>
+          )}
+        </div>
+        <button onClick={() => dismiss(a.id)} className="p-1 hover:bg-foreground/5 rounded-full flex-shrink-0" aria-label="Dismiss">
+          <X className="w-3.5 h-3.5 text-muted-foreground" />
+        </button>
       </div>
     </div>
   );
