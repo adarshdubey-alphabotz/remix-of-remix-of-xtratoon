@@ -81,7 +81,7 @@ const FeaturedHero: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => (
 );
 
 const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; badgeColor?: string; creatorName?: string }> = ({ manhwa, badge, badgeColor, creatorName }) => (
-  <Link to={`/manhwa/${manhwa.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
+  <Link to={`/title/${manhwa.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/40 mb-2.5">
       {manhwa.cover_url ? (
         <img src={resolveCover(manhwa.cover_url)!} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
