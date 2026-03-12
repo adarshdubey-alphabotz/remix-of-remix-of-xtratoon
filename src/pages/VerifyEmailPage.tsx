@@ -11,6 +11,7 @@ const VerifyEmailPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [state, setState] = useState<VerifyState>('loading');
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [inputCode, setInputCode] = useState('');
 
