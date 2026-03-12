@@ -131,3 +131,47 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 -- DONE! Your self-hosted Supabase now supports the
 -- Upcoming page with voting, scheduling, and comments.
 -- =====================================================
+
+
+-- =====================================================
+-- UPDATE 2: Email Verification System
+-- Adds: pending_verifications table for custom email
+-- verification flow (code-based, SMTP delivery)
+-- =====================================================
+
+-- 7. Create pending_verifications table
+CREATE TABLE IF NOT EXISTS public.pending_verifications (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL,
+  email text NOT NULL,
+  code text NOT NULL,
+  verified boolean DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  expires_at timestamptz NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_verifications_code ON public.pending_verifications(code);
+CREATE INDEX IF NOT EXISTS idx_pending_verifications_email ON public.pending_verifications(email);
+CREATE INDEX IF NOT EXISTS idx_pending_verifications_user_id ON public.pending_verifications(user_id);
+
+ALTER TABLE public.pending_verifications ENABLE ROW LEVEL SECURITY;
+
+-- Only service_role should access this table (via edge functions)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'pending_verifications' AND policyname = 'Service role full access') THEN
+    CREATE POLICY "Service role full access"
+      ON public.pending_verifications
+      FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;
+
+-- =====================================================
+-- EDGE FUNCTIONS REQUIRED:
+-- Deploy these two edge functions for verification:
+--   1. send-verification  — generates code, saves to DB, sends email via SMTP
+--   2. check-verification — validates code, confirms email in Supabase Auth
+--
+-- Required secrets (set in your Supabase project):
+--   SMTP_USER — Gmail address (e.g. yourapp@gmail.com)
+--   SMTP_PASS — Gmail App Password (16-char)
+-- =====================================================
