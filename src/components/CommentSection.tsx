@@ -28,13 +28,7 @@ interface Props {
   creatorId?: string;
 }
 
-const DEPTH_COLORS = [
-  'border-primary/40',
-  'border-blue-400/40',
-  'border-green-400/40',
-  'border-yellow-400/40',
-  'border-pink-400/40',
-];
+const MAX_VISUAL_DEPTH = 4; // Cap nesting depth visually
 
 const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => {
   const { user, isAdmin } = useAuth();
@@ -202,24 +196,22 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     const initial = displayName[0]?.toUpperCase() || 'A';
     const hasReplies = (comment.replies?.length || 0) > 0;
     const isExpanded = expandedReplies.has(comment.id);
-    const depthColor = DEPTH_COLORS[depth % DEPTH_COLORS.length];
-    const maxDepthMobile = depth >= 3;
+
+    // Cap visual depth — after MAX_VISUAL_DEPTH, replies render flat (no more indent)
+    const visualDepth = Math.min(depth, MAX_VISUAL_DEPTH);
+    const indentClass = visualDepth > 0 ? 'ml-3 sm:ml-5 pl-3 sm:pl-4 border-l-2 border-border/30' : '';
 
     const countAllReplies = (c: Comment): number => (c.replies?.reduce((sum, r) => sum + 1 + countAllReplies(r), 0) || 0);
     const totalReplies = countAllReplies(comment);
 
     return (
-      <div
-        id={`comment-${comment.id}`}
-        className={`${depth > 0 ? `ml-3 sm:ml-6 border-l-2 ${depthColor} pl-3 sm:pl-4` : ''} ${maxDepthMobile ? 'ml-1 sm:ml-6' : ''}`}
-      >
+      <div id={`comment-${comment.id}`} className={indentClass}>
         {comment.is_pinned && depth === 0 && (
           <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-1 pl-8">
             <Pin className="w-3 h-3" /> Pinned
           </div>
         )}
         <div className="flex gap-2.5 py-2.5">
-          {/* Avatar */}
           <div className="flex-shrink-0">
             {comment.profile?.avatar_url ? (
               <img src={comment.profile.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
@@ -227,8 +219,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
               <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{initial}</div>
             )}
           </div>
-
-          {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               {comment.profile?.username ? (
@@ -251,8 +241,8 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
               <p className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap break-words">{comment.content}</p>
             )}
             {comment.gif_url && (
-              <div className="mt-1.5 rounded-xl overflow-hidden border border-border/30 inline-block max-w-[280px]">
-                <img src={comment.gif_url} alt="GIF" className="w-full max-h-[200px] object-contain" loading="lazy" />
+              <div className="mt-1.5 rounded-xl overflow-hidden border border-border/30 inline-block max-w-[240px]">
+                <img src={comment.gif_url} alt="GIF" className="w-full max-h-[180px] object-contain" loading="lazy" />
               </div>
             )}
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
@@ -297,7 +287,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
   const countThread = (comment: Comment): number => 1 + (comment.replies?.reduce((sum, reply) => sum + countThread(reply), 0) || 0);
   const totalComments = sortedComments.reduce((sum, c) => sum + countThread(c), 0);
 
-  // Scroll to comment if URL has hash
   React.useEffect(() => {
     const hash = window.location.hash;
     if (hash?.startsWith('#comment-') && !isLoading && sortedComments.length > 0) {
@@ -323,12 +312,12 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
   return (
     <section className="space-y-4">
-      <h2 className="text-display text-2xl flex items-center gap-2 tracking-wider">
-        <div className="w-1.5 h-6 bg-primary" />
-        COMMENTS ({totalComments})
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <MessageCircle className="w-5 h-5 text-primary" />
+        Comments ({totalComments})
       </h2>
 
-      <div className="brutal-card p-4 space-y-3">
+      <div className="bg-card border border-border rounded-xl p-4 space-y-3">
         {replyTo && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 px-3 py-2 rounded-lg">
             <Reply className="w-3 h-3" />
@@ -342,7 +331,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
             <img src={selectedGif} alt="Selected GIF" className="max-h-[150px] object-contain" />
             <button
               onClick={() => setSelectedGif(null)}
-              className="absolute top-1 right-1 p-1 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all"
+              className="absolute top-1 right-1 p-1 rounded-full bg-background/80 hover:bg-background transition-all"
             >
               <span className="text-xs">✕</span>
             </button>
@@ -375,7 +364,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
           <button
             onClick={handleSubmit}
             disabled={!user || (!content.trim() && !selectedGif) || submitting}
-            className="self-end btn-accent rounded-xl px-4 py-2.5 text-sm disabled:opacity-40"
+            className="self-end bg-primary text-primary-foreground rounded-xl px-4 py-2.5 text-sm disabled:opacity-40"
           >
             <Send className="w-4 h-4" />
           </button>
@@ -389,12 +378,12 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       {isLoading ? (
         <div className="text-sm text-muted-foreground p-4">Loading comments...</div>
       ) : sortedComments.length === 0 ? (
-        <div className="brutal-card p-6 text-center text-sm text-muted-foreground">
+        <div className="bg-card border border-border rounded-xl p-6 text-center text-sm text-muted-foreground">
           <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-30" />
           No comments yet. Be the first!
         </div>
       ) : (
-        <div className="brutal-card divide-y divide-border/30 px-4">
+        <div className="bg-card border border-border rounded-xl divide-y divide-border/30 px-4">
           {sortedComments.map(c => <CommentItem key={c.id} comment={c} />)}
         </div>
       )}
