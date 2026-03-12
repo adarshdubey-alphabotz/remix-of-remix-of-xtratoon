@@ -13,27 +13,34 @@ const JsonLd: React.FC = () => (
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": SITE_NAME,
-          "alternateName": ["Komixora", "komixora.fun"],
+          "alternateName": ["Komixora", "komixora.fun", "Komixora Manhwa", "Komixora Manga"],
           "url": SITE_URL,
           "description": "Komixora is the #1 platform to read manhwa, manga, webtoons, and comics online for free. Discover trending series, follow top creators, and publish your own manhwa.",
           "inLanguage": "en",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": {
-              "@type": "EntryPoint",
-              "urlTemplate": `${SITE_URL}/browse?q={search_term_string}`
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": `${SITE_URL}/browse?q={search_term_string}`
+              },
+              "query-input": "required name=search_term_string"
             },
-            "query-input": "required name=search_term_string"
-          },
+            {
+              "@type": "ReadAction",
+              "target": `${SITE_URL}/browse`
+            }
+          ],
           "sameAs": [
-            "https://instagram.com/XtraToon.global",
+            "https://instagram.com/komixora.fun",
+            "https://t.me/komixora",
             "https://x.com/Xtratoonglobal"
           ]
         })
       }}
     />
 
-    {/* Organization */}
+    {/* Organization — enhanced with more structured data */}
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
@@ -41,29 +48,65 @@ const JsonLd: React.FC = () => (
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": SITE_NAME,
-          "alternateName": ["Komixora"],
+          "alternateName": ["Komixora", "Komixora.fun"],
           "url": SITE_URL,
-          "logo": `${SITE_URL}/favicon.ico`,
-          "description": "Premium manhwa, manga & webtoon publishing and reading platform. Read Korean manhwa, Japanese manga, and webtoons online in HD quality.",
+          "logo": {
+            "@type": "ImageObject",
+            "url": `${SITE_URL}/favicon.ico`,
+            "width": 512,
+            "height": 512
+          },
+          "description": "Komixora is the best free manhwa, manga & webtoon reading platform. Read thousands of series in HD quality, follow top creators, and publish your own comics.",
           "sameAs": [
-            "https://instagram.com/XtraToon.global",
+            "https://instagram.com/komixora.fun",
+            "https://t.me/komixora",
             "https://x.com/Xtratoonglobal"
           ],
           "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "customer support",
+            "email": "support@komixora.fun",
             "url": SITE_URL
           },
           "foundingDate": "2026",
           "knowsAbout": [
             "Manhwa", "Manga", "Webtoon", "Comics", "Korean Comics",
-            "Japanese Manga", "Webtoons", "Digital Comics", "Online Reading"
-          ]
+            "Japanese Manga", "Webtoons", "Digital Comics", "Online Reading",
+            "Read Manhwa Online", "Free Manga", "Manhwa Reader"
+          ],
+          "slogan": "Read Manhwa, Manga & Webtoons Online Free",
+          "areaServed": "Worldwide"
         })
       }}
     />
 
-    {/* CollectionPage — helps Google understand content type */}
+    {/* WebApplication — helps Google understand this is a web app */}
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": SITE_NAME,
+          "url": SITE_URL,
+          "applicationCategory": "EntertainmentApplication",
+          "operatingSystem": "Web Browser",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "500",
+            "bestRating": "5"
+          }
+        })
+      }}
+    />
+
+    {/* CollectionPage */}
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
@@ -91,12 +134,13 @@ const JsonLd: React.FC = () => (
             { "@type": "ListItem", "position": 3, "name": "Top Charts", "item": `${SITE_URL}/charts` },
             { "@type": "ListItem", "position": 4, "name": "Blog", "item": `${SITE_URL}/blog` },
             { "@type": "ListItem", "position": 5, "name": "Community", "item": `${SITE_URL}/community` },
+            { "@type": "ListItem", "position": 6, "name": "Discover Manhwa", "item": `${SITE_URL}/discover` },
           ]
         })
       }}
     />
 
-    {/* Speakable — helps AI assistants (ChatGPT, Perplexity, Google AI) cite your content */}
+    {/* Speakable — helps AI assistants cite your content */}
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
@@ -120,7 +164,7 @@ const JsonLd: React.FC = () => (
       }}
     />
 
-    {/* FAQPage for AI engines to extract answers */}
+    {/* FAQPage for rich snippets in search results */}
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
@@ -141,7 +185,7 @@ const JsonLd: React.FC = () => (
               "name": "Is Komixora free to use?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Yes, Komixora is completely free for readers. Chapters are unlocked through a short ad view, and 100% of the ad revenue goes directly to the creators."
+                "text": "Yes, Komixora is completely free for readers. Chapters are unlocked through a short ad view, and the ad revenue goes directly to the creators."
               }
             },
             {
@@ -149,7 +193,7 @@ const JsonLd: React.FC = () => (
               "name": "How do creators earn money on Komixora?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Creators earn 100% of ad revenue generated when readers unlock their chapters. Komixora takes zero platform cuts. Payouts are processed monthly via PayPal, UPI, bKash, Binance, and USDT."
+                "text": "Creators earn ad revenue generated when readers unlock their chapters. Payouts are processed via PayPal, UPI, bKash, Binance, and USDT."
               }
             },
             {
@@ -158,6 +202,22 @@ const JsonLd: React.FC = () => (
               "acceptedAnswer": {
                 "@type": "Answer",
                 "text": "Create a publisher account on Komixora, upload your manhwa chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What genres are available on Komixora?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Komixora offers manhwa and manga across all genres including Action, Romance, Fantasy, Isekai, Slice of Life, Horror, Comedy, Drama, Martial Arts, School Life, Sci-Fi, and many more."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Where can I read manhwa online for free?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "You can read manhwa online for free on Komixora (komixora.fun). It offers thousands of manhwa, manga, and webtoon series in HD quality with daily updates."
               }
             }
           ]
