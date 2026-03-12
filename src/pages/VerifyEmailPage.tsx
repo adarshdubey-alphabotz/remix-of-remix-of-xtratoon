@@ -192,6 +192,7 @@ const VerifyEmailPage: React.FC = () => {
 
       if (data?.verified) {
         setState('verified');
+        clearCachedCode();
         await supabase.auth.refreshSession();
         setTimeout(() => navigate('/', { replace: true }), 1500);
       } else {
