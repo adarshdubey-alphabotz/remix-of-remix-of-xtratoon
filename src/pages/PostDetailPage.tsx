@@ -288,7 +288,7 @@ const PostDetailPage: React.FC = () => {
               const isReplyAuthor = user?.id === reply.user_id;
               const canDeleteReply = isReplyAuthor || isOwner || isAdmin;
               return (
-                <motion.div key={reply.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 border-b border-border/30 hover:bg-muted/10 transition-colors group">
+                <div key={reply.id} className="px-4 py-3 border-b border-border/30 hover:bg-muted/10 transition-colors group">
                   <div className="flex gap-3">
                     <Link to={`/publisher/${rp?.username || ''}`} className="flex-shrink-0">
                       {rp?.avatar_url ? <img src={rp.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" /> : <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><User className="w-4 h-4 text-muted-foreground" /></div>}
