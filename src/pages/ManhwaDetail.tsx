@@ -48,7 +48,7 @@ const DescriptionCollapsible: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-
+const ManhwaDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
