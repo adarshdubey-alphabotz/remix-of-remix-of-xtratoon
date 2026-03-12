@@ -168,9 +168,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { error: roleInsertError } = await supabase
       .from('user_roles')
-      .insert({ user_id: userId, role: desiredRole as any });
+      .upsert(
+        { user_id: userId, role: desiredRole as any },
+        { onConflict: 'user_id,role', ignoreDuplicates: true },
+      );
 
-    if (roleInsertError && roleInsertError.code !== '23505') {
+    if (roleInsertError) {
       return roleInsertError.message;
     }
 

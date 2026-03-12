@@ -17,6 +17,31 @@ const VerifyEmailPage: React.FC = () => {
 
   const userEmail = user?.email || '';
 
+  const resolveFunctionErrorMessage = async (fnError: any, functionName: string) => {
+    try {
+      const status = fnError?.context?.status;
+      let payload: any = null;
+
+      if (typeof fnError?.context?.json === 'function') {
+        payload = await fnError.context.json();
+      }
+
+      const message = payload?.message || payload?.error || fnError?.message || 'Function call failed';
+      const notFound =
+        status === 404 ||
+        payload?.code === 'NOT_FOUND' ||
+        /requested function was not found/i.test(message);
+
+      if (notFound) {
+        return `Backend function "${functionName}" is not deployed on your self-hosted instance.`;
+      }
+
+      return message;
+    } catch {
+      return fnError?.message || 'Function call failed';
+    }
+  };
+
   // Generate verification code on mount
   const generateCode = useCallback(async () => {
     if (!user || !userEmail) return;
@@ -28,7 +53,10 @@ const VerifyEmailPage: React.FC = () => {
         body: { email: userEmail, userId: user.id },
       });
 
-      if (fnError) throw fnError;
+      if (fnError) {
+        const resolvedMessage = await resolveFunctionErrorMessage(fnError, 'send-verification');
+        throw new Error(resolvedMessage);
+      }
       setCode(data?.code || '');
       setState('waiting');
     } catch (err: any) {
