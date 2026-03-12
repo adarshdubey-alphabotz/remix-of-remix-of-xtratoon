@@ -113,6 +113,14 @@ const CommunityPage: React.FC = () => {
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
+  // Track views when posts become visible in feed
+  const viewedPostsRef = useRef<Set<string>>(new Set());
+  const trackView = useCallback((postId: string) => {
+    if (viewedPostsRef.current.has(postId)) return;
+    viewedPostsRef.current.add(postId);
+    supabase.rpc('increment_community_post_views', { p_post_id: postId });
+  }, []);
+
 
   const pinPostMutation = useMutation({
     mutationFn: async ({ postId, pinned }: { postId: string; pinned: boolean }) => {
