@@ -453,7 +453,7 @@ const UpcomingPage: React.FC = () => {
                   <Link key={item.id} to={`/upcoming/${manga.slug}/${item.chapter_number}`} className="flex items-center gap-3 py-2.5 px-3 hover:bg-muted/40 transition-colors">
                     <span className="text-xs font-bold w-4 text-center text-muted-foreground">{i + 1}</span>
                     <div className="w-7 h-9 rounded-md overflow-hidden flex-shrink-0 border border-border">
-                      {manga.cover_url ? <img src={getImageUrl(manga.cover_url)!} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-muted" />}
+                      {manga.cover_url ? <img src={getImageUrl(manga.cover_url)!} className="w-full h-full object-cover" loading="lazy" decoding="async" /> : <div className="w-full h-full bg-muted" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium line-clamp-1 text-foreground">{manga.title}</p>
