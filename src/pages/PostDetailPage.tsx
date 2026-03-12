@@ -54,11 +54,29 @@ const PostDetailPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!post?.id) return;
-    supabase.rpc('increment_community_post_views', { p_post_id: post.id }).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['community-post', postId] });
+    if (!post?.id || !postId) return;
+
+    const viewKey = `viewed_post_${post.id}`;
+    if (sessionStorage.getItem(viewKey)) return;
+
+    const incrementPostView = async () => {
+      const { error } = await supabase.rpc('increment_community_post_views', { p_post_id: post.id });
+      if (error) {
+        console.error('Post view count error:', error.message);
+        return;
+      }
+
+      sessionStorage.setItem(viewKey, '1');
+      queryClient.setQueryData(['community-post', postId], (prev: any) =>
+        prev ? { ...prev, views_count: Number(prev.views_count || 0) + 1 } : prev
+      );
+      queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+    };
+
+    incrementPostView().catch((err) => {
+      console.error('Post view count error:', err);
     });
-  }, [post?.id]);
+  }, [post?.id, postId, queryClient]);
 
   const { data: creator } = useQuery({
     queryKey: ['post-creator', post?.creator_id],
