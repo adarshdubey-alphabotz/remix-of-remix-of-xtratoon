@@ -102,18 +102,11 @@ const CommunityPage: React.FC = () => {
     },
   });
 
-  // Realtime: auto-refresh on new posts, likes, replies
+  // Realtime: only listen to community_posts updates (likes/replies triggers update this table)
   useEffect(() => {
     const channel = supabase
       .channel('community-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_post_likes' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
-        queryClient.invalidateQueries({ queryKey: ['community-likes'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_replies' }, () => {
         queryClient.invalidateQueries({ queryKey: ['community-posts'] });
       })
       .subscribe();
