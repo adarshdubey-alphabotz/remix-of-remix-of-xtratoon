@@ -65,9 +65,9 @@ const VerifyEmailPage: React.FC = () => {
 
       if (data?.verified) {
         setState('verified');
-        // Refresh session to pick up confirmed email
+        // Refresh session to pick up verified app metadata
         await supabase.auth.refreshSession();
-        setTimeout(() => navigate('/', { replace: true }), 2000);
+        setTimeout(() => navigate('/profile', { replace: true }), 1500);
       } else {
         setError(data?.error || 'Invalid or expired code. Please try again.');
         setState('waiting');
