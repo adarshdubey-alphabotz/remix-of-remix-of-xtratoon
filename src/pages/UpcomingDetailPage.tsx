@@ -28,6 +28,23 @@ function getContentType(language: string | null | undefined): string {
   return 'Manga';
 }
 
+const DescriptionToggle = ({ text }: { text: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="mt-6 px-4 pt-2 pb-3 bg-muted/30 rounded-xl border border-border">
+      <p className={`text-sm text-muted-foreground leading-[22px] ${expanded ? '' : 'line-clamp-3'}`}>
+        {text}
+      </p>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="mt-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+      >
+        {expanded ? 'Show less' : 'Read more'}
+      </button>
+    </div>
+  );
+};
+
 const UpcomingDetailPage: React.FC = () => {
   const { slug, chapter } = useParams();
   const chapterNum = Number(chapter);
