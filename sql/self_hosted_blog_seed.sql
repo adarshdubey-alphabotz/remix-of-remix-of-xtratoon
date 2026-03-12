@@ -133,7 +133,7 @@ values
   array['indie comic growth','manhwa creator tips','manga creator marketing','organic audience growth','webtoon creator strategy','seo safe comic marketing'],
   true,
   false,
-  'REPLACE_WITH_AUTHOR_UUID'
+  '6f88aad1-2242-4dd5-865f-89d9a4dec625'
 )
 on conflict (slug)
 do update
