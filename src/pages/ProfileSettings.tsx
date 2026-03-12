@@ -99,10 +99,10 @@ const ProfileSettings: React.FC = () => {
       if (existing) { setError('Username already taken'); setSaving(false); return; }
     }
 
-    // Role switching is locked — don't allow role_type changes
+    // Role switching is locked — don't include role_type in updates
+    const updates: any = {
       display_name: displayName || null,
       bio: bio || null,
-      role_type: roleType,
       username: username || null,
     };
 
