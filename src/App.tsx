@@ -50,6 +50,8 @@ const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
+const UpcomingPage = lazy(() => import("./pages/UpcomingPage"));
+const UpcomingDetailPage = lazy(() => import("./pages/UpcomingDetailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
