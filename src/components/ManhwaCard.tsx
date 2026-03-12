@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Eye, Bookmark } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { formatViews, getCoverGradient, type Manga } from '@/hooks/useApi';
 import { getImageUrl } from '@/lib/imageUrl';
 
@@ -18,6 +17,7 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, index = 0, rank, rankCo
   const gradient = getCoverGradient(index);
   const rating = manhwa.rating_average ?? 0;
   const slug = manhwa.slug;
+  const shouldPrioritizeImage = index < 6;
 
   return (
     <Link to={`/title/${slug}`} className="group relative flex-shrink-0 w-40 sm:w-48">
@@ -30,13 +30,16 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, index = 0, rank, rankCo
         </div>
       )}
 
-      <motion.div
-        className={`relative aspect-[3/4] overflow-hidden ${!hasCover ? gradient : ''} mb-3 rounded-2xl`}
-        whileHover={{ y: -4 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      >
+      <div className={`relative aspect-[3/4] overflow-hidden ${!hasCover ? gradient : ''} mb-3 rounded-2xl`}>
         {hasCover && (
-          <img src={coverSrc} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+          <img
+            src={coverSrc}
+            alt={manhwa.title}
+            loading={shouldPrioritizeImage ? 'eager' : 'lazy'}
+            fetchPriority={shouldPrioritizeImage ? 'high' : 'auto'}
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-400 p-3 flex flex-col justify-end backdrop-blur-sm rounded-2xl">
           <p className="text-xs text-foreground/90 line-clamp-3 leading-relaxed">{manhwa.description}</p>
