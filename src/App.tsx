@@ -142,6 +142,8 @@ const AnimatedRoutes = () => {
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/charts" element={<TopChartsPage />} />
           <Route path="/publisher/:id" element={<PublisherProfile />} />
+          <Route path="/reader/:id" element={<UserProfilePage />} />
+          <Route path="/user/:id" element={<UserProfilePage />} />
           <Route path="/dashboard" element={<PublisherDashboard />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/library" element={<MyLibrary />} />
