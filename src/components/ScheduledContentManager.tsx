@@ -19,18 +19,16 @@ const ScheduledContentManager: React.FC<ScheduledContentManagerProps> = ({ creat
   const { data: scheduledChapters = [], isLoading: loadingChapters } = useQuery({
     queryKey: ['scheduled-chapters', creatorId, isAdmin],
     queryFn: async () => {
-      let query = supabase
+      const baseQuery = supabase
         .from('chapters')
         .select('id, chapter_number, title, scheduled_at, is_published, schedule_verified, approval_status, manga_id, manga!inner(id, title, slug, creator_id, language)')
         .eq('is_published', false)
         .not('scheduled_at', 'is', null)
         .order('scheduled_at', { ascending: true });
 
-      if (creatorId && !isAdmin) {
-        query = query.eq('manga.creator_id' as any, creatorId);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = creatorId && !isAdmin
+        ? await (baseQuery as any).eq('manga.creator_id', creatorId)
+        : await baseQuery;
       if (error) throw error;
       return (data || []) as any[];
     },
