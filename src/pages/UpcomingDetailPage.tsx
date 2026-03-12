@@ -86,7 +86,7 @@ const UpcomingDetailPage: React.FC = () => {
       return { manga, chapter: ch, profile, demoPages: pages || [] };
     },
     enabled: !!slug && !!chapterNum,
-    refetchInterval: data?.chapter?.is_published ? false : 30000,
+    refetchInterval: 30000,
   });
 
   const weekStart = useMemo(() => {
