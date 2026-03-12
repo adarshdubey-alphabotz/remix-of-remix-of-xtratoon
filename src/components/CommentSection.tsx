@@ -2,8 +2,9 @@ import React, { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin, Link2 } from 'lucide-react';
+import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin, Link2, Smile } from 'lucide-react';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import GifPicker from '@/components/GifPicker';
 import { toast } from 'sonner';
 
 interface Comment {
@@ -13,6 +14,7 @@ interface Comment {
   user_id: string;
   parent_id: string | null;
   content: string;
+  gif_url?: string | null;
   created_at: string;
   is_pinned?: boolean;
   profile?: { username: string | null; display_name: string | null; avatar_url: string | null; is_verified?: boolean };
@@ -40,6 +42,8 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [selectedGif, setSelectedGif] = useState<string | null>(null);
   const submitLockRef = useRef(false);
 
   const isCreator = !!user && !!creatorId && user.id === creatorId;
@@ -97,7 +101,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
   const handleSubmit = async () => {
     if (!user) { toast.error('Please login to comment'); return; }
-    if (!content.trim() || submitting || submitLockRef.current) return;
+    if ((!content.trim() && !selectedGif) || submitting || submitLockRef.current) return;
 
     submitLockRef.current = true;
     setSubmitting(true);
@@ -106,8 +110,9 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       const commentData: any = {
         manga_id: mangaId,
         user_id: user.id,
-        content: content.trim(),
+        content: content.trim() || (selectedGif ? '' : ''),
         parent_id: replyTo?.id || null,
+        gif_url: selectedGif || null,
       };
 
       const { error } = await supabase.from('comments' as any).insert(commentData);
@@ -115,8 +120,9 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
       toast.success('Comment posted!');
       setContent('');
+      setSelectedGif(null);
+      setShowGifPicker(false);
       setReplyTo(null);
-      // Auto-expand parent replies so user sees their new reply
       if (replyTo) {
         setExpandedReplies(prev => new Set(prev).add(replyTo.id));
       }
@@ -126,7 +132,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       fetch(`https://${projectId}.supabase.co/functions/v1/telegram-comment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` },
-        body: JSON.stringify({ manga_id: mangaId, manga_title: mangaTitle, content: content.trim(), parent_id: replyTo?.id || null }),
+        body: JSON.stringify({ manga_id: mangaId, manga_title: mangaTitle, content: content.trim() || '🎞️ GIF', parent_id: replyTo?.id || null }),
       }).catch(() => {});
     } finally {
       setSubmitting(false);
@@ -167,6 +173,11 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     navigator.clipboard.writeText(url).then(() => toast.success('Link copied!')).catch(() => {});
   };
 
+  const handleGifSelect = (gifUrl: string) => {
+    setSelectedGif(gifUrl);
+    setShowGifPicker(false);
+  };
+
   const canPin = isAdmin || isCreator;
 
   const CommentItem: React.FC<{ comment: Comment; depth?: number }> = ({ comment, depth = 0 }) => {
@@ -202,7 +213,14 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
                 <span className="text-[10px] text-muted-foreground/60 italic">↳ reply</span>
               )}
             </div>
-            <p className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap break-words">{comment.content}</p>
+            {comment.content && (
+              <p className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap break-words">{comment.content}</p>
+            )}
+            {comment.gif_url && (
+              <div className="mt-1.5 rounded-xl overflow-hidden border border-border/30 inline-block max-w-[280px]">
+                <img src={comment.gif_url} alt="GIF" className="w-full max-h-[200px] object-contain" loading="lazy" />
+              </div>
+            )}
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
               {user && (
                 <button onClick={() => setReplyTo(comment)} className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1">
@@ -250,7 +268,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     const hash = window.location.hash;
     if (hash?.startsWith('#comment-') && !isLoading && comments.length > 0) {
       const commentId = hash.replace('#comment-', '');
-      // Expand all parent threads to reveal the comment
       const findAndExpand = (list: Comment[], target: string): boolean => {
         for (const c of list) {
           if (c.id === target) return true;
@@ -285,24 +302,56 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
             <button onClick={() => setReplyTo(null)} className="ml-auto text-destructive hover:underline">Cancel</button>
           </div>
         )}
+
+        {/* Selected GIF preview */}
+        {selectedGif && (
+          <div className="relative inline-block rounded-xl overflow-hidden border border-border/30">
+            <img src={selectedGif} alt="Selected GIF" className="max-h-[150px] object-contain" />
+            <button 
+              onClick={() => setSelectedGif(null)} 
+              className="absolute top-1 right-1 p-1 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all"
+            >
+              <span className="text-xs">✕</span>
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-2">
-          <textarea
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            rows={2}
-            className="flex-1 px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl resize-none"
-            placeholder={user ? (replyTo ? `Reply to ${replyTo.profile?.display_name || 'comment'}...` : 'Write a comment...') : 'Login to comment'}
-            disabled={!user}
-            onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSubmit(); }}
-          />
+          <div className="flex-1 flex flex-col gap-2">
+            <textarea
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2.5 bg-background border border-border text-sm focus:outline-none focus:border-primary rounded-xl resize-none"
+              placeholder={user ? (replyTo ? `Reply to ${replyTo.profile?.display_name || 'comment'}...` : 'Write a comment...') : 'Login to comment'}
+              disabled={!user}
+              onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSubmit(); }}
+            />
+            <div className="flex items-center gap-2">
+              {user && (
+                <button
+                  onClick={() => setShowGifPicker(!showGifPicker)}
+                  className={`p-1.5 rounded-lg transition-colors text-xs font-semibold ${showGifPicker ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-primary hover:bg-primary/5'}`}
+                  title="Add GIF"
+                >
+                  GIF
+                </button>
+              )}
+            </div>
+          </div>
           <button
             onClick={handleSubmit}
-            disabled={!user || !content.trim() || submitting}
+            disabled={!user || (!content.trim() && !selectedGif) || submitting}
             className="self-end btn-accent rounded-xl px-4 py-2.5 text-sm disabled:opacity-40"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
+
+        {/* GIF Picker */}
+        {showGifPicker && (
+          <GifPicker onSelect={handleGifSelect} onClose={() => setShowGifPicker(false)} />
+        )}
       </div>
 
       {isLoading ? (
