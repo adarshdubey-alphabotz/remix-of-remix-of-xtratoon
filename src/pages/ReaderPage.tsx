@@ -627,7 +627,7 @@ const ReaderPage: React.FC = () => {
             {!isEnd && currentPageData ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex items-center justify-center w-full h-full"
-                  style={{ transform: `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)`, transition: scale === 1 ? 'transform 0.15s ease-out' : 'none', width: widthStyle, maxWidth: '100%', margin: '0 auto' }}>
+                  style={{ width: widthStyle, maxWidth: '100%', margin: '0 auto' }}>
                   {renderPageContent(currentPageData)}
                 </div>
               </div>
