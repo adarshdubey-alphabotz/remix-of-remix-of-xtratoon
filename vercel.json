@@ -1,4 +1,8 @@
 {
+  "redirects": [
+    { "source": "/home", "destination": "/", "statusCode": 301 },
+    { "source": "/explore", "destination": "/", "statusCode": 301 }
+  ],
   "rewrites": [
     { "source": "/api/img", "destination": "https://api.komixora.fun/functions/v1/telegram-proxy" },
     { "source": "/sitemap.xml", "destination": "https://api.komixora.fun/functions/v1/sitemap" },
