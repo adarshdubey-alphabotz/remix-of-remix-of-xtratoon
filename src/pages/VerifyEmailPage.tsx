@@ -11,6 +11,7 @@ const VerifyEmailPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [state, setState] = useState<VerifyState>('loading');
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [inputCode, setInputCode] = useState('');
 
@@ -28,6 +29,7 @@ const VerifyEmailPage: React.FC = () => {
       });
 
       if (fnError) throw fnError;
+      setCode(data?.code || '');
       setState('waiting');
     } catch (err: any) {
       setError(err.message || 'Failed to send verification email');
@@ -43,7 +45,7 @@ const VerifyEmailPage: React.FC = () => {
     }
 
     // If already verified, go to profile
-    if (Boolean(user.app_metadata?.email_verified)) {
+    if (Boolean(user.app_metadata?.email_verified || user.email_confirmed_at)) {
       navigate('/profile', { replace: true });
       return;
     }
@@ -105,6 +107,13 @@ const VerifyEmailPage: React.FC = () => {
                   We sent a verification code to <span className="font-medium text-foreground">{userEmail}</span>
                 </p>
               </div>
+
+              {code && (
+                <div className="p-3 rounded-xl bg-muted text-foreground text-sm">
+                  <p className="font-medium">Fallback code:</p>
+                  <p className="font-mono tracking-[0.2em] mt-1">{code}</p>
+                </div>
+              )}
 
               {error && (
                 <div className="p-3 rounded-xl bg-destructive/10 text-destructive text-sm flex items-center gap-2">

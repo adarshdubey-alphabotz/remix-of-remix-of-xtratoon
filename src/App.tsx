@@ -131,7 +131,7 @@ const RouteFallback = () => (
 );
 
 const isEmailVerified = (appUser: ReturnType<typeof useAuth>["user"]) =>
-  Boolean(appUser?.app_metadata?.email_verified);
+  Boolean(appUser?.app_metadata?.email_verified || appUser?.email_confirmed_at);
 
 // Verification gate: force unverified users to /verify only
 const RequireVerification: React.FC<{ children: React.ReactNode }> = ({ children }) => {
