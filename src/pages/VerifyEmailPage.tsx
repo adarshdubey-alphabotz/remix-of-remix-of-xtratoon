@@ -8,10 +8,9 @@ import DynamicMeta from '@/components/DynamicMeta';
 type VerifyState = 'loading' | 'waiting' | 'checking' | 'verified' | 'expired' | 'error';
 
 const VerifyEmailPage: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [state, setState] = useState<VerifyState>('loading');
-  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [inputCode, setInputCode] = useState('');
 

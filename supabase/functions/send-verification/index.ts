@@ -35,6 +35,23 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    const { data: authUserData, error: authUserError } = await supabase.auth.admin.getUserById(userId);
+    if (authUserError || !authUserData.user) {
+      return new Response(JSON.stringify({ error: 'Invalid user' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const existingAppMetadata = authUserData.user.app_metadata || {};
+    const { error: appMetaError } = await supabase.auth.admin.updateUserById(userId, {
+      app_metadata: { ...existingAppMetadata, email_verified: false },
+    });
+
+    if (appMetaError) {
+      console.error('Failed to set email_verified=false:', appMetaError);
+    }
+
     // Delete old pending verifications for this user
     await supabase
       .from('pending_verifications')
