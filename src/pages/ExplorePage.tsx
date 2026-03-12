@@ -135,7 +135,7 @@ const ScrollSection: React.FC<{
 );
 
 const RankedItem: React.FC<{ manhwa: MangaItem; rank: number }> = ({ manhwa, rank }) => (
-  <Link to={`/manhwa/${manhwa.slug}`} className="group flex items-center gap-4 py-3 px-4 rounded-2xl hover:bg-muted/40 transition-colors">
+  <Link to={`/title/${manhwa.slug}`} className="group flex items-center gap-4 py-3 px-4 rounded-2xl hover:bg-muted/40 transition-colors">
     <span className={`font-display text-2xl tracking-wider w-8 text-center ${rank === 1 ? 'text-yellow-500' : rank === 2 ? 'text-gray-400' : rank === 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>{rank}</span>
     <div className="w-12 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-border/40">
       {manhwa.cover_url ? <img src={resolveCover(manhwa.cover_url)!} alt={manhwa.title} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/20" />}
