@@ -13,6 +13,7 @@ import SpotlightSearch from "@/components/SpotlightSearch";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BanNotice from "@/components/BanNotice";
 import OnboardingModal from "@/components/OnboardingModal";
+import GoogleOnboardingModal from "@/components/GoogleOnboardingModal";
 import TermsAcceptanceModal from "@/components/TermsAcceptanceModal";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import NetworkStatus from "@/components/NetworkStatus";
@@ -48,6 +49,7 @@ const BlogListPage = lazy(() => import("./pages/BlogListPage"));
 const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -140,6 +142,8 @@ const AnimatedRoutes = () => {
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/charts" element={<TopChartsPage />} />
           <Route path="/publisher/:id" element={<PublisherProfile />} />
+          <Route path="/reader/:id" element={<UserProfilePage />} />
+          <Route path="/user/:id" element={<UserProfilePage />} />
           <Route path="/dashboard" element={<PublisherDashboard />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/library" element={<MyLibrary />} />
@@ -178,6 +182,7 @@ const AppLayout = () => (
     <AuthModal />
     <SpotlightSearch />
     <OnboardingModal />
+    <GoogleOnboardingModal />
     <TermsAcceptanceModal />
     <ErrorBoundary>
       <AnimatedRoutes />

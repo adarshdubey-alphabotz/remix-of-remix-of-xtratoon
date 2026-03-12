@@ -620,7 +620,14 @@ const AdminPanel: React.FC = () => {
                   <tbody>
                     {(allUsers || []).map((u: any) => (
                       <tr key={u.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
-                        <td className="px-4 py-3 font-semibold inline-flex items-center gap-1">{u.username || '—'} {u.is_verified && <VerifiedBadge size="sm" />}</td>
+                        <td className="px-4 py-3 font-semibold">
+                          <Link 
+                            to={u.username ? (u.role_type === 'publisher' ? `/publisher/${u.username}` : `/reader/${u.username}`) : '#'}
+                            className={`inline-flex items-center gap-1 ${u.username ? 'hover:text-primary hover:underline transition-colors' : 'cursor-default'}`}
+                          >
+                            {u.username || '—'} {u.is_verified && <VerifiedBadge size="sm" />}
+                          </Link>
+                        </td>
                         <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">{[u.signup_city, u.signup_country].filter(Boolean).join(', ') || '—'}</td>
@@ -637,12 +644,13 @@ const AdminPanel: React.FC = () => {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1">
+                            {u.username && (
+                              <Link to={u.role_type === 'publisher' ? `/publisher/${u.username}` : `/reader/${u.username}`} className="p-1.5 border border-primary text-primary hover:bg-primary/10" title="View profile"><Eye className="w-3.5 h-3.5" /></Link>
+                            )}
                             {u.is_banned ? (
                               <button onClick={() => setConfirmModal({ id: u.user_id, action: 'unban', type: 'unban' })} className="p-1.5 border border-green-500 text-green-500 hover:bg-green-500/10" title="Unban user"><ShieldOff className="w-3.5 h-3.5" /></button>
                             ) : (
-                              u.role_type === 'publisher' && (
-                                <button onClick={() => setConfirmModal({ id: u.user_id, action: 'Banned by admin', type: 'ban' })} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Ban publisher"><Ban className="w-3.5 h-3.5" /></button>
-                              )
+                              <button onClick={() => setConfirmModal({ id: u.user_id, action: 'Banned by admin', type: 'ban' })} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Ban user"><Ban className="w-3.5 h-3.5" /></button>
                             )}
                           </div>
                         </td>

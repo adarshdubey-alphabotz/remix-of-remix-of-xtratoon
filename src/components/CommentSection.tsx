@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin, Link2, Smile } from 'lucide-react';
@@ -17,7 +18,7 @@ interface Comment {
   gif_url?: string | null;
   created_at: string;
   is_pinned?: boolean;
-  profile?: { username: string | null; display_name: string | null; avatar_url: string | null; is_verified?: boolean };
+  profile?: { username: string | null; display_name: string | null; avatar_url: string | null; is_verified?: boolean; role_type?: string };
   replies?: Comment[];
 }
 
@@ -62,7 +63,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       const userIds = [...new Set(allComments.map((c: any) => c.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, username, display_name, avatar_url, is_verified')
+        .select('user_id, username, display_name, avatar_url, is_verified, role_type')
         .in('user_id', userIds);
 
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
@@ -206,7 +207,16 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-semibold">{displayName}</span>
+              {comment.profile?.username ? (
+                <Link
+                  to={comment.profile.role_type === 'publisher' || comment.profile.role_type === 'creator' ? `/publisher/${comment.profile.username}` : `/reader/${comment.profile.username}`}
+                  className="text-sm font-semibold hover:text-primary transition-colors hover:underline"
+                >
+                  {displayName}
+                </Link>
+              ) : (
+                <span className="text-sm font-semibold">{displayName}</span>
+              )}
               {comment.profile?.is_verified && <VerifiedBadge size="sm" />}
               <span className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleString()}</span>
               {depth > 0 && comment.parent_id && (
