@@ -182,6 +182,7 @@ const AppLayout = () => (
     <AuthModal />
     <SpotlightSearch />
     <OnboardingModal />
+    <GoogleOnboardingModal />
     <TermsAcceptanceModal />
     <ErrorBoundary>
       <AnimatedRoutes />
