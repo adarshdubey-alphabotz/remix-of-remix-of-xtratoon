@@ -254,16 +254,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, [hydrateUserState]);
 
+  // Track IP for existing users on login (fire-and-forget)
+  const trackLoginIp = useCallback(async (userId: string) => {
+    try {
+      const { data: prof } = await supabase.from('profiles').select('signup_ip').eq('user_id', userId).maybeSingle();
+      if (prof && !(prof as any).signup_ip) {
+        const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
+        if (geo?.ip) {
+          await supabase.from('profiles').update({
+            signup_ip: geo.ip,
+            signup_country: geo.country_name || null,
+            signup_city: geo.city || null,
+          } as any).eq('user_id', userId);
+        }
+      }
+    } catch {}
+  }, []);
+
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { success: false, error: error.message };
       setShowAuthModal(false);
+      // Track IP for existing users who don't have it yet
+      if (data.user) trackLoginIp(data.user.id);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  }, []);
+  }, [trackLoginIp]);
 
   const signup = useCallback(
     async ({

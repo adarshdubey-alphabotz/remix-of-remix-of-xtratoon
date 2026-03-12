@@ -56,9 +56,13 @@ const AdminPanel: React.FC = () => {
   });
 
   const { data: allUsers } = useQuery({
-    queryKey: ['admin-users'],
+    queryKey: ['admin-users', userSearch],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(50);
+      let query = supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(100);
+      if (userSearch.trim()) {
+        query = query.or(`username.ilike.%${userSearch.trim()}%,display_name.ilike.%${userSearch.trim()}%,signup_ip.ilike.%${userSearch.trim()}%,signup_country.ilike.%${userSearch.trim()}%`);
+      }
+      const { data } = await query;
       return data || [];
     },
     enabled: isAdmin,
