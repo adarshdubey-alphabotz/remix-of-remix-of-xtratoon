@@ -296,7 +296,7 @@ const UpcomingDetailPage: React.FC = () => {
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
