@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import EmptyState from '@/components/EmptyState';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -67,6 +67,21 @@ const ImageGrid: React.FC<{ images: string[] }> = ({ images }) => {
   );
 };
 
+const ViewTracker: React.FC<{ postId: string; onView: (id: string) => void; children: React.ReactNode }> = ({ postId, onView, children }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { onView(postId); observer.disconnect(); } },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [postId, onView]);
+  return <div ref={ref}>{children}</div>;
+};
+
 const CommunityPage: React.FC = () => {
   const { user, profile, isPublisher, isAdmin, setShowAuthModal, setAuthTab } = useAuth();
   const queryClient = useQueryClient();
@@ -112,6 +127,14 @@ const CommunityPage: React.FC = () => {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
+
+  // Track views when posts become visible in feed
+  const viewedPostsRef = useRef<Set<string>>(new Set());
+  const trackView = useCallback((postId: string) => {
+    if (viewedPostsRef.current.has(postId)) return;
+    viewedPostsRef.current.add(postId);
+    supabase.rpc('increment_community_post_views', { p_post_id: postId });
+  }, []);
 
 
   const pinPostMutation = useMutation({
@@ -420,7 +443,7 @@ const CommunityPage: React.FC = () => {
                 const images = post.image_urls?.length > 0 ? post.image_urls : post.image_url ? [post.image_url] : [];
 
                 return (
-                  <div key={post.id}>
+                  <ViewTracker postId={post.id} onView={trackView}>
                     <article className="px-4 py-3 border-b border-border/30 hover:bg-muted/20 transition-colors cursor-pointer" onClick={(e) => { if ((e.target as HTMLElement).closest('button, a')) return; navigate(`/community/post/${post.id}`); }}>
                       {post.is_pinned && (
                         <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-2 pl-[52px]">
@@ -483,7 +506,7 @@ const CommunityPage: React.FC = () => {
                         </div>
                       </div>
                     </article>
-                  </div>
+                  </ViewTracker>
                 );
               })}
             </div>
