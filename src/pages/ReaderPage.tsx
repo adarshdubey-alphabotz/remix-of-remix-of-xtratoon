@@ -323,9 +323,8 @@ const ReaderPage: React.FC = () => {
 
   const goToPage = useCallback((newPage: number) => {
     if (!pages || newPage < 0 || newPage >= pages.length) return;
-    if (scale > 1) resetZoom();
     setCurrentPage(newPage);
-  }, [pages, scale]);
+  }, [pages]);
 
   const handleTap = useCallback((e: React.MouseEvent) => {
     if (showSettings || scale > 1) return;
