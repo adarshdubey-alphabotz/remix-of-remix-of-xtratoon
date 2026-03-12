@@ -45,6 +45,77 @@ interface AuthContextType {
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 
+const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  'tempmail.com','temp-mail.org','tempmail.net','temp-mail.io',
+  'mailinator.com','mailinator.net','mailinator2.com',
+  '10minutemail.com','10minmail.com','10mail.org',
+  'guerrillamail.com','guerrillamail.net','guerrillamail.org','guerrilla.ml','grr.la',
+  'throwaway.email','throwawaymail.com','trashmail.com','trashmail.net','trashmail.me',
+  'yopmail.com','yopmail.fr','yopmail.net',
+  'dispostable.com','maildrop.cc','mailnesia.com','sharklasers.com',
+  'guerrillamailblock.com','pokemail.net','spam4.me','bccto.me',
+  'discard.email','discardmail.com','discardmail.de',
+  'emailondeck.com','getnada.com','getairmail.com',
+  'fakeinbox.com','mailcatch.com','mailexpire.com','mailmoat.com',
+  'minutemail.com','mytemp.email','mt2015.com',
+  'mohmal.com','mailnull.com','mailsac.com',
+  'safetymail.info','spamgourmet.com','tempr.email',
+  'tmail.ws','tmpmail.net','tmpmail.org',
+  'wegwerfmail.de','wegwerfmail.net','einrot.com',
+  'crazymailing.com','armyspy.com','dayrep.com',
+  'fleckens.hu','gustr.com','jourrapide.com',
+  'rhyta.com','superrito.com','teleworm.us',
+  'mailforspam.com','spam.la','spamfree24.org',
+  'objectmail.com','protonmail.ch',
+  'anonbox.net','anonymbox.com',
+  'bugmenot.com','deadaddress.com',
+  'filzmail.com','haltospam.com','harakirimail.com',
+  'incognitomail.org','inboxalias.com',
+  'jetable.org','kasmail.com','koszmail.pl',
+  'kurzepost.de','lifebyfood.com','lookugly.com',
+  'mailblocks.com','mailhazard.com','mailimate.com',
+  'mailmetrash.com','mailscrap.com','mailshell.com',
+  'mailzilla.com','mezimages.net','mfsa.info',
+  'mycleaninbox.net','nobulk.com','noclickemail.com',
+  'nogmailspam.info','nomail.xl.cx','nomail2me.com',
+  'nospam.ze.tc','owlpic.com','pookmail.com',
+  'proxymail.eu','rcpt.at','reallymymail.com',
+  'recode.me','regbypass.com','s0ny.net',
+  'safersignup.de','safetypost.de','shieldedmail.com',
+  'sogetthis.com','sofort-mail.de','spambob.com',
+  'spambog.com','spambox.us','spamcero.com',
+  'spamday.com','spamex.com','spamfighter.cf',
+  'spamfighter.ga','spamfighter.gq','spamfighter.ml',
+  'spamfighter.tk','spamhole.com','spaml.com',
+  'spamoff.de','spamstack.net','spamthis.co.uk',
+  'speedgaus.net','suremail.info','tempemail.co.za',
+  'tempemail.net','tempinbox.com','tempmail.eu',
+  'tempomail.fr','thankyou2010.com','thisisnotmyrealemail.com',
+  'trash-mail.at','trash-mail.com','trash2009.com',
+  'trashdevil.com','trashemail.de','trashymail.com',
+  'trashymail.net','twinmail.de','tyldd.com',
+  'uggsrock.com','upliftnow.com','uplipht.com',
+  'venompen.com','veryrealliemail.com','viditag.com',
+  'viewcastmedia.com','viewcastmedia.net','viewcastmedia.org',
+  'vomoto.com','vpn.st','vsimcard.com',
+  'vubby.com','wetrainbayarea.com','wetrainbayarea.org',
+  'wh4f.org','whatiaas.com','whatpaas.com',
+  'wilemail.com','willselfdestruct.com','winemaven.info',
+  'wronghead.com','wuzup.net','wuzupmail.net',
+  'wwwnew.eu','xagloo.com','xemaps.com',
+  'xents.com','xjoi.com','xmaily.com',
+  'xoxy.net','yapped.net','yeah.net',
+  'yep.it','yogamaven.com','yomail.info',
+  'yuurok.com','zehnminutenmail.de','zippymail.info',
+  'zoaxe.com','zoemail.org',
+]);
+
+const isDisposableEmail = (email: string): boolean => {
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) return false;
+  return DISPOSABLE_EMAIL_DOMAINS.has(domain);
+};
+
 const normalizeRoleType = (roleType?: string) => {
   const role = roleType?.trim().toLowerCase();
   return role === 'creator' || role === 'publisher' ? 'publisher' : 'reader';
