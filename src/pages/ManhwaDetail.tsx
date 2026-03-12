@@ -411,7 +411,11 @@ const ManhwaDetail: React.FC = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <ScrollReveal>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{manhwa.description}</p>
+              {manhwa.description && manhwa.description.length > 200 ? (
+                <DescriptionCollapsible text={manhwa.description} />
+              ) : (
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{manhwa.description}</p>
+              )}
             </ScrollReveal>
 
             <ScrollReveal delay={0.1}>

@@ -665,11 +665,7 @@ const ReaderPage: React.FC = () => {
           </>
         )}
 
-        {scale > 1 && (
-          <div className="absolute top-4 right-4 z-40 px-3 py-1.5 bg-black/60 backdrop-blur rounded-full">
-            <span className="text-xs text-white/70 font-medium">{Math.round(scale * 100)}%</span>
-          </div>
-        )}
+        {/* Removed zoom indicator - zoom is disabled */}
       </div>
 
       {/* BOTTOM PAGE COUNTER */}
