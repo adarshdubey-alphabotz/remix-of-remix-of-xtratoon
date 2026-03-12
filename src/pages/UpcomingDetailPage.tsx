@@ -180,7 +180,7 @@ const UpcomingDetailPage: React.FC = () => {
           <div className="w-28 sm:w-36 flex-shrink-0">
             <div className="aspect-[3/4] rounded-2xl overflow-hidden border-2 border-background shadow-xl">
               {manga.cover_url ? (
-                <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" />
+                <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" loading="eager" fetchPriority="high" decoding="async" />
               ) : (
                 <div className="w-full h-full bg-primary/20 flex items-center justify-center text-3xl font-bold text-primary">{manga.title[0]}</div>
               )}
