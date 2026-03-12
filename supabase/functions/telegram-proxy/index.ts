@@ -21,9 +21,6 @@ function getSupabase() {
   );
 }
 
-/**
- * Check if file is cached in Storage bucket and return its bytes.
- */
 async function getCachedFile(
   supabase: ReturnType<typeof getSupabase>,
   fileId: string
@@ -40,15 +37,11 @@ async function getCachedFile(
   return { data: await data.arrayBuffer(), contentType };
 }
 
-/**
- * Download from Telegram, cache in Storage, return the bytes.
- */
 async function downloadAndCache(
   supabase: ReturnType<typeof getSupabase>,
   botToken: string,
   fileId: string
 ): Promise<{ data: ArrayBuffer; contentType: string }> {
-  // 1. Get file path from Telegram
   const getFileRes = await fetch(
     `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`
   );
@@ -59,18 +52,16 @@ async function downloadAndCache(
   const ext = filePath.split(".").pop()?.toLowerCase() || "jpg";
   const contentType = mimeMap[ext] || "image/jpeg";
 
-  // 2. Download the actual file from Telegram
   const fileUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
   const fileRes = await fetch(fileUrl);
   if (!fileRes.ok) throw new Error(`Failed to download from Telegram: ${fileRes.status}`);
 
   const fileBuffer = await fileRes.arrayBuffer();
 
-  // 3. Upload to Supabase Storage (fire and forget for speed)
   const safeName = fileId.replace(/[^a-zA-Z0-9_-]/g, "_");
   const storagePath = `cache/${safeName}`;
 
-  // Don't await — cache in background so response is fast
+  // Cache in background
   supabase.storage
     .from(BUCKET)
     .upload(storagePath, fileBuffer, {
@@ -80,7 +71,6 @@ async function downloadAndCache(
     })
     .then(({ error }) => {
       if (error) console.warn("Cache upload failed:", error.message);
-      else console.log("Cached:", safeName);
     });
 
   return { data: fileBuffer, contentType };
@@ -118,7 +108,7 @@ Deno.serve(async (req) => {
 
     const supabase = getSupabase();
 
-    // 1. Check if cached in Storage
+    // Check if cached
     const cached = await getCachedFile(supabase, telegramFileId);
     if (cached) {
       return new Response(cached.data, {
@@ -126,13 +116,13 @@ Deno.serve(async (req) => {
         headers: {
           ...corsHeaders,
           "Content-Type": cached.contentType,
-          "Cache-Control": "public, max-age=86400, immutable",
+          "Cache-Control": "public, max-age=604800, immutable",
           "Content-Length": String(cached.data.byteLength),
         },
       });
     }
 
-    // 2. Not cached — download from Telegram, cache in background, serve immediately
+    // Download from Telegram, cache, serve
     const result = await downloadAndCache(supabase, TELEGRAM_BOT_TOKEN, telegramFileId);
 
     return new Response(result.data, {
@@ -140,7 +130,7 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         "Content-Type": result.contentType,
-        "Cache-Control": "public, max-age=86400",
+        "Cache-Control": "public, max-age=604800",
         "Content-Length": String(result.data.byteLength),
       },
     });

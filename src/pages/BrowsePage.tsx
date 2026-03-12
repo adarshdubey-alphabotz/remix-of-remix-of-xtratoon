@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-
 import EmptyState from '@/components/EmptyState';
 import { useSearchParams } from 'react-router-dom';
 import { Search, X, SlidersHorizontal, LayoutGrid, Columns3 } from 'lucide-react';
@@ -7,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import ManhwaCard from '@/components/ManhwaCard';
 import MasonryManhwaCard from '@/components/MasonryManhwaCard';
-import ScrollReveal from '@/components/ScrollReveal';
 import DynamicMeta from '@/components/DynamicMeta';
 
 const allGenres = [
@@ -30,7 +28,7 @@ const BrowsePage: React.FC = () => {
   const [language, setLanguage] = useState<string>('All');
   const [ratingFilter, setRatingFilter] = useState<string>('All');
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'masonry'>('masonry');
+  const [viewMode, setViewMode] = useState<'grid' | 'masonry'>('grid');
 
   const { data: results = [], isLoading } = useQuery({
     queryKey: ['browse-manga', query, status, sort, language],
@@ -40,15 +38,9 @@ const BrowsePage: React.FC = () => {
         .select('*')
         .eq('approval_status', 'APPROVED');
 
-      if (query) {
-        q = q.ilike('title', `%${query}%`);
-      }
-      if (status !== 'All') {
-        q = q.eq('status', status.toUpperCase());
-      }
-      if (language !== 'All') {
-        q = q.eq('language', language);
-      }
+      if (query) q = q.ilike('title', `%${query}%`);
+      if (status !== 'All') q = q.eq('status', status.toUpperCase());
+      if (language !== 'All') q = q.eq('language', language);
 
       if (sort === 'Rating') q = q.order('rating_average', { ascending: false });
       else if (sort === 'Views') q = q.order('views', { ascending: false });
@@ -57,14 +49,12 @@ const BrowsePage: React.FC = () => {
       else q = q.order('views', { ascending: false });
 
       q = q.limit(60);
-
       const { data, error } = await q;
       if (error) throw error;
       return data || [];
     },
   });
 
-  // Fetch creator profiles
   const creatorIds = [...new Set(results.map(m => m.creator_id).filter(Boolean))];
   const { data: creatorProfiles } = useQuery({
     queryKey: ['browse-creators', creatorIds.join(',')],
@@ -131,93 +121,77 @@ const BrowsePage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-24 pb-12 bg-background">
+    <div className="min-h-screen pt-16 md:pt-16 pb-16 bg-background">
       <DynamicMeta
         title="Browse Manhwa, Manga & Webtoons"
-        description="Browse and discover thousands of manhwa, manga, and webtoon series on Komixora. Filter by genre, rating, language and status. Read free Korean manhwa and Japanese manga online."
-        keywords="browse manhwa, browse manga, manhwa list, manga list, webtoon list, read manhwa online, read manga online, Komixora browse, Korean manhwa, Japanese manga, free comics, manhwa genres"
+        description="Browse thousands of manhwa, manga, and webtoon series on Komixora. Filter by genre, rating, language and status."
+        keywords="browse manhwa, manga list, webtoon list, Komixora browse"
         url="https://komixora.fun/browse"
       />
-      <div className="max-w-7xl mx-auto px-4">
-        <ScrollReveal>
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-display text-5xl sm:text-6xl tracking-wider">
-              <span className="text-primary">BROWSE</span> & DISCOVER
-            </h1>
-            <div className="hidden sm:flex items-center gap-1 border border-border/40 rounded-xl p-1">
-              <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`} title="Grid view">
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button onClick={() => setViewMode('masonry')} className={`p-2 rounded-lg transition-all ${viewMode === 'masonry' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`} title="Masonry view">
-                <Columns3 className="w-4 h-4" />
-              </button>
-            </div>
+      <div className="max-w-6xl mx-auto px-4 pt-4">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold text-foreground">Browse</h1>
+          <div className="flex items-center gap-1 border border-border rounded-lg p-0.5">
+            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}>
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button onClick={() => setViewMode('masonry')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'masonry' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}>
+              <Columns3 className="w-4 h-4" />
+            </button>
           </div>
-        </ScrollReveal>
+        </div>
 
-
-        <div className="flex flex-col lg:flex-row gap-8">
-          <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center gap-2 px-4 py-2 border-2 border-foreground text-sm font-semibold" style={{ boxShadow: '2px 2px 0 hsl(0 0% 8%)' }}>
+        <div className="flex flex-col lg:flex-row gap-6">
+          <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm font-medium">
             <SlidersHorizontal className="w-4 h-4" /> Filters {activeFilters.length > 0 && `(${activeFilters.length})`}
           </button>
 
-          <aside className={`lg:w-64 flex-shrink-0 space-y-5 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-            <div className="brutal-card p-4">
+          <aside className={`lg:w-56 flex-shrink-0 space-y-4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+            <div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search..." className="w-full pl-9 pr-3 py-2 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" />
+                <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search..." className="w-full pl-9 pr-3 py-2 bg-muted/40 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary/30" />
               </div>
             </div>
 
-            <div className="brutal-card p-4">
-              <h3 className="font-display text-lg tracking-wider mb-3">GENRE</h3>
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Genre</h3>
               <div className="flex flex-wrap gap-1.5">
                 {allGenres.map(g => (
-                  <button key={g} onClick={() => toggleGenre(g)} className={`px-2.5 py-1 text-xs border transition-all font-medium ${selectedGenres.includes(g) ? 'border-primary bg-primary/10 text-primary' : 'border-foreground/20 hover:border-foreground'}`}>
+                  <button key={g} onClick={() => toggleGenre(g)} className={`px-2.5 py-1 text-xs rounded-md border transition-colors ${selectedGenres.includes(g) ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
                     {g}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="brutal-card p-4">
-              <h3 className="font-display text-lg tracking-wider mb-3">STATUS</h3>
-              <div className="space-y-1">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Status</h3>
+              <div className="space-y-0.5">
                 {['All', 'Ongoing', 'Completed', 'Hiatus'].map(s => (
-                  <button key={s} onClick={() => setStatus(s)} className={`block w-full text-left px-3 py-1.5 text-sm font-medium transition-colors ${status === s ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}`}>
+                  <button key={s} onClick={() => setStatus(s)} className={`block w-full text-left px-3 py-1.5 text-sm rounded-md transition-colors ${status === s ? 'bg-muted text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'}`}>
                     {s}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="brutal-card p-4">
-              <h3 className="font-display text-lg tracking-wider mb-3">LANGUAGE</h3>
-              <div className="space-y-1">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Language</h3>
+              <div className="space-y-0.5">
                 {languages.map(l => (
-                  <button key={l} onClick={() => setLanguage(l)} className={`block w-full text-left px-3 py-1.5 text-sm font-medium transition-colors ${language === l ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}`}>
+                  <button key={l} onClick={() => setLanguage(l)} className={`block w-full text-left px-3 py-1.5 text-sm rounded-md transition-colors ${language === l ? 'bg-muted text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'}`}>
                     {l}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="brutal-card p-4">
-              <h3 className="font-display text-lg tracking-wider mb-3">RATING</h3>
-              <div className="space-y-1">
-                {ratingOptions.map(r => (
-                  <button key={r} onClick={() => setRatingFilter(r)} className={`block w-full text-left px-3 py-1.5 text-sm font-medium transition-colors ${ratingFilter === r ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}`}>
-                    {r}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="brutal-card p-4">
-              <h3 className="font-display text-lg tracking-wider mb-3">SORT BY</h3>
-              <div className="space-y-1">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Sort By</h3>
+              <div className="space-y-0.5">
                 {['Trending', 'Rating', 'New', 'Views', 'Likes'].map(s => (
-                  <button key={s} onClick={() => setSort(s)} className={`block w-full text-left px-3 py-1.5 text-sm font-medium transition-colors ${sort === s ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-muted-foreground'}`}>
+                  <button key={s} onClick={() => setSort(s)} className={`block w-full text-left px-3 py-1.5 text-sm rounded-md transition-colors ${sort === s ? 'bg-muted text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'}`}>
                     {s}
                   </button>
                 ))}
@@ -227,31 +201,29 @@ const BrowsePage: React.FC = () => {
 
           <div className="flex-1">
             {activeFilters.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 mb-4">
+              <div className="flex flex-wrap items-center gap-1.5 mb-4">
                 {activeFilters.map((f, i) => (
-                  <button key={i} onClick={() => removeFilter(f.type, f.value)} className="flex items-center gap-1 px-3 py-1 text-xs border-2 border-primary bg-primary/5 text-primary font-semibold">
+                  <button key={i} onClick={() => removeFilter(f.type, f.value)} className="flex items-center gap-1 px-2.5 py-1 text-xs border border-primary/30 bg-primary/5 text-primary rounded-md font-medium">
                     {f.value} <X className="w-3 h-3" />
                   </button>
                 ))}
-                <button onClick={clearAllFilters} className="text-xs text-muted-foreground hover:text-destructive font-medium ml-1">
-                  Clear all
-                </button>
+                <button onClick={clearAllFilters} className="text-xs text-muted-foreground hover:text-destructive font-medium ml-1">Clear all</button>
               </div>
             )}
 
-            <p className="text-sm text-muted-foreground mb-4 font-medium">
+            <p className="text-xs text-muted-foreground mb-3">
               {isLoading ? 'Loading...' : `${mappedResults.length} results`}
             </p>
 
             {viewMode === 'masonry' ? (
-              <div className="columns-2 sm:columns-3 md:columns-4 gap-4">
+              <div className="columns-2 sm:columns-3 md:columns-4 gap-3">
                 {mappedResults.map((m, i) => {
                   const heights: Array<'tall' | 'medium' | 'short'> = ['tall', 'medium', 'short', 'medium'];
                   return <MasonryManhwaCard key={m.id} manhwa={m as any} index={i} height={heights[i % 4]} />;
                 })}
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 sm:gap-6">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
                 {mappedResults.map((m, i) => <ManhwaCard key={m.id} manhwa={m as any} index={i} />)}
               </div>
             )}
@@ -262,7 +234,7 @@ const BrowsePage: React.FC = () => {
                 title="No manhwa found"
                 subtitle="Try different keywords or clear your filters."
                 action={activeFilters.length > 0 ? (
-                  <button onClick={clearAllFilters} className="text-primary text-sm font-semibold hover:underline">Clear all filters</button>
+                  <button onClick={clearAllFilters} className="text-primary text-sm font-medium hover:underline">Clear all filters</button>
                 ) : undefined}
               />
             )}
