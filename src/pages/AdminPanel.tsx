@@ -644,12 +644,13 @@ const AdminPanel: React.FC = () => {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1">
+                            {u.username && (
+                              <Link to={u.role_type === 'publisher' ? `/publisher/${u.username}` : `/reader/${u.username}`} className="p-1.5 border border-primary text-primary hover:bg-primary/10" title="View profile"><Eye className="w-3.5 h-3.5" /></Link>
+                            )}
                             {u.is_banned ? (
                               <button onClick={() => setConfirmModal({ id: u.user_id, action: 'unban', type: 'unban' })} className="p-1.5 border border-green-500 text-green-500 hover:bg-green-500/10" title="Unban user"><ShieldOff className="w-3.5 h-3.5" /></button>
                             ) : (
-                              u.role_type === 'publisher' && (
-                                <button onClick={() => setConfirmModal({ id: u.user_id, action: 'Banned by admin', type: 'ban' })} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Ban publisher"><Ban className="w-3.5 h-3.5" /></button>
-                              )
+                              <button onClick={() => setConfirmModal({ id: u.user_id, action: 'Banned by admin', type: 'ban' })} className="p-1.5 border border-destructive text-destructive hover:bg-destructive/10" title="Ban user"><Ban className="w-3.5 h-3.5" /></button>
                             )}
                           </div>
                         </td>
