@@ -475,7 +475,7 @@ const ReaderPage: React.FC = () => {
           </div>
           <div className="bg-[#1a1a1a]/95 backdrop-blur-lg">
             <div className="flex items-center justify-between px-2 h-12">
-              <button onClick={() => navigate(`/manhwa/${manga.slug}`)} className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+              <button onClick={() => navigate(`/title/${manga.slug}`)} className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <ArrowLeft className="w-5 h-5 text-white" />
               </button>
               <button onClick={() => prevChapter != null && navigate(`/read/${manga.slug}/chapter-${prevChapter}`)} disabled={prevChapter == null} className="w-11 h-11 flex items-center justify-center text-white/50 hover:text-white disabled:text-white/15 transition-colors">
