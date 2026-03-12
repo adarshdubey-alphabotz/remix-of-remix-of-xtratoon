@@ -433,7 +433,7 @@ const UpcomingPage: React.FC = () => {
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })
           )}
