@@ -92,10 +92,13 @@ serve(async (req) => {
       });
     }
 
+    const SMTP_HOST = Deno.env.get('SMTP_HOST') || 'smtp.gmail.com';
+    const SMTP_PORT = Number(Deno.env.get('SMTP_PORT') || '465');
+
     const client = new SmtpClient();
     await client.connectTLS({
-      hostname: 'smtp.gmail.com',
-      port: 587,
+      hostname: SMTP_HOST,
+      port: SMTP_PORT,
       username: SMTP_USER,
       password: SMTP_PASS,
     });
