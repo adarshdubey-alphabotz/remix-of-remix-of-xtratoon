@@ -343,7 +343,7 @@ const UpcomingPage: React.FC = () => {
           {isLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-20 bg-muted/30 rounded-xl animate-pulse" />
+                <div key={i} className="h-20 bg-muted/30 rounded-xl" />
               ))}
             </>
           ) : displayItems.length === 0 ? (
