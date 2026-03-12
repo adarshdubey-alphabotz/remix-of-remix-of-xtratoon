@@ -620,7 +620,14 @@ const AdminPanel: React.FC = () => {
                   <tbody>
                     {(allUsers || []).map((u: any) => (
                       <tr key={u.id} className="border-b border-foreground/10 hover:bg-primary/5 transition-colors">
-                        <td className="px-4 py-3 font-semibold inline-flex items-center gap-1">{u.username || '—'} {u.is_verified && <VerifiedBadge size="sm" />}</td>
+                        <td className="px-4 py-3 font-semibold">
+                          <Link 
+                            to={u.username ? (u.role_type === 'publisher' ? `/publisher/${u.username}` : `/reader/${u.username}`) : '#'}
+                            className={`inline-flex items-center gap-1 ${u.username ? 'hover:text-primary hover:underline transition-colors' : 'cursor-default'}`}
+                          >
+                            {u.username || '—'} {u.is_verified && <VerifiedBadge size="sm" />}
+                          </Link>
+                        </td>
                         <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">{[u.signup_city, u.signup_country].filter(Boolean).join(', ') || '—'}</td>
