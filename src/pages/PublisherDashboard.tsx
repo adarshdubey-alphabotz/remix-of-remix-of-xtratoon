@@ -6,6 +6,7 @@ import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileT
 import { toast } from 'sonner';
 import CreatorAnalytics from '@/components/CreatorAnalytics';
 import CreatorEarnings from '@/components/CreatorEarnings';
+import ScheduledContentManager from '@/components/ScheduledContentManager';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -119,6 +120,7 @@ const PublisherDashboard: React.FC = () => {
     { id: 'works', label: 'My Works', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'create', label: 'New Manhwa', icon: <Plus className="w-4 h-4" /> },
     { id: 'chapters', label: 'Chapters', icon: <FileText className="w-4 h-4" /> },
+    { id: 'scheduled', label: 'Scheduled', icon: <Clock className="w-4 h-4" /> },
     { id: 'earnings', label: 'Earnings', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
   ];
@@ -846,6 +848,11 @@ const PublisherDashboard: React.FC = () => {
                 )}
               </div>
             </div>
+          )}
+
+          {/* SCHEDULED TAB */}
+          {activeTab === 'scheduled' && user && (
+            <ScheduledContentManager creatorId={user.id} />
           )}
 
           {/* EARNINGS TAB */}

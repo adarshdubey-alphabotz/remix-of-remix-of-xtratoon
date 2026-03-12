@@ -18,11 +18,13 @@ Deno.serve(async (req) => {
 
     const now = new Date().toISOString();
 
-    // Find chapters that are scheduled and past due
+    // Find chapters that are scheduled, past due, approved, and verified
     const { data: chapters, error } = await supabase
       .from("chapters")
-      .select("id, manga_id, chapter_number, title")
+      .select("id, manga_id, chapter_number, title, approval_status, schedule_verified")
       .eq("is_published", false)
+      .eq("approval_status", "APPROVED")
+      .eq("schedule_verified", true)
       .not("scheduled_at", "is", null)
       .lte("scheduled_at", now);
 

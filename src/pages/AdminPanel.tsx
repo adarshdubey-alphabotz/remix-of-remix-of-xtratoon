@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail, BadgeCheck, DollarSign, Megaphone, Search } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BookOpen, Shield, Check, X, Trash2, Eye, Loader2, Flag, Ban, MessageSquare, PenTool, Undo2, ShieldOff, Mail, BadgeCheck, DollarSign, Megaphone, Search, Clock } from 'lucide-react';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import AdminRevenueAnalytics from '@/components/AdminRevenueAnalytics';
 import AdminPayoutManager from '@/components/AdminPayoutManager';
 import AdminAnnouncementManager from '@/components/AdminAnnouncementManager';
+import ScheduledContentManager from '@/components/ScheduledContentManager';
 
 const AdminPanel: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -332,6 +333,7 @@ const AdminPanel: React.FC = () => {
     { id: 'payouts', label: 'Payouts', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'submissions', label: 'Manga', icon: <FileText className="w-4 h-4" /> },
     { id: 'chapter-reviews', label: 'Chapters', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'scheduled', label: 'Scheduled', icon: <Clock className="w-4 h-4" /> },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" /> },
     { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
@@ -460,6 +462,11 @@ const AdminPanel: React.FC = () => {
                 </div>
               )}
             </div>
+          )}
+
+          {/* SCHEDULED TAB */}
+          {activeTab === 'scheduled' && (
+            <ScheduledContentManager isAdmin />
           )}
 
           {activeTab === 'reports' && (
