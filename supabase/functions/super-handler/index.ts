@@ -92,7 +92,7 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // ─── SEND VERIFICATION (generate code, no SMTP) ───
+    // ─── SEND VERIFICATION (1 code/user/min, 1 min expiry) ───
     if (action === 'send-verification') {
       const { email, userId } = body;
 
@@ -101,6 +101,9 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+
+      const now = Date.now();
+      const oneMinuteAgoIso = new Date(now - CODE_WINDOW_MS).toISOString();
 
       // Set email_verified = false
       const { data: authUserData } = await supabase.auth.admin.getUserById(userId);
@@ -111,15 +114,54 @@ serve(async (req) => {
         });
       }
 
-      // Delete old pending verifications
-      await supabase.from('pending_verifications').delete().eq('user_id', userId);
+      // Reuse existing code if one was already generated in the last minute
+      const { data: recentPending, error: recentError } = await supabase
+        .from('pending_verifications')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('email', email)
+        .eq('verified', false)
+        .gte('created_at', oneMinuteAgoIso)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      // Generate new code
+      if (recentError) {
+        console.error('Recent verification lookup warning:', recentError);
+      }
+
+      if (recentPending) {
+        const issuedAt = recentPending.created_at ? new Date(recentPending.created_at).getTime() : now;
+        const remainingSeconds = Math.max(1, Math.ceil((issuedAt + CODE_WINDOW_MS - now) / 1000));
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            code: recentPending.code,
+            reused: true,
+            remainingSeconds,
+            expiresAt: recentPending.expires_at,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Remove previous unverified codes for this user before creating a fresh one
+      await supabase
+        .from('pending_verifications')
+        .delete()
+        .eq('user_id', userId)
+        .eq('verified', false);
+
       const code = generateCode();
-      const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 min
+      const expiresAt = new Date(now + CODE_WINDOW_MS).toISOString();
 
       const { error: insertError } = await supabase.from('pending_verifications').insert({
-        user_id: userId, email, code, verified: false, expires_at: expiresAt,
+        user_id: userId,
+        email,
+        code,
+        verified: false,
+        expires_at: expiresAt,
       });
 
       if (insertError) {
@@ -128,9 +170,8 @@ serve(async (req) => {
         });
       }
 
-      // Always return code directly — no SMTP sending
       return new Response(
-        JSON.stringify({ success: true, code }),
+        JSON.stringify({ success: true, code, reused: false, remainingSeconds: 60, expiresAt }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
