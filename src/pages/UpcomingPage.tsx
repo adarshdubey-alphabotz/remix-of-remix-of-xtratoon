@@ -433,7 +433,7 @@ const UpcomingPage: React.FC = () => {
                         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{manga.title}</h3>
                       </Link>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Ch. {item.chapter_number}{item.title ? ` · ${item.title}` : ''}
+                        Ch. {item.chapter_number}{item.title ? ` · ${item.title}` : ''} · <span className="text-primary/70">{(() => { const l = (manga.language || '').toLowerCase(); return l === 'korean' ? 'Manhwa' : l === 'chinese' ? 'Manhua' : l === 'novel' ? 'Novel' : 'Manga'; })()}</span>
                       </p>
                       {isLaunched ? (
                         <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-green-500">
