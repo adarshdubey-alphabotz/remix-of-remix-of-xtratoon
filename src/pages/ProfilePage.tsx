@@ -435,7 +435,7 @@ const ProfilePage: React.FC = () => {
                             key={n.id}
                             onClick={() => {
                               markRead(n.id);
-                              if (n.reference_id && (n.type === 'new_chapter' || isApproval)) navigate(`/manhwa/${n.reference_id}`);
+                              if (n.reference_id && (n.type === 'new_chapter' || isApproval)) navigate(`/title/${n.reference_id}`);
                             }}
                             className="w-full text-left px-4 py-3 hover:bg-muted/40 transition-colors flex items-start gap-3"
                           >
