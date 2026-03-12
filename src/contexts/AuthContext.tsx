@@ -370,6 +370,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       username?: string;
     }) => {
       try {
+        // Block disposable/temporary emails
+        if (isDisposableEmail(email)) {
+          return { success: false, error: 'Disposable or temporary email addresses are not allowed. Please use a real email.' };
+        }
+
         const normalizedRole = normalizeRoleType(roleType);
         const normalizedUsername = normalizeUsername(username);
 
