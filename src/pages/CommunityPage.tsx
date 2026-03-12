@@ -40,12 +40,12 @@ const renderContent = (content: string) => {
   });
 };
 
-const ImageGrid: React.FC<{ images: string[] }> = ({ images }) => {
+const ImageGrid: React.FC<{ images: string[]; prioritize?: boolean }> = ({ images, prioritize = false }) => {
   if (images.length === 0) return null;
   if (images.length === 1) {
     return (
       <div className="mt-3 rounded-2xl overflow-hidden border border-border/30">
-        <img src={images[0]} alt="" className="w-full max-h-[400px] object-cover" loading="lazy" />
+        <img src={images[0]} alt="" className="w-full max-h-[400px] object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize ? 'high' : 'auto'} decoding="async" />
       </div>
     );
   }
@@ -53,16 +53,16 @@ const ImageGrid: React.FC<{ images: string[] }> = ({ images }) => {
     return (
       <div className="mt-3 rounded-2xl overflow-hidden border border-border/30 grid grid-cols-2 gap-0.5">
         {images.map((url, idx) => (
-          <img key={idx} src={url} alt="" className="w-full h-[200px] object-cover" loading="lazy" />
+          <img key={idx} src={url} alt="" className="w-full h-[200px] object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize && idx < 2 ? 'high' : 'auto'} decoding="async" />
         ))}
       </div>
     );
   }
   return (
     <div className="mt-3 rounded-2xl overflow-hidden border border-border/30 grid grid-cols-2 gap-0.5">
-      <img src={images[0]} alt="" className="w-full h-full row-span-2 object-cover" loading="lazy" />
-      <img src={images[1]} alt="" className="w-full h-[150px] object-cover" loading="lazy" />
-      <img src={images[2]} alt="" className="w-full h-[150px] object-cover" loading="lazy" />
+      <img src={images[0]} alt="" className="w-full h-full row-span-2 object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize ? 'high' : 'auto'} decoding="async" />
+      <img src={images[1]} alt="" className="w-full h-[150px] object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize ? 'high' : 'auto'} decoding="async" />
+      <img src={images[2]} alt="" className="w-full h-[150px] object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize ? 'high' : 'auto'} decoding="async" />
     </div>
   );
 };
@@ -131,10 +131,31 @@ const CommunityPage: React.FC = () => {
   // Track views when posts become visible in feed
   const viewedPostsRef = useRef<Set<string>>(new Set());
   const trackView = useCallback((postId: string) => {
-    if (viewedPostsRef.current.has(postId)) return;
+    const viewKey = `viewed_post_${postId}`;
+    if (viewedPostsRef.current.has(postId) || sessionStorage.getItem(viewKey)) return;
+
     viewedPostsRef.current.add(postId);
-    supabase.rpc('increment_community_post_views', { p_post_id: postId });
-  }, []);
+
+    const incrementFeedView = async () => {
+      const { error } = await supabase.rpc('increment_community_post_views', { p_post_id: postId });
+
+      if (error) {
+        console.error('Feed post view count error:', error.message);
+        viewedPostsRef.current.delete(postId);
+        return;
+      }
+
+      sessionStorage.setItem(viewKey, '1');
+      queryClient.setQueryData(['community-posts', tab, followingIds], (old: any[] | undefined) =>
+        old?.map((post) => (post.id === postId ? { ...post, views_count: Number(post.views_count || 0) + 1 } : post)) || old
+      );
+    };
+
+    incrementFeedView().catch((err) => {
+      console.error('Feed post view count error:', err);
+      viewedPostsRef.current.delete(postId);
+    });
+  }, [followingIds, queryClient, tab]);
 
 
   const pinPostMutation = useMutation({
@@ -457,7 +478,7 @@ const CommunityPage: React.FC = () => {
                 const images = post.image_urls?.length > 0 ? post.image_urls : post.image_url ? [post.image_url] : [];
 
                 return (
-                  <ViewTracker postId={post.id} onView={trackView}>
+                  <ViewTracker key={post.id} postId={post.id} onView={trackView}>
                     <article className="px-4 py-3 border-b border-border/30 hover:bg-muted/20 transition-colors cursor-pointer" onClick={(e) => { if ((e.target as HTMLElement).closest('button, a')) return; navigate(`/community/post/${post.id}`); }}>
                       {post.is_pinned && (
                         <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-2 pl-[52px]">
@@ -497,7 +518,7 @@ const CommunityPage: React.FC = () => {
 
                           {post.content && <p className="text-sm mt-1 whitespace-pre-wrap leading-relaxed">{renderContent(post.content)}</p>}
 
-                          <ImageGrid images={images} />
+                          <ImageGrid images={images} prioritize={i < 4} />
 
                           {/* Action bar */}
                           <div className="flex items-center justify-between mt-3 -ml-2 max-w-[400px]">

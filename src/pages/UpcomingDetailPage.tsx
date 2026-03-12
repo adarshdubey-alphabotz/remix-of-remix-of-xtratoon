@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUrl';
 import { ArrowLeft, ArrowUp, Clock, CheckCircle2, Calendar, Eye, Tag, BookOpen } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 import DynamicMeta from '@/components/DynamicMeta';
 import CommentSection from '@/components/CommentSection';
 import SocialShareMenu from '@/components/SocialShareMenu';
@@ -132,7 +132,7 @@ const UpcomingDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading upcoming release...</p>
       </div>
     );
   }
@@ -164,7 +164,7 @@ const UpcomingDetailPage: React.FC = () => {
       {/* Banner */}
       <div className="relative h-48 sm:h-64 overflow-hidden">
         {manga.banner_url || manga.cover_url ? (
-          <img src={getImageUrl(manga.banner_url || manga.cover_url)!} alt="" className="w-full h-full object-cover" />
+          <img src={getImageUrl(manga.banner_url || manga.cover_url)!} alt="" className="w-full h-full object-cover" loading="eager" fetchPriority="high" decoding="async" />
         ) : (
           <div className="w-full h-full bg-primary/20" />
         )}
@@ -180,7 +180,7 @@ const UpcomingDetailPage: React.FC = () => {
           <div className="w-28 sm:w-36 flex-shrink-0">
             <div className="aspect-[3/4] rounded-2xl overflow-hidden border-2 border-background shadow-xl">
               {manga.cover_url ? (
-                <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" />
+                <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" loading="eager" fetchPriority="high" decoding="async" />
               ) : (
                 <div className="w-full h-full bg-primary/20 flex items-center justify-center text-3xl font-bold text-primary">{manga.title[0]}</div>
               )}
@@ -289,14 +289,14 @@ const UpcomingDetailPage: React.FC = () => {
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {demoPages.slice(0, 2).map((page: any) => (
-                <motion.div key={page.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-xl overflow-hidden border border-border aspect-[3/4] bg-muted/20">
+                <div key={page.id} className="rounded-xl overflow-hidden border border-border aspect-[3/4] bg-muted/20">
                   <img
                     src={getImageUrl(page.telegram_file_id)!}
                     alt={`Preview page ${page.page_number}`}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>

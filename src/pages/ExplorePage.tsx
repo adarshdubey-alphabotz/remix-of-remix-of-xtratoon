@@ -239,23 +239,8 @@ const ExplorePage: React.FC = () => {
       </div>
 
   {isLoading ? (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10 pb-20">
-          {/* Skeleton hero */}
-          <div className="rounded-3xl bg-muted/30 animate-pulse h-[420px] sm:h-[480px]" />
-          {/* Skeleton rows */}
-          {[1, 2, 3].map(i => (
-            <div key={i}>
-              <div className="h-8 w-48 bg-muted/30 rounded-lg animate-pulse mb-5" />
-              <div className="flex gap-4 overflow-hidden">
-                {[1, 2, 3, 4, 5].map(j => (
-                  <div key={j} className="flex-shrink-0 w-36 sm:w-44">
-                    <div className="aspect-[3/4] rounded-2xl bg-muted/30 animate-pulse mb-2.5" />
-                    <div className="h-4 w-3/4 bg-muted/20 rounded animate-pulse" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20 pt-16 text-center">
+          <p className="text-muted-foreground text-sm">Loading latest titles...</p>
         </div>
       ) : (
         <>

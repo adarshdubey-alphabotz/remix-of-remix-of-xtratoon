@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUrl';
 import { ChevronLeft, ChevronRight, ArrowUp, Search, Flame, Users, Clock, CheckCircle2, Trophy, ChevronDown, X, Calendar } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import DynamicMeta from '@/components/DynamicMeta';
 import { toast } from 'sonner';
 
@@ -206,27 +206,23 @@ const UpcomingPage: React.FC = () => {
                   {showSearch ? <X className="w-3.5 h-3.5 text-muted-foreground" /> : <Search className="w-3.5 h-3.5 text-muted-foreground" />}
                 </button>
                 <button onClick={() => setCalendarExpanded(!calendarExpanded)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-                  <motion.div animate={{ rotate: calendarExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </motion.div>
+                  <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground ${calendarExpanded ? 'rotate-180' : ''}`} />
                 </button>
               </div>
             </div>
 
             {/* Search inline */}
-            <AnimatePresence>
-              {showSearch && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
-                  <input
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search upcoming titles..."
-                    className="w-full px-3 py-1.5 bg-muted border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
-                    autoFocus
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showSearch && (
+              <div className="mb-2">
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search upcoming titles..."
+                  className="w-full px-3 py-1.5 bg-muted border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
+                  autoFocus
+                />
+              </div>
+            )}
 
             {/* Day headers */}
             <div className="grid grid-cols-7 gap-0.5 mb-1">
@@ -282,56 +278,48 @@ const UpcomingPage: React.FC = () => {
           </div>
 
           {/* Expanded Full Calendar (popup) */}
-          <AnimatePresence>
-            {calendarExpanded && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="absolute left-3 right-3 top-full mt-1 bg-card rounded-2xl border border-border shadow-2xl p-4 z-50"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-                    <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  <h3 className="text-sm font-semibold text-foreground">{MONTHS[calMonth]} {calYear}</h3>
-                  <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-7 gap-0.5 mb-1">
-                  {DAYS_SHORT.map((d, i) => (
-                    <div key={i} className="text-center text-[8px] font-medium text-muted-foreground uppercase">{d}</div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-0.5">
-                  {calDays.map((day, i) => {
-                    if (!day) return <div key={`e-${i}`} />;
-                    const isToday = day.toDateString() === todayStr;
-                    const isSelected = day.toDateString() === selectedDate.toDateString();
-                    const hasScheduled = scheduledDates.has(day.toDateString());
-                    return (
-                      <button
-                        key={day.toISOString()}
-                        onClick={() => { setSelectedDate(new Date(day)); setCalendarExpanded(false); }}
-                        className={`relative flex items-center justify-center rounded-md text-[11px] font-medium h-7 transition-all
-                          ${isSelected ? 'bg-primary text-primary-foreground' : ''}
-                          ${isToday && !isSelected ? 'bg-foreground text-background' : ''}
-                          ${!isSelected && !isToday ? 'text-muted-foreground hover:bg-muted' : ''}
-                        `}
-                      >
-                        {day.getDate()}
-                        {hasScheduled && !isSelected && !isToday && (
-                          <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-primary" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {calendarExpanded && (
+            <div className="absolute left-3 right-3 top-full mt-1 bg-card rounded-2xl border border-border shadow-2xl p-4 z-50">
+              <div className="flex items-center justify-between mb-3">
+                <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                  <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+                </button>
+                <h3 className="text-sm font-semibold text-foreground">{MONTHS[calMonth]} {calYear}</h3>
+                <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-0.5 mb-1">
+                {DAYS_SHORT.map((d, i) => (
+                  <div key={i} className="text-center text-[8px] font-medium text-muted-foreground uppercase">{d}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-0.5">
+                {calDays.map((day, i) => {
+                  if (!day) return <div key={`e-${i}`} />;
+                  const isToday = day.toDateString() === todayStr;
+                  const isSelected = day.toDateString() === selectedDate.toDateString();
+                  const hasScheduled = scheduledDates.has(day.toDateString());
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      onClick={() => { setSelectedDate(new Date(day)); setCalendarExpanded(false); }}
+                      className={`relative flex items-center justify-center rounded-md text-[11px] font-medium h-7 transition-all
+                        ${isSelected ? 'bg-primary text-primary-foreground' : ''}
+                        ${isToday && !isSelected ? 'bg-foreground text-background' : ''}
+                        ${!isSelected && !isToday ? 'text-muted-foreground hover:bg-muted' : ''}
+                      `}
+                    >
+                      {day.getDate()}
+                      {hasScheduled && !isSelected && !isToday && (
+                        <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-primary" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ─── Feed Toggle — underline tab style ─── */}
@@ -355,7 +343,7 @@ const UpcomingPage: React.FC = () => {
           {isLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-20 bg-muted/30 rounded-xl animate-pulse" />
+                <div key={i} className="h-20 bg-muted/30 rounded-xl" />
               ))}
             </>
           ) : displayItems.length === 0 ? (
@@ -375,12 +363,9 @@ const UpcomingPage: React.FC = () => {
               const contentType = getContentType(manga.language);
 
               return (
-                <motion.div
+                <div
                   key={item.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(i * 0.03, 0.25) }}
-                  className="rounded-xl border border-border bg-card p-3 transition-all"
+                  className="rounded-xl border border-border bg-card p-3"
                 >
                   <div className="flex items-center gap-3">
                     {/* Rank — inside card, left-aligned */}
@@ -394,7 +379,7 @@ const UpcomingPage: React.FC = () => {
                     <Link to={`/upcoming/${manga.slug}/${item.chapter_number}`} className="flex-shrink-0">
                       <div className="w-11 h-14 rounded-lg overflow-hidden border border-border">
                         {manga.cover_url ? (
-                          <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" loading="lazy" />
+                          <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" loading={i < 6 ? 'eager' : 'lazy'} fetchPriority={i < 3 ? 'high' : 'auto'} decoding="async" />
                         ) : (
                           <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">{manga.title[0]}</div>
                         )}
@@ -448,7 +433,7 @@ const UpcomingPage: React.FC = () => {
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })
           )}
@@ -468,7 +453,7 @@ const UpcomingPage: React.FC = () => {
                   <Link key={item.id} to={`/upcoming/${manga.slug}/${item.chapter_number}`} className="flex items-center gap-3 py-2.5 px-3 hover:bg-muted/40 transition-colors">
                     <span className="text-xs font-bold w-4 text-center text-muted-foreground">{i + 1}</span>
                     <div className="w-7 h-9 rounded-md overflow-hidden flex-shrink-0 border border-border">
-                      {manga.cover_url ? <img src={getImageUrl(manga.cover_url)!} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-muted" />}
+                      {manga.cover_url ? <img src={getImageUrl(manga.cover_url)!} className="w-full h-full object-cover" loading="lazy" decoding="async" /> : <div className="w-full h-full bg-muted" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium line-clamp-1 text-foreground">{manga.title}</p>

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, Heart, MessageCircle, Trash2, User, Flag, Loader2, Eye, Bookmark, Share2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 import { toast } from 'sonner';
 import SharePostModal from '@/components/SharePostModal';
 
@@ -54,11 +54,29 @@ const PostDetailPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!post?.id) return;
-    supabase.rpc('increment_community_post_views', { p_post_id: post.id }).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['community-post', postId] });
+    if (!post?.id || !postId) return;
+
+    const viewKey = `viewed_post_${post.id}`;
+    if (sessionStorage.getItem(viewKey)) return;
+
+    const incrementPostView = async () => {
+      const { error } = await supabase.rpc('increment_community_post_views', { p_post_id: post.id });
+      if (error) {
+        console.error('Post view count error:', error.message);
+        return;
+      }
+
+      sessionStorage.setItem(viewKey, '1');
+      queryClient.setQueryData(['community-post', postId], (prev: any) =>
+        prev ? { ...prev, views_count: Number(prev.views_count || 0) + 1 } : prev
+      );
+      queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+    };
+
+    incrementPostView().catch((err) => {
+      console.error('Post view count error:', err);
     });
-  }, [post?.id]);
+  }, [post?.id, postId, queryClient]);
 
   const { data: creator } = useQuery({
     queryKey: ['post-creator', post?.creator_id],
@@ -201,7 +219,7 @@ const PostDetailPage: React.FC = () => {
         </div>
 
         {/* Post */}
-        <motion.article initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-5 border-b border-border/30">
+        <article className="px-4 py-5 border-b border-border/30">
           <div className="flex gap-3 mb-4">
             <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
               {creator?.avatar_url ? (
@@ -253,7 +271,7 @@ const PostDetailPage: React.FC = () => {
               <button onClick={() => { if (window.confirm('Delete this post?')) deletePost.mutate(); }} className="flex items-center gap-2 p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"><Trash2 className="w-5 h-5" /></button>
             )}
           </div>
-        </motion.article>
+        </article>
 
         {/* Reply composer */}
         {user ? (
@@ -288,7 +306,7 @@ const PostDetailPage: React.FC = () => {
               const isReplyAuthor = user?.id === reply.user_id;
               const canDeleteReply = isReplyAuthor || isOwner || isAdmin;
               return (
-                <motion.div key={reply.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 border-b border-border/30 hover:bg-muted/10 transition-colors group">
+                <div key={reply.id} className="px-4 py-3 border-b border-border/30 hover:bg-muted/10 transition-colors group">
                   <div className="flex gap-3">
                     <Link to={`/publisher/${rp?.username || ''}`} className="flex-shrink-0">
                       {rp?.avatar_url ? <img src={rp.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" /> : <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><User className="w-4 h-4 text-muted-foreground" /></div>}
@@ -306,7 +324,7 @@ const PostDetailPage: React.FC = () => {
                       <p className="text-sm mt-1 leading-relaxed">{renderContent(reply.content)}</p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })
           )}
@@ -318,7 +336,7 @@ const PostDetailPage: React.FC = () => {
       {showReportModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setShowReportModal(false)}>
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-background border border-border rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-background border border-border rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-display text-xl tracking-wider flex items-center gap-2"><Flag className="w-5 h-5 text-destructive" /> Report Post</h3>
             <textarea value={reportReason} onChange={e => setReportReason(e.target.value)} rows={3} placeholder="Why are you reporting this post?" className="w-full px-3 py-2.5 bg-muted/30 border border-border rounded-xl text-sm focus:outline-none focus:border-primary resize-none" />
             <div className="flex gap-2">
@@ -327,7 +345,7 @@ const PostDetailPage: React.FC = () => {
                 {reportMutation.isPending ? 'Reporting...' : 'Report'}
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 

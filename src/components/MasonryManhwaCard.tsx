@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Eye, Bookmark } from 'lucide-react';
 import { formatViews, getCoverGradient, type Manga } from '@/hooks/useApi';
@@ -26,8 +26,6 @@ interface MasonryManhwaCardProps {
 }
 
 const MasonryManhwaCard: React.FC<MasonryManhwaCardProps> = ({ manhwa, index = 0, height = 'medium' }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-
   const hasCover = !!manhwa.cover_url;
   const coverSrc = getImageUrl(manhwa.cover_url) || '';
   const gradient = getCoverGradient(index);
@@ -35,41 +33,28 @@ const MasonryManhwaCard: React.FC<MasonryManhwaCardProps> = ({ manhwa, index = 0
   const slug = manhwa.slug;
   const primaryGenre = manhwa.genres?.[0];
   const accentColor = primaryGenre ? genreColors[primaryGenre] : '343 100% 59%';
+  const shouldPrioritizeImage = index < 8;
 
   const heightClass = height === 'tall' ? 'aspect-[2/3.5]' : height === 'short' ? 'aspect-[3/3]' : 'aspect-[3/4]';
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const el = cardRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    el.style.transform = `perspective(600px) rotateY(${x * 12}deg) rotateX(${-y * 12}deg) scale(1.02)`;
-    el.style.transition = 'transform 0.1s ease-out';
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    el.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg) scale(1)';
-    el.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-  }, []);
 
   return (
     <Link to={`/title/${slug}`} className="group block mb-4 break-inside-avoid">
       <div
-        ref={cardRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
         className={`relative ${heightClass} overflow-hidden rounded-2xl ${!hasCover ? gradient : ''}`}
         style={{
           borderLeft: `3px solid hsl(${accentColor})`,
           boxShadow: `0 4px 20px -4px hsla(${accentColor} / 0.2)`,
-          transformStyle: 'preserve-3d',
         }}
       >
         {hasCover && (
-          <img src={coverSrc} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+          <img
+            src={coverSrc}
+            alt={manhwa.title}
+            loading={shouldPrioritizeImage ? 'eager' : 'lazy'}
+            fetchPriority={shouldPrioritizeImage ? 'high' : 'auto'}
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         )}
 
         {/* Hover overlay */}
