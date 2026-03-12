@@ -464,6 +464,11 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
 
+          {/* SCHEDULED TAB */}
+          {activeTab === 'scheduled' && (
+            <ScheduledContentManager isAdmin />
+          )}
+
           {activeTab === 'reports' && (
             <div>
               <div className="flex items-center justify-between mb-4">
