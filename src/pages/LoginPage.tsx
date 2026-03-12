@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
   // Redirect based on verification status
   React.useEffect(() => {
     if (!user) return;
-    const isVerified = Boolean(user.app_metadata?.email_verified || user.email_confirmed_at);
+    const isVerified = user.app_metadata?.email_verified === true;
     navigate(isVerified ? '/' : '/verify', { replace: true });
   }, [user, navigate]);
 

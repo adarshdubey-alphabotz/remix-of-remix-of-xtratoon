@@ -45,7 +45,7 @@ const VerifyEmailPage: React.FC = () => {
     }
 
     // If already verified, go to profile
-    if (Boolean(user.app_metadata?.email_verified || user.email_confirmed_at)) {
+    if (user.app_metadata?.email_verified === true) {
       navigate('/profile', { replace: true });
       return;
     }
