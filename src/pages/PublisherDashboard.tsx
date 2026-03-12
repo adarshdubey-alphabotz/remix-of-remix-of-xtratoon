@@ -222,9 +222,11 @@ const PublisherDashboard: React.FC = () => {
         return;
       }
 
-      toast.success(`Manhwa submitted with Chapter 1 (${pageResult.pages_uploaded} pages)! Admin will review within 48 hours.`);
+      const schedLabel = ch1ScheduledAt ? ` (scheduled for ${new Date(ch1ScheduledAt).toLocaleString()})` : '';
+      toast.success(`Manhwa submitted with Chapter 1${schedLabel}! Admin will review within 48 hours.`);
       setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false); setIsNsfw(false);
       setCoverFile(null); setCoverPreview(null); setCh1Files([]); setCh1Title('');
+      setMangaScheduleEnabled(false); setMangaScheduledDate(''); setMangaScheduledTime('');
       queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
       setActiveTab('works');
     } catch (err: any) {
