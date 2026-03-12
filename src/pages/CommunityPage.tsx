@@ -119,7 +119,7 @@ const CommunityPage: React.FC = () => {
     if (viewedPostsRef.current.has(postId)) return;
     viewedPostsRef.current.add(postId);
     supabase.rpc('increment_community_post_views', { p_post_id: postId });
-
+  }, []);
 
 
   const pinPostMutation = useMutation({
