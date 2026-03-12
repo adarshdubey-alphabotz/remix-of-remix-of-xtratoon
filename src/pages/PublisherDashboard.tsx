@@ -29,6 +29,9 @@ const PublisherDashboard: React.FC = () => {
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [copyrightChecked, setCopyrightChecked] = useState(false);
+  const [mangaScheduleEnabled, setMangaScheduleEnabled] = useState(false);
+  const [mangaScheduledDate, setMangaScheduledDate] = useState('');
+  const [mangaScheduledTime, setMangaScheduledTime] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -181,10 +184,20 @@ const PublisherDashboard: React.FC = () => {
         if (!coverResult.success) console.error('Cover upload failed:', coverResult.error);
       }
 
-      // 3. Create chapter 1 and upload pages
+      // 3. Create chapter 1 and upload pages (with optional scheduling)
+      const ch1ScheduledAt = mangaScheduleEnabled && mangaScheduledDate && mangaScheduledTime
+        ? new Date(`${mangaScheduledDate}T${mangaScheduledTime}`).toISOString()
+        : null;
+
       const { data: chapter, error: chapterError } = await supabase
         .from('chapters')
-        .insert({ manga_id: manga.id, chapter_number: 1, title: ch1Title || null })
+        .insert({
+          manga_id: manga.id,
+          chapter_number: 1,
+          title: ch1Title || null,
+          is_published: !ch1ScheduledAt,
+          scheduled_at: ch1ScheduledAt,
+        } as any)
         .select()
         .single();
 
@@ -209,9 +222,11 @@ const PublisherDashboard: React.FC = () => {
         return;
       }
 
-      toast.success(`Manhwa submitted with Chapter 1 (${pageResult.pages_uploaded} pages)! Admin will review within 48 hours.`);
+      const schedLabel = ch1ScheduledAt ? ` (scheduled for ${new Date(ch1ScheduledAt).toLocaleString()})` : '';
+      toast.success(`Manhwa submitted with Chapter 1${schedLabel}! Admin will review within 48 hours.`);
       setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false); setIsNsfw(false);
       setCoverFile(null); setCoverPreview(null); setCh1Files([]); setCh1Title('');
+      setMangaScheduleEnabled(false); setMangaScheduledDate(''); setMangaScheduledTime('');
       queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
       setActiveTab('works');
     } catch (err: any) {
@@ -627,6 +642,28 @@ const PublisherDashboard: React.FC = () => {
                   )}
                 </div>
 
+                {/* Schedule Chapter 1 launch */}
+                <div className="border border-border/40 rounded-lg p-4 space-y-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={mangaScheduleEnabled} onChange={e => setMangaScheduleEnabled(e.target.checked)} className="accent-primary" />
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold">Schedule Chapter 1 for later</span>
+                  </label>
+                  <p className="text-[10px] text-muted-foreground">If enabled, Chapter 1 won't be published until the scheduled time. It will appear in the Upcoming section after admin verification.</p>
+                  {mangaScheduleEnabled && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-semibold block mb-1 text-muted-foreground">Date</label>
+                        <input type="date" value={mangaScheduledDate} onChange={e => setMangaScheduledDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 bg-background border border-border text-sm rounded-lg focus:outline-none focus:border-primary" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold block mb-1 text-muted-foreground">Time</label>
+                        <input type="time" value={mangaScheduledTime} onChange={e => setMangaScheduledTime(e.target.value)} className="w-full px-3 py-2 bg-background border border-border text-sm rounded-lg focus:outline-none focus:border-primary" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="p-4 border-2 border-destructive/30 bg-destructive/5">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" checked={copyrightChecked} onChange={e => setCopyrightChecked(e.target.checked)} className="mt-0.5 accent-primary" />
@@ -636,9 +673,9 @@ const PublisherDashboard: React.FC = () => {
                   </label>
                 </div>
 
-                <button type="submit" disabled={!copyrightChecked || !uploadTitle || ch1Files.length === 0 || submitting} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <button type="submit" disabled={!copyrightChecked || !uploadTitle || ch1Files.length === 0 || submitting || (mangaScheduleEnabled && (!mangaScheduledDate || !mangaScheduledTime))} className="w-full btn-accent rounded-none py-3 text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {submitting ? 'Submitting...' : 'Submit with Chapter 1 for Review'}
+                  {submitting ? 'Submitting...' : mangaScheduleEnabled ? 'Submit & Schedule for Review' : 'Submit with Chapter 1 for Review'}
                 </button>
               </form>
             </div>

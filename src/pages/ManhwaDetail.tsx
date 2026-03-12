@@ -33,6 +33,20 @@ const REPORT_REASONS = [
   'Hate Speech / Violence',
   'Other',
 ];
+const DescriptionCollapsible: React.FC<{ text: string }> = ({ text }) => {
+  const [expanded, setExpanded] = useState(false);
+  const preview = text.slice(0, 180);
+  return (
+    <div>
+      <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+        {expanded ? text : `${preview}...`}
+      </p>
+      <button onClick={() => setExpanded(!expanded)} className="mt-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
+        {expanded ? 'Show less' : 'Read more'}
+      </button>
+    </div>
+  );
+};
 
 const ManhwaDetail: React.FC = () => {
   const { id } = useParams();
@@ -411,7 +425,11 @@ const ManhwaDetail: React.FC = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <ScrollReveal>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{manhwa.description}</p>
+              {manhwa.description && manhwa.description.length > 200 ? (
+                <DescriptionCollapsible text={manhwa.description} />
+              ) : (
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{manhwa.description}</p>
+              )}
             </ScrollReveal>
 
             <ScrollReveal delay={0.1}>
