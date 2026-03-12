@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowUp, Clock, CheckCircle2, Calendar, Eye, Tag, BookOpen }
 import { motion } from 'framer-motion';
 import DynamicMeta from '@/components/DynamicMeta';
 import CommentSection from '@/components/CommentSection';
+import SocialShareMenu from '@/components/SocialShareMenu';
 import { toast } from 'sonner';
 
 function getWeekStart(date: Date) {
