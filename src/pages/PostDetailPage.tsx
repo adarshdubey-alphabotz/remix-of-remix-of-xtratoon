@@ -201,7 +201,7 @@ const PostDetailPage: React.FC = () => {
         </div>
 
         {/* Post */}
-        <motion.article initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-5 border-b border-border/30">
+        <article className="px-4 py-5 border-b border-border/30">
           <div className="flex gap-3 mb-4">
             <Link to={`/publisher/${creator?.username || ''}`} className="flex-shrink-0">
               {creator?.avatar_url ? (
