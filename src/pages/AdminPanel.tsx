@@ -309,7 +309,12 @@ const AdminPanel: React.FC = () => {
 
   const updateChapterApproval = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from('chapters').update({ approval_status: status } as any).eq('id', id);
+      // When approving, also verify schedule if chapter has scheduled_at
+      const updateData: any = { approval_status: status };
+      if (status === 'APPROVED') {
+        updateData.schedule_verified = true;
+      }
+      const { error } = await supabase.from('chapters').update(updateData).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
