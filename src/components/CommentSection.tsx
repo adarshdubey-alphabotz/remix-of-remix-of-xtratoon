@@ -28,7 +28,7 @@ interface Props {
   creatorId?: string;
 }
 
-const MAX_VISUAL_DEPTH = 4; // Cap nesting depth visually
+const MAX_VISUAL_DEPTH = 2; // Cap nesting depth — deeper replies stay flat at level 2
 
 const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => {
   const { user, isAdmin } = useAuth();
@@ -199,13 +199,16 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
     // Cap visual depth — after MAX_VISUAL_DEPTH, replies render flat (no more indent)
     const visualDepth = Math.min(depth, MAX_VISUAL_DEPTH);
-    const indentClass = visualDepth > 0 ? 'ml-3 sm:ml-5 pl-3 sm:pl-4 border-l-2 border-border/30' : '';
+    const indentClass = visualDepth > 0 ? 'relative ml-3 pl-4' : '';
 
     const countAllReplies = (c: Comment): number => (c.replies?.reduce((sum, r) => sum + 1 + countAllReplies(r), 0) || 0);
     const totalReplies = countAllReplies(comment);
 
     return (
       <div id={`comment-${comment.id}`} className={indentClass}>
+        {visualDepth > 0 && (
+          <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-border/40" />
+        )}
         {comment.is_pinned && depth === 0 && (
           <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-1 pl-8">
             <Pin className="w-3 h-3" /> Pinned
