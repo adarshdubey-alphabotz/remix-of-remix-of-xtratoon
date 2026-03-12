@@ -86,6 +86,7 @@ const UpcomingDetailPage: React.FC = () => {
       return { manga, chapter: ch, profile, demoPages: pages || [] };
     },
     enabled: !!slug && !!chapterNum,
+    refetchInterval: 30000,
   });
 
   const weekStart = useMemo(() => {
@@ -147,6 +148,7 @@ const UpcomingDetailPage: React.FC = () => {
   const isLaunched = ch.is_published;
   const scheduledDate = ch.scheduled_at ? new Date(ch.scheduled_at) : null;
   const timeUntil = scheduledDate ? scheduledDate.getTime() - Date.now() : 0;
+  const isPastDue = timeUntil <= 0;
   const hoursLeft = Math.max(0, Math.floor(timeUntil / (1000 * 60 * 60)));
   const minutesLeft = Math.max(0, Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60)));
   const contentType = getContentType((manga as any).language);
@@ -222,6 +224,11 @@ const UpcomingDetailPage: React.FC = () => {
             <Link to={`/title/${manga.slug}`} className="inline-flex items-center gap-2 px-5 py-3 bg-green-500/10 text-green-500 border border-green-500/30 rounded-xl text-sm font-semibold hover:bg-green-500/20 transition-colors">
               <CheckCircle2 className="w-4 h-4" /> Launched — Read Now
             </Link>
+          ) : isPastDue && scheduledDate ? (
+            <div className="flex items-center gap-2 px-4 py-3 bg-yellow-500/10 rounded-xl border border-yellow-500/30 text-sm text-yellow-500">
+              <Clock className="w-4 h-4" />
+              <span className="font-semibold">Publishing soon…</span>
+            </div>
           ) : scheduledDate ? (
             <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 rounded-xl border border-border text-sm">
               <Clock className="w-4 h-4 text-primary" />

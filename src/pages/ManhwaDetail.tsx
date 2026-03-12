@@ -94,8 +94,14 @@ const ManhwaDetail: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!manhwa) return;
-    supabase.rpc('increment_manga_views', { p_manga_id: manhwa.id }).then(() => {});
+    if (!manhwa?.id) return;
+    const key = `viewed_manga_${manhwa.id}`;
+    if (sessionStorage.getItem(key)) return;
+    supabase.rpc('increment_manga_views', { p_manga_id: manhwa.id })
+      .then(({ error }) => {
+        if (error) console.error('View count error:', error.message);
+        else sessionStorage.setItem(key, '1');
+      });
   }, [manhwa?.id]);
 
   const { data: chapters } = useQuery({
