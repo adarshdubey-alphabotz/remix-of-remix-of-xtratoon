@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, ChevronRight, Clock, Crown, Flame, Bookmark, Sparkles, Users, Eye, ChevronLeft } from 'lucide-react';
 import BecauseYouRead from '@/components/BecauseYouRead';
