@@ -346,6 +346,21 @@ const ProfilePage: React.FC = () => {
           <span className="mt-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
             {isCreator ? '✨ Creator' : '📖 Reader'}
           </span>
+
+          {/* Email verification prompt */}
+          {user && user.app_metadata?.email_verified !== true && (
+            <button
+              onClick={() => navigate('/verify')}
+              className="mt-3 w-full max-w-[280px] flex items-center gap-2.5 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 transition-colors"
+            >
+              <Mail className="w-4 h-4 text-amber-500 shrink-0" />
+              <div className="text-left flex-1 min-w-0">
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">Email not verified</p>
+                <p className="text-[10px] text-muted-foreground">Tap to verify and unlock all features</p>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            </button>
+          )}
           
           {/* Completion bar */}
           <div className="w-full max-w-[200px] mt-4">
