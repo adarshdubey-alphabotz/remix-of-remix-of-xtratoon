@@ -237,11 +237,7 @@ const UpcomingDetailPage: React.FC = () => {
         )}
 
         {/* Description */}
-        {manga.description && (
-          <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-border">
-            <p className="text-sm text-foreground/80 leading-relaxed">{manga.description}</p>
-          </div>
-        )}
+        {manga.description && <DescriptionToggle text={manga.description} />}
 
         {/* Schedule Info */}
         {scheduledDate && (
