@@ -283,7 +283,7 @@ const ReaderPage: React.FC = () => {
       else if (e.key === 'ArrowUp') goToPage(currentPage - 1);
       else if (e.key === 'Escape') {
         if (scale > 1) resetZoom();
-        else navigate(`/manhwa/${manga?.slug}`);
+        else navigate(`/title/${manga?.slug}`);
       }
     };
     window.addEventListener('keydown', handler);
