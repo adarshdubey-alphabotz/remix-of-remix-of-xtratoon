@@ -87,7 +87,7 @@ const MyLibrary: React.FC = () => {
         ) : library.length > 0 ? (
           <div className="space-y-3">
             {library.map((item: any) => (
-              <Link key={item.id} to={`/manhwa/${item.slug}`} className="flex items-center gap-4 brutal-card p-4 group">
+              <Link key={item.id} to={`/title/${item.slug}`} className="flex items-center gap-4 brutal-card p-4 group">
                 {item.cover ? (
                   <img src={item.cover} alt={`${item.title} cover`} className="w-12 h-16 object-cover flex-shrink-0 border border-foreground/20" />
                 ) : (

@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
   for (const m of mangaList || []) {
     const lastmod = m.updated_at ? m.updated_at.split("T")[0] : today;
     xml += `  <url>
-    <loc>${SITE_URL}/manhwa/${m.slug}</loc>
+    <loc>${SITE_URL}/title/${m.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>`;

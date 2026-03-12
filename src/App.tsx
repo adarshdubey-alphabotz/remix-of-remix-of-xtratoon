@@ -137,6 +137,7 @@ const AnimatedRoutes = () => {
           <Route path="/home" element={<Navigate to="/" replace />} />
           <Route path="/explore" element={<Navigate to="/" replace />} />
           <Route path="/about" element={<Index />} />
+          <Route path="/title/:id" element={<ManhwaDetail />} />
           <Route path="/manhwa/:id" element={<ManhwaDetail />} />
           <Route path="/read/:id/:chapter" element={<ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary>} />
           <Route path="/browse" element={<BrowsePage />} />

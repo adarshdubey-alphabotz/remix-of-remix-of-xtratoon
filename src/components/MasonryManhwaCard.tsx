@@ -56,7 +56,7 @@ const MasonryManhwaCard: React.FC<MasonryManhwaCardProps> = ({ manhwa, index = 0
   }, []);
 
   return (
-    <Link to={`/manhwa/${slug}`} className="group block mb-4 break-inside-avoid">
+    <Link to={`/title/${slug}`} className="group block mb-4 break-inside-avoid">
       <div
         ref={cardRef}
         onMouseMove={handleMouseMove}

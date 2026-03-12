@@ -903,7 +903,7 @@ const ProfilePage: React.FC = () => {
             <p className="text-sm text-muted-foreground p-3 border border-border rounded-xl">No uploads yet.</p>
           ) : (
             creatorManga.slice(0, 5).map(item => (
-              <Link key={item.id} to={`/manhwa/${item.slug}`}
+              <Link key={item.id} to={`/title/${item.slug}`}
                 className="flex items-center justify-between border border-border rounded-xl px-4 py-3 hover:border-primary transition-colors">
                 <span className="text-sm font-medium">{item.title}</span>
                 <span className="text-xs text-muted-foreground">{(item.views || 0).toLocaleString()} views</span>

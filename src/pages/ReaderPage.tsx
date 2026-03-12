@@ -677,7 +677,7 @@ const ReaderPage: React.FC = () => {
                       </Link>
                     )}
                   </div>
-                  <button onClick={() => navigate(`/manhwa/${manga.slug}`)} className="text-sm text-white/40 hover:text-white/70 transition-colors">
+                  <button onClick={() => navigate(`/title/${manga.slug}`)} className="text-sm text-white/40 hover:text-white/70 transition-colors">
                     Back to manga page
                   </button>
                 </div>

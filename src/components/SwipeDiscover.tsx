@@ -136,7 +136,7 @@ const SwipeDiscover: React.FC = () => {
         <button onClick={() => swipe('left')} className="w-14 h-14 rounded-full border-2 border-destructive flex items-center justify-center text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-90" style={{ boxShadow: '2px 2px 0 hsl(var(--foreground))' }}>
           <XIcon className="w-6 h-6" />
         </button>
-        <Link to={`/manhwa/${current.slug}`} className="w-12 h-12 rounded-full border-2 border-primary flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-90" style={{ boxShadow: '2px 2px 0 hsl(var(--foreground))' }}>
+        <Link to={`/title/${current.slug}`} className="w-12 h-12 rounded-full border-2 border-primary flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-90" style={{ boxShadow: '2px 2px 0 hsl(var(--foreground))' }}>
           <BookOpen className="w-5 h-5" />
         </Link>
         <button onClick={() => swipe('right')} className="w-14 h-14 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 hover:bg-green-500 hover:text-white transition-all active:scale-90" style={{ boxShadow: '2px 2px 0 hsl(var(--foreground))' }}>
