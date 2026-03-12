@@ -306,7 +306,7 @@ const PostDetailPage: React.FC = () => {
                       <p className="text-sm mt-1 leading-relaxed">{renderContent(reply.content)}</p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })
           )}
