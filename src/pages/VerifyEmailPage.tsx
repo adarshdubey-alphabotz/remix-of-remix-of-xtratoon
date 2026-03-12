@@ -23,24 +23,69 @@ const VerifyEmailPage: React.FC = () => {
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const userEmail = user?.email || '';
+  const verificationCacheKey = user ? `komixora_verification_code_${user.id}` : '';
 
-  useEffect(() => {
-    if (!user) { navigate('/login', { replace: true }); return; }
-    if (user.app_metadata?.email_verified === true) { navigate('/', { replace: true }); return; }
-    generateCode();
-  }, [user]);
+  const clearCachedCode = useCallback(() => {
+    if (!verificationCacheKey) return;
+    sessionStorage.removeItem(verificationCacheKey);
+  }, [verificationCacheKey]);
 
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const t = setTimeout(() => setResendCooldown(c => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [resendCooldown]);
+  const restoreCachedCode = useCallback(() => {
+    if (!verificationCacheKey || !userEmail) return false;
+
+    try {
+      const raw = sessionStorage.getItem(verificationCacheKey);
+      if (!raw) return false;
+
+      const parsed = JSON.parse(raw) as { code?: string; email?: string; expiresAt?: string };
+      if (!parsed?.code || !parsed?.expiresAt || parsed?.email !== userEmail) {
+        sessionStorage.removeItem(verificationCacheKey);
+        return false;
+      }
+
+      const remainingSeconds = Math.max(
+        0,
+        Math.ceil((new Date(parsed.expiresAt).getTime() - Date.now()) / 1000)
+      );
+
+      if (remainingSeconds <= 0) {
+        sessionStorage.removeItem(verificationCacheKey);
+        return false;
+      }
+
+      setCode(parsed.code);
+      setResendCooldown(remainingSeconds);
+      setState('ready');
+      setError('');
+      return true;
+    } catch {
+      sessionStorage.removeItem(verificationCacheKey);
+      return false;
+    }
+  }, [verificationCacheKey, userEmail]);
+
+  const cacheCode = useCallback((nextCode: string, expiresAt?: string | null, remainingSeconds?: number) => {
+    if (!verificationCacheKey || !nextCode) return;
+
+    const computedExpiresAt = expiresAt
+      ? expiresAt
+      : new Date(Date.now() + (Math.max(1, remainingSeconds ?? VERIFICATION_CODE_TTL_SECONDS) * 1000)).toISOString();
+
+    sessionStorage.setItem(
+      verificationCacheKey,
+      JSON.stringify({
+        code: nextCode,
+        email: userEmail,
+        expiresAt: computedExpiresAt,
+      })
+    );
+  }, [verificationCacheKey, userEmail]);
 
   const generateCode = useCallback(async () => {
     if (!user || !userEmail) return;
-    setState('loading');
+
+    if (!code) setState('loading');
     setError('');
-    setCode('');
     setCheckAttempts(0);
     setShowManual(false);
 
@@ -50,14 +95,39 @@ const VerifyEmailPage: React.FC = () => {
       });
 
       if (fnError) throw new Error(fnError?.message || 'Failed to generate code');
-      if (data?.code) setCode(data.code);
+      if (!data?.code) throw new Error('Verification code not returned');
+
+      const remainingSeconds = Math.max(
+        0,
+        Number.isFinite(Number(data?.remainingSeconds))
+          ? Number(data?.remainingSeconds)
+          : VERIFICATION_CODE_TTL_SECONDS
+      );
+
+      setCode(data.code);
+      setResendCooldown(remainingSeconds);
+      cacheCode(data.code, data?.expiresAt, remainingSeconds);
       setState('ready');
-      setResendCooldown(60);
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
       setState('error');
     }
-  }, [user, userEmail]);
+  }, [user, userEmail, code, cacheCode]);
+
+  useEffect(() => {
+    if (!user) { navigate('/login', { replace: true }); return; }
+    if (user.app_metadata?.email_verified === true) { navigate('/', { replace: true }); return; }
+
+    if (!restoreCachedCode()) {
+      generateCode();
+    }
+  }, [user, navigate, restoreCachedCode, generateCode]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
