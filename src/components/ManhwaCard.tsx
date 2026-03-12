@@ -20,7 +20,7 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, index = 0, rank, rankCo
   const shouldPrioritizeImage = index < 6;
 
   return (
-    <Link to={`/title/${slug}`} className="group relative flex-shrink-0 w-[140px] sm:w-[160px]">
+    <Link to={`/title/${slug}`} className="group relative block w-full min-w-0 overflow-hidden">
       {rank && (
         <div
           className="absolute -top-1.5 -left-1.5 z-20 w-7 h-7 flex items-center justify-center text-[10px] font-bold rounded-lg border border-border"

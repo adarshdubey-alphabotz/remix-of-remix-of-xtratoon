@@ -206,6 +206,9 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
     return (
       <div id={`comment-${comment.id}`} className={indentClass}>
+        {visualDepth > 0 && (
+          <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-border/40" />
+        )}
         {comment.is_pinned && depth === 0 && (
           <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-1 pl-8">
             <Pin className="w-3 h-3" /> Pinned
