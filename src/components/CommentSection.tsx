@@ -199,7 +199,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
     // Cap visual depth — after MAX_VISUAL_DEPTH, replies render flat (no more indent)
     const visualDepth = Math.min(depth, MAX_VISUAL_DEPTH);
-    const indentClass = visualDepth > 0 ? 'ml-3 sm:ml-5 pl-3 sm:pl-4 border-l-2 border-border/30' : '';
+    const indentClass = visualDepth > 0 ? 'relative ml-3 pl-4' : '';
 
     const countAllReplies = (c: Comment): number => (c.replies?.reduce((sum, r) => sum + 1 + countAllReplies(r), 0) || 0);
     const totalReplies = countAllReplies(comment);
