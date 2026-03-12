@@ -8,6 +8,7 @@ import DynamicMeta from '@/components/DynamicMeta';
 type VerifyState = 'loading' | 'ready' | 'checking' | 'verified' | 'error';
 
 const SUPPORT_EMAIL = 'support@komixora.fun';
+const VERIFICATION_CODE_TTL_SECONDS = 60;
 
 const VerifyEmailPage: React.FC = () => {
   const { user } = useAuth();
