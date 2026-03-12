@@ -253,7 +253,7 @@ const PostDetailPage: React.FC = () => {
               <button onClick={() => { if (window.confirm('Delete this post?')) deletePost.mutate(); }} className="flex items-center gap-2 p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"><Trash2 className="w-5 h-5" /></button>
             )}
           </div>
-        </motion.article>
+        </article>
 
         {/* Reply composer */}
         {user ? (
