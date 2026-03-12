@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,6 +27,23 @@ function getContentType(language: string | null | undefined): string {
   if (lang === 'novel' || lang === 'light novel') return 'Novel';
   return 'Manga';
 }
+
+const DescriptionToggle = ({ text }: { text: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="mt-6 px-4 pt-2 pb-3 bg-muted/30 rounded-xl border border-border">
+      <p className={`text-sm text-muted-foreground leading-[22px] ${expanded ? '' : 'line-clamp-3'}`}>
+        {text}
+      </p>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="mt-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+      >
+        {expanded ? 'Show less' : 'Read more'}
+      </button>
+    </div>
+  );
+};
 
 const UpcomingDetailPage: React.FC = () => {
   const { slug, chapter } = useParams();
@@ -237,11 +254,7 @@ const UpcomingDetailPage: React.FC = () => {
         )}
 
         {/* Description */}
-        {manga.description && (
-          <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-border">
-            <p className="text-sm text-foreground/80 leading-relaxed">{manga.description}</p>
-          </div>
-        )}
+        {manga.description && <DescriptionToggle text={manga.description} />}
 
         {/* Schedule Info */}
         {scheduledDate && (
