@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, ChevronRight, Clock, Crown, Flame, Bookmark, Sparkles, Users, Eye, ChevronLeft } from 'lucide-react';
 import BecauseYouRead from '@/components/BecauseYouRead';
@@ -34,10 +34,28 @@ const formatViews = (n: number) => {
   return n.toString();
 };
 
-/* ── Hero Banner Carousel (Tapas/Webtoon style) ── */
+/* ── Hero Banner Carousel with auto-rotate + fade (Tapas style) ── */
 const HeroBanner: React.FC<{ items: MangaItem[]; creatorMap: Record<string, string> }> = ({ items, creatorMap }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const slides = items.slice(0, 5);
+
+  // Auto-rotate every 5 seconds
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const timer = setInterval(() => {
+      goToSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  const goToSlide = (nextOrFn: number | ((prev: number) => number)) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentSlide(nextOrFn);
+      setTimeout(() => setIsTransitioning(false), 50);
+    }, 300);
+  };
 
   if (slides.length === 0) return null;
 
@@ -46,17 +64,15 @@ const HeroBanner: React.FC<{ items: MangaItem[]; creatorMap: Record<string, stri
 
   return (
     <section className="relative rounded-2xl overflow-hidden bg-card">
-      <Link to={`/title/${slide.slug}`} className="block relative aspect-[16/8] sm:aspect-[16/6]">
+      <Link to={`/title/${slide.slug}`} className={`block relative aspect-[16/8] sm:aspect-[16/6] transition-opacity duration-500 ease-in-out ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
         {coverSrc ? (
           <img src={coverSrc} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" loading="eager" fetchPriority="high" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-background/80 to-transparent" />
 
-        {/* Content */}
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-1.5">
             {(slide.genres || []).slice(0, 2).map(g => (
@@ -71,14 +87,18 @@ const HeroBanner: React.FC<{ items: MangaItem[]; creatorMap: Record<string, stri
         </div>
       </Link>
 
-      {/* Slide indicators */}
+      {/* Slide indicators + nav */}
       {slides.length > 1 && (
         <div className="absolute bottom-2 right-4 flex items-center gap-1.5">
-          <button onClick={() => setCurrentSlide(p => (p - 1 + slides.length) % slides.length)} className="w-6 h-6 rounded-full bg-foreground/10 hover:bg-foreground/20 flex items-center justify-center backdrop-blur-sm">
+          <button onClick={() => goToSlide(p => (p - 1 + slides.length) % slides.length)} className="w-6 h-6 rounded-full bg-foreground/10 hover:bg-foreground/20 flex items-center justify-center backdrop-blur-sm">
             <ChevronLeft className="w-3.5 h-3.5 text-foreground" />
           </button>
-          <span className="text-[10px] font-medium text-foreground/60 tabular-nums">{currentSlide + 1}/{slides.length}</span>
-          <button onClick={() => setCurrentSlide(p => (p + 1) % slides.length)} className="w-6 h-6 rounded-full bg-foreground/10 hover:bg-foreground/20 flex items-center justify-center backdrop-blur-sm">
+          <div className="flex gap-1">
+            {slides.map((_, i) => (
+              <button key={i} onClick={() => goToSlide(i)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === currentSlide ? 'bg-primary w-4' : 'bg-foreground/20 hover:bg-foreground/40'}`} />
+            ))}
+          </div>
+          <button onClick={() => goToSlide(p => (p + 1) % slides.length)} className="w-6 h-6 rounded-full bg-foreground/10 hover:bg-foreground/20 flex items-center justify-center backdrop-blur-sm">
             <ChevronRight className="w-3.5 h-3.5 text-foreground" />
           </button>
         </div>

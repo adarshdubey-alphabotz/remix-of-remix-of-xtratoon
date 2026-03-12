@@ -58,8 +58,8 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const handleLogin = () => { setAuthTab('login'); setShowAuthModal(true); setMobileMenuOpen(false); };
-  const handleSignup = () => { setAuthTab('signup'); setShowAuthModal(true); setMobileMenuOpen(false); };
+  const handleLogin = () => { navigate('/login'); setMobileMenuOpen(false); };
+  const handleSignup = () => { navigate('/signup'); setMobileMenuOpen(false); };
   const handleLogout = async () => {
     setLogoutPending(true);
     await logout();

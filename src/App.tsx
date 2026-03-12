@@ -52,6 +52,9 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const UpcomingPage = lazy(() => import("./pages/UpcomingPage"));
 const UpcomingDetailPage = lazy(() => import("./pages/UpcomingDetailPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const SignupPage = lazy(() => import("./pages/SignupPage"));
+const VerifyEmailPage = lazy(() => import("./pages/VerifyEmailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -127,6 +130,37 @@ const RouteFallback = () => (
   </div>
 );
 
+// Verification gate: redirect unverified users to /verify
+const RequireVerification: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  // Public routes that don't need verification
+  const publicPaths = ['/', '/about', '/browse', '/charts', '/login', '/signup', '/verify', '/reset-password',
+    '/terms', '/privacy', '/content-guidelines', '/disclaimer', '/dmca', '/cookie-policy', '/blog', '/creators',
+    '/community', '/upcoming'];
+  
+  const isPublicRoute = publicPaths.some(p => location.pathname === p) || 
+    location.pathname.startsWith('/title/') || 
+    location.pathname.startsWith('/manhwa/') ||
+    location.pathname.startsWith('/read/') ||
+    location.pathname.startsWith('/publisher/') ||
+    location.pathname.startsWith('/reader/') ||
+    location.pathname.startsWith('/user/') ||
+    location.pathname.startsWith('/blog/') ||
+    location.pathname.startsWith('/upcoming/') ||
+    location.pathname.startsWith('/community/post/');
+
+  if (loading) return null;
+
+  // If logged in but email not confirmed, redirect to /verify (unless already there or on public routes)
+  if (user && !user.email_confirmed_at && !isPublicRoute) {
+    return <Navigate to="/verify" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
 
@@ -134,44 +168,49 @@ const AnimatedRoutes = () => {
     <>
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>
-        <Routes location={location}>
-          <Route path="/" element={<ExplorePage />} />
-          <Route path="/home" element={<Navigate to="/" replace />} />
-          <Route path="/explore" element={<Navigate to="/" replace />} />
-          <Route path="/about" element={<Index />} />
-          <Route path="/title/:id" element={<ManhwaDetail />} />
-          <Route path="/manhwa/:id" element={<ManhwaDetail />} />
-          <Route path="/read/:id/:chapter" element={<ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary>} />
-          <Route path="/browse" element={<BrowsePage />} />
-          <Route path="/charts" element={<TopChartsPage />} />
-          <Route path="/publisher/:id" element={<PublisherProfile />} />
-          <Route path="/reader/:id" element={<UserProfilePage />} />
-          <Route path="/user/:id" element={<UserProfilePage />} />
-          <Route path="/dashboard" element={<PublisherDashboard />} />
-          <Route path="/upcoming" element={<UpcomingPage />} />
-          <Route path="/upcoming/:slug/:chapter" element={<UpcomingDetailPage />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/library" element={<MyLibrary />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<ProfilePage />} />
-          <Route path="/creators" element={<SearchCreators />} />
-          <Route path="/community" element={<CommunityPage />} />
-          <Route path="/community/post/:postId" element={<PostDetailPage />} />
-          <Route path="/community/my-posts" element={<MyPostsPage />} />
-          <Route path="/community/bookmarks" element={<BookmarksPage />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/content-guidelines" element={<ContentGuidelines />} />
-          <Route path="/disclaimer" element={<DisclaimerPage />} />
-          <Route path="/dmca" element={<DMCAPage />} />
-          <Route path="/cookie-policy" element={<CookiePolicyPage />} />
-          <Route path="/blog" element={<BlogListPage />} />
-          <Route path="/blog/:slug" element={<BlogDetailPage />} />
-          <Route path="/admin/blog" element={<AdminBlogEditor />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <RequireVerification>
+          <Routes location={location}>
+            <Route path="/" element={<ExplorePage />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
+            <Route path="/explore" element={<Navigate to="/" replace />} />
+            <Route path="/about" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/verify" element={<VerifyEmailPage />} />
+            <Route path="/title/:id" element={<ManhwaDetail />} />
+            <Route path="/manhwa/:id" element={<ManhwaDetail />} />
+            <Route path="/read/:id/:chapter" element={<ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary>} />
+            <Route path="/browse" element={<BrowsePage />} />
+            <Route path="/charts" element={<TopChartsPage />} />
+            <Route path="/publisher/:id" element={<PublisherProfile />} />
+            <Route path="/reader/:id" element={<UserProfilePage />} />
+            <Route path="/user/:id" element={<UserProfilePage />} />
+            <Route path="/dashboard" element={<PublisherDashboard />} />
+            <Route path="/upcoming" element={<UpcomingPage />} />
+            <Route path="/upcoming/:slug/:chapter" element={<UpcomingDetailPage />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/library" element={<MyLibrary />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<ProfilePage />} />
+            <Route path="/creators" element={<SearchCreators />} />
+            <Route path="/community" element={<CommunityPage />} />
+            <Route path="/community/post/:postId" element={<PostDetailPage />} />
+            <Route path="/community/my-posts" element={<MyPostsPage />} />
+            <Route path="/community/bookmarks" element={<BookmarksPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/content-guidelines" element={<ContentGuidelines />} />
+            <Route path="/disclaimer" element={<DisclaimerPage />} />
+            <Route path="/dmca" element={<DMCAPage />} />
+            <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+            <Route path="/blog" element={<BlogListPage />} />
+            <Route path="/blog/:slug" element={<BlogDetailPage />} />
+            <Route path="/admin/blog" element={<AdminBlogEditor />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </RequireVerification>
       </Suspense>
     </>
   );
