@@ -2,8 +2,8 @@ import React, { useRef, useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin, Link2, ArrowBigUp, ArrowBigDown } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin, Link2 } from 'lucide-react';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import GifPicker from '@/components/GifPicker';
 import { toast } from 'sonner';
@@ -20,7 +20,6 @@ interface Comment {
   is_pinned?: boolean;
   profile?: { username: string | null; display_name: string | null; avatar_url: string | null; is_verified?: boolean; role_type?: string };
   replies?: Comment[];
-  score?: number;
 }
 
 interface Props {
@@ -46,7 +45,6 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [selectedGif, setSelectedGif] = useState<string | null>(null);
-  const [sortMode, setSortMode] = useState<'best' | 'new'>('best');
   const submitLockRef = useRef(false);
 
   const isCreator = !!user && !!creatorId && user.id === creatorId;
@@ -74,7 +72,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       const topLevel: Comment[] = [];
 
       for (const c of allComments) {
-        const comment: Comment = { ...c, profile: profileMap.get(c.user_id) || null, replies: [], score: 0 };
+        const comment: Comment = { ...c, profile: profileMap.get(c.user_id) || null, replies: [] };
         commentMap.set(c.id, comment);
       }
 
@@ -91,72 +89,20 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
         c.replies?.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       }
 
-      return { topLevel, commentIds: Array.from(commentMap.keys()) };
+      return topLevel;
     },
     enabled: !!mangaId,
   });
 
-  const commentIds = useMemo(() => commentsData?.commentIds || [], [commentsData]);
-
-  const { data: votes = [] } = useQuery({
-    queryKey: ['comment-votes', mangaId],
-    queryFn: async () => {
-      if (commentIds.length === 0) return [];
-      const { data } = await supabase
-        .from('comment_votes')
-        .select('comment_id, user_id, vote')
-        .in('comment_id', commentIds as string[]);
-      return data || [];
-    },
-    enabled: commentIds.length > 0,
-  });
-
-  // Compute vote scores
-  const voteScores = useMemo(() => {
-    const map = new Map<string, number>();
-    votes.forEach((v: any) => map.set(v.comment_id, (map.get(v.comment_id) || 0) + v.vote));
-    return map;
-  }, [votes]);
-
-  const userVotes = useMemo(() => {
-    if (!user) return new Map<string, number>();
-    const map = new Map<string, number>();
-    votes.filter((v: any) => v.user_id === user.id).forEach((v: any) => map.set(v.comment_id, v.vote));
-    return map;
-  }, [votes, user]);
-
-  const voteMutation = useMutation({
-    mutationFn: async ({ commentId, vote }: { commentId: string; vote: 1 | -1 }) => {
-      if (!user) throw new Error('Login required');
-      const existing = userVotes.get(commentId);
-      if (existing === vote) {
-        // Remove vote
-        await supabase.from('comment_votes').delete().eq('comment_id', commentId).eq('user_id', user.id);
-      } else if (existing) {
-        // Update vote
-        await supabase.from('comment_votes').update({ vote }).eq('comment_id', commentId).eq('user_id', user.id);
-      } else {
-        // Insert vote
-        await supabase.from('comment_votes').insert({ comment_id: commentId, user_id: user.id, vote });
-      }
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['comment-votes', mangaId] }),
-    onError: (e: any) => toast.error(e.message),
-  });
-
-  // Sorted top-level comments
   const sortedComments = useMemo(() => {
-    const list = [...(commentsData?.topLevel || [])];
+    const list = [...(commentsData || [])];
     list.sort((a, b) => {
       if (a.is_pinned && !b.is_pinned) return -1;
       if (!a.is_pinned && b.is_pinned) return 1;
-      if (sortMode === 'best') {
-        return (voteScores.get(b.id) || 0) - (voteScores.get(a.id) || 0);
-      }
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
     return list;
-  }, [commentsData?.topLevel, sortMode, voteScores]);
+  }, [commentsData]);
 
   const handleSubmit = async () => {
     if (!user) { toast.error('Please login to comment'); return; }
@@ -258,10 +204,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
     const isExpanded = expandedReplies.has(comment.id);
     const depthColor = DEPTH_COLORS[depth % DEPTH_COLORS.length];
     const maxDepthMobile = depth >= 3;
-    const score = voteScores.get(comment.id) || 0;
-    const myVote = userVotes.get(comment.id);
 
-    // Count all nested replies
     const countAllReplies = (c: Comment): number => (c.replies?.reduce((sum, r) => sum + 1 + countAllReplies(r), 0) || 0);
     const totalReplies = countAllReplies(comment);
 
@@ -271,36 +214,23 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
         className={`${depth > 0 ? `ml-3 sm:ml-6 border-l-2 ${depthColor} pl-3 sm:pl-4` : ''} ${maxDepthMobile ? 'ml-1 sm:ml-6' : ''}`}
       >
         {comment.is_pinned && depth === 0 && (
-          <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-1 pl-11">
+          <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold mb-1 pl-8">
             <Pin className="w-3 h-3" /> Pinned
           </div>
         )}
-        <div className="flex gap-2 py-2.5">
-          {/* Vote buttons */}
-          <div className="flex flex-col items-center gap-0 flex-shrink-0 pt-1">
-            <button
-              onClick={() => { if (!user) toast.error('Login to vote'); else voteMutation.mutate({ commentId: comment.id, vote: 1 }); }}
-              className={`p-0.5 rounded transition-colors ${myVote === 1 ? 'text-primary' : 'text-muted-foreground/40 hover:text-primary'}`}
-            >
-              <ArrowBigUp className={`w-5 h-5 ${myVote === 1 ? 'fill-primary' : ''}`} />
-            </button>
-            <span className={`text-xs font-bold min-w-[16px] text-center ${score > 0 ? 'text-primary' : score < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>{score}</span>
-            <button
-              onClick={() => { if (!user) toast.error('Login to vote'); else voteMutation.mutate({ commentId: comment.id, vote: -1 }); }}
-              className={`p-0.5 rounded transition-colors ${myVote === -1 ? 'text-destructive' : 'text-muted-foreground/40 hover:text-destructive'}`}
-            >
-              <ArrowBigDown className={`w-5 h-5 ${myVote === -1 ? 'fill-destructive' : ''}`} />
-            </button>
+        <div className="flex gap-2.5 py-2.5">
+          {/* Avatar */}
+          <div className="flex-shrink-0">
+            {comment.profile?.avatar_url ? (
+              <img src={comment.profile.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{initial}</div>
+            )}
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              {comment.profile?.avatar_url ? (
-                <img src={comment.profile.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary">{initial}</div>
-              )}
               {comment.profile?.username ? (
                 <Link
                   to={comment.profile.role_type === 'publisher' || comment.profile.role_type === 'creator' ? `/publisher/${comment.profile.username}` : `/reader/${comment.profile.username}`}
@@ -393,26 +323,10 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-display text-2xl flex items-center gap-2 tracking-wider">
-          <div className="w-1.5 h-6 bg-primary" />
-          COMMENTS ({totalComments})
-        </h2>
-        <div className="flex gap-1">
-          <button
-            onClick={() => setSortMode('best')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${sortMode === 'best' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
-          >
-            Best
-          </button>
-          <button
-            onClick={() => setSortMode('new')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${sortMode === 'new' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
-          >
-            New
-          </button>
-        </div>
-      </div>
+      <h2 className="text-display text-2xl flex items-center gap-2 tracking-wider">
+        <div className="w-1.5 h-6 bg-primary" />
+        COMMENTS ({totalComments})
+      </h2>
 
       <div className="brutal-card p-4 space-y-3">
         {replyTo && (
@@ -426,8 +340,8 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
         {selectedGif && (
           <div className="relative inline-block rounded-xl overflow-hidden border border-border/30">
             <img src={selectedGif} alt="Selected GIF" className="max-h-[150px] object-contain" />
-            <button 
-              onClick={() => setSelectedGif(null)} 
+            <button
+              onClick={() => setSelectedGif(null)}
               className="absolute top-1 right-1 p-1 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all"
             >
               <span className="text-xs">✕</span>
