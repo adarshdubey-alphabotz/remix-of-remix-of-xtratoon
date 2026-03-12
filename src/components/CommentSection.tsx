@@ -207,7 +207,19 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-semibold">{displayName}</span>
+              {comment.profile?.username ? (
+                <Link
+                  to={comment.profile?.username ? (
+                    // Check role from profile data - publishers go to /publisher/, others to /reader/
+                    `/publisher/${comment.profile.username}`
+                  ) : '#'}
+                  className="text-sm font-semibold hover:text-primary transition-colors hover:underline"
+                >
+                  {displayName}
+                </Link>
+              ) : (
+                <span className="text-sm font-semibold">{displayName}</span>
+              )}
               {comment.profile?.is_verified && <VerifiedBadge size="sm" />}
               <span className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleString()}</span>
               {depth > 0 && comment.parent_id && (
