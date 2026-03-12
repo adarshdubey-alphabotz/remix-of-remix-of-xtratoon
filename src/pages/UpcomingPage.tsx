@@ -363,12 +363,9 @@ const UpcomingPage: React.FC = () => {
               const contentType = getContentType(manga.language);
 
               return (
-                <motion.div
+                <div
                   key={item.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(i * 0.03, 0.25) }}
-                  className="rounded-xl border border-border bg-card p-3 transition-all"
+                  className="rounded-xl border border-border bg-card p-3"
                 >
                   <div className="flex items-center gap-3">
                     {/* Rank — inside card, left-aligned */}
