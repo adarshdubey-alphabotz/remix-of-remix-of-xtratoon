@@ -289,7 +289,7 @@ const UpcomingDetailPage: React.FC = () => {
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {demoPages.slice(0, 2).map((page: any) => (
-                <motion.div key={page.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-xl overflow-hidden border border-border aspect-[3/4] bg-muted/20">
+                <div key={page.id} className="rounded-xl overflow-hidden border border-border aspect-[3/4] bg-muted/20">
                   <img
                     src={getImageUrl(page.telegram_file_id)!}
                     alt={`Preview page ${page.page_number}`}
