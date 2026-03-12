@@ -121,20 +121,6 @@ const CommunityPage: React.FC = () => {
     supabase.rpc('increment_community_post_views', { p_post_id: postId });
   }, []);
 
-const ViewTracker: React.FC<{ postId: string; onView: (id: string) => void; children: React.ReactNode }> = ({ postId, onView, children }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { onView(postId); observer.disconnect(); } },
-      { threshold: 0.5 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [postId, onView]);
-  return <div ref={ref}>{children}</div>;
-};
 
 
   const pinPostMutation = useMutation({
