@@ -279,6 +279,7 @@ export type Database = {
           id: string
           is_published: boolean | null
           manga_id: string
+          schedule_verified: boolean
           scheduled_at: string | null
           title: string | null
           updated_at: string
@@ -291,6 +292,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           manga_id: string
+          schedule_verified?: boolean
           scheduled_at?: string | null
           title?: string | null
           updated_at?: string
@@ -303,6 +305,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           manga_id?: string
+          schedule_verified?: boolean
           scheduled_at?: string | null
           title?: string | null
           updated_at?: string
@@ -913,6 +916,48 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "reports_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_upvotes: {
+        Row: {
+          chapter_id: string
+          created_at: string
+          id: string
+          manga_id: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          chapter_id: string
+          created_at?: string
+          id?: string
+          manga_id: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          chapter_id?: string
+          created_at?: string
+          id?: string
+          manga_id?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_upvotes_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_upvotes_manga_id_fkey"
             columns: ["manga_id"]
             isOneToOne: false
             referencedRelation: "manga"
