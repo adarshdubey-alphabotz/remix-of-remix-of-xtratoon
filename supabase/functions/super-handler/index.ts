@@ -283,39 +283,57 @@ serve(async (req) => {
         const found = await checkImapForEmail(email, code);
 
         if (found) {
-          // Auto-verify the user
+          const normalizedCode = code.toUpperCase().trim();
           const { data: pending } = await supabase
             .from('pending_verifications')
             .select('*')
             .eq('email', email)
-            .eq('code', code.toUpperCase().trim())
+            .eq('code', normalizedCode)
             .eq('verified', false)
             .gt('expires_at', new Date().toISOString())
             .maybeSingle();
 
-          if (pending) {
-            await supabase.from('pending_verifications').update({ verified: true }).eq('id', pending.id);
-
-            const { data: authUserData } = await supabase.auth.admin.getUserById(pending.user_id);
-            const existingMeta = authUserData?.user?.app_metadata || {};
-            await supabase.auth.admin.updateUserById(pending.user_id, {
-              email_confirm: true,
-              app_metadata: { ...existingMeta, email_verified: true },
+          if (!pending) {
+            return new Response(JSON.stringify({
+              found: true,
+              verified: false,
+              codeExpired: true,
+              error: 'Code expired. Generate a new code and resend email.',
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
           }
+
+          await supabase.from('pending_verifications').update({ verified: true }).eq('id', pending.id);
+
+          const { data: authUserData } = await supabase.auth.admin.getUserById(pending.user_id);
+          const existingMeta = authUserData?.user?.app_metadata || {};
+          await supabase.auth.admin.updateUserById(pending.user_id, {
+            email_confirm: true,
+            app_metadata: { ...existingMeta, email_verified: true },
+          });
 
           return new Response(JSON.stringify({ found: true, verified: true }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
-        return new Response(JSON.stringify({ found: false }), {
+        return new Response(JSON.stringify({ found: false, verified: false }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (imapError: any) {
         console.error('IMAP check failed:', imapError);
+        const isLoginIssue = String(imapError?.message || '').includes('IMAP_LOGIN_FAILED');
+
         return new Response(
-          JSON.stringify({ found: false, imapUnavailable: true, error: 'Inbox check not available — use manual code entry.' }),
+          JSON.stringify({
+            found: false,
+            verified: false,
+            imapUnavailable: true,
+            error: isLoginIssue
+              ? 'Inbox login failed. Configure IMAP_HOST/IMAP_PORT (or SMTP_HOST) for your mailbox provider.'
+              : 'Inbox check not available — use manual code entry.',
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
