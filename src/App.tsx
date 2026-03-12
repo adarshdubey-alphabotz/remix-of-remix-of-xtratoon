@@ -49,6 +49,7 @@ const BlogListPage = lazy(() => import("./pages/BlogListPage"));
 const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 const AdminBlogEditor = lazy(() => import("./pages/AdminBlogEditor"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
