@@ -318,7 +318,7 @@ const PostDetailPage: React.FC = () => {
       {showReportModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setShowReportModal(false)}>
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-background border border-border rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-background border border-border rounded-2xl p-6 w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-display text-xl tracking-wider flex items-center gap-2"><Flag className="w-5 h-5 text-destructive" /> Report Post</h3>
             <textarea value={reportReason} onChange={e => setReportReason(e.target.value)} rows={3} placeholder="Why are you reporting this post?" className="w-full px-3 py-2.5 bg-muted/30 border border-border rounded-xl text-sm focus:outline-none focus:border-primary resize-none" />
             <div className="flex gap-2">
