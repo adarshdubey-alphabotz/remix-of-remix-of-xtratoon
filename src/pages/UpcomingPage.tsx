@@ -419,7 +419,7 @@ const UpcomingPage: React.FC = () => {
                             <CheckCircle2 className="w-2.5 h-2.5" /> Launched
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium bg-blue-500/10 text-blue-400 rounded">
+                          <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded">
                             Upcoming
                           </span>
                         )}
