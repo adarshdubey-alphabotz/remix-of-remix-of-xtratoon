@@ -28,7 +28,7 @@ interface Props {
   creatorId?: string;
 }
 
-const MAX_VISUAL_DEPTH = 4; // Cap nesting depth visually
+const MAX_VISUAL_DEPTH = 2; // Cap nesting depth — deeper replies stay flat at level 2
 
 const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => {
   const { user, isAdmin } = useAuth();
