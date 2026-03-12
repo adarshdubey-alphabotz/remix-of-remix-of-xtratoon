@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { getImageUrl } from '@/lib/imageUrl';
 import { ChevronLeft, ChevronRight, ArrowUp, Search, Flame, Users, Clock, CheckCircle2, Trophy, ChevronDown, X, Calendar } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import DynamicMeta from '@/components/DynamicMeta';
 import { toast } from 'sonner';
 
