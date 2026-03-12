@@ -1,18 +1,83 @@
-// NSFWJS client-side NSFW detection via CDN
-// Loads TensorFlow.js + NSFWJS model only when first needed (~5MB one-time)
+// Client-side NSFW detection with resilient CDN/model fallback
+// Loads TensorFlow.js + NSFWJS only when first needed (~5MB one-time)
 
 let nsfwModel: any = null;
 let loadingPromise: Promise<any> | null = null;
 
+const TFJS_CDNS = [
+  'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js',
+  'https://unpkg.com/@tensorflow/tfjs@4.22.0/dist/tf.min.js',
+];
+
+const NSFWJS_CDNS = [
+  'https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js',
+  'https://unpkg.com/nsfwjs@2.4.2/dist/nsfwjs.min.js',
+];
+
+const MODEL_BASE_URLS = [
+  undefined,
+  'https://unpkg.com/nsfwjs@2.4.2/dist/model/',
+  'https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/model/',
+];
+
+function getGlobal() {
+  return window as any;
+}
+
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error(`Failed to load ${src}`));
-    document.head.appendChild(s);
+    const existing = document.querySelector(`script[src="${src}"]`) as HTMLScriptElement | null;
+    if (existing) {
+      if ((existing as any).__loaded) {
+        resolve();
+        return;
+      }
+
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = () => {
+      (script as any).__loaded = true;
+      resolve();
+    };
+    script.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(script);
   });
+}
+
+async function loadScriptWithFallback(urls: string[]) {
+  let lastError: unknown = null;
+  for (const url of urls) {
+    try {
+      await loadScript(url);
+      return;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Failed to load script from all CDNs');
+}
+
+async function loadModelWithFallback(nsfwjs: any) {
+  let lastError: unknown = null;
+
+  for (const modelBase of MODEL_BASE_URLS) {
+    try {
+      if (modelBase) {
+        return await nsfwjs.load(modelBase);
+      }
+      return await nsfwjs.load();
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Failed to load NSFW model from all mirrors');
 }
 
 async function getModel() {
@@ -20,15 +85,25 @@ async function getModel() {
   if (loadingPromise) return loadingPromise;
 
   loadingPromise = (async () => {
-    // Load TensorFlow.js first
-    await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js');
-    // Load NSFWJS v2.4.2 (stable, well-tested with CDN)
-    await loadScript('https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js');
-    const nsfwjs = (window as any).nsfwjs;
+    const g = getGlobal();
+
+    if (!g.tf) {
+      await loadScriptWithFallback(TFJS_CDNS);
+    }
+
+    if (!g.nsfwjs) {
+      await loadScriptWithFallback(NSFWJS_CDNS);
+    }
+
+    const nsfwjs = g.nsfwjs;
     if (!nsfwjs) throw new Error('NSFWJS not loaded');
-    nsfwModel = await nsfwjs.load();
+
+    nsfwModel = await loadModelWithFallback(nsfwjs);
     return nsfwModel;
-  })();
+  })().catch((err) => {
+    loadingPromise = null;
+    throw err;
+  });
 
   return loadingPromise;
 }
