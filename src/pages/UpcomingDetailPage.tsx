@@ -223,6 +223,11 @@ const UpcomingDetailPage: React.FC = () => {
             <Link to={`/title/${manga.slug}`} className="inline-flex items-center gap-2 px-5 py-3 bg-green-500/10 text-green-500 border border-green-500/30 rounded-xl text-sm font-semibold hover:bg-green-500/20 transition-colors">
               <CheckCircle2 className="w-4 h-4" /> Launched — Read Now
             </Link>
+          ) : isPastDue && scheduledDate ? (
+            <div className="flex items-center gap-2 px-4 py-3 bg-yellow-500/10 rounded-xl border border-yellow-500/30 text-sm text-yellow-500">
+              <Clock className="w-4 h-4" />
+              <span className="font-semibold">Publishing soon…</span>
+            </div>
           ) : scheduledDate ? (
             <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 rounded-xl border border-border text-sm">
               <Clock className="w-4 h-4 text-primary" />
