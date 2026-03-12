@@ -36,20 +36,20 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: authUserData, error: authUserError } = await supabase.auth.admin.getUserById(userId);
-    if (authUserError || !authUserData.user) {
-      return new Response(JSON.stringify({ error: 'Invalid user' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+
+    if (authUserError) {
+      console.error('User lookup warning:', authUserError);
     }
 
-    const existingAppMetadata = authUserData.user.app_metadata || {};
-    const { error: appMetaError } = await supabase.auth.admin.updateUserById(userId, {
-      app_metadata: { ...existingAppMetadata, email_verified: false },
-    });
+    if (authUserData?.user) {
+      const existingAppMetadata = authUserData.user.app_metadata || {};
+      const { error: appMetaError } = await supabase.auth.admin.updateUserById(userId, {
+        app_metadata: { ...existingAppMetadata, email_verified: false },
+      });
 
-    if (appMetaError) {
-      console.error('Failed to set email_verified=false:', appMetaError);
+      if (appMetaError) {
+        console.error('Failed to set email_verified=false:', appMetaError);
+      }
     }
 
     // Delete old pending verifications for this user
