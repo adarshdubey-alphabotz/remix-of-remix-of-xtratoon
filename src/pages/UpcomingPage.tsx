@@ -379,7 +379,7 @@ const UpcomingPage: React.FC = () => {
                     <Link to={`/upcoming/${manga.slug}/${item.chapter_number}`} className="flex-shrink-0">
                       <div className="w-11 h-14 rounded-lg overflow-hidden border border-border">
                         {manga.cover_url ? (
-                          <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" loading="lazy" />
+                          <img src={getImageUrl(manga.cover_url)!} alt={manga.title} className="w-full h-full object-cover" loading={i < 6 ? 'eager' : 'lazy'} fetchPriority={i < 3 ? 'high' : 'auto'} decoding="async" />
                         ) : (
                           <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">{manga.title[0]}</div>
                         )}
