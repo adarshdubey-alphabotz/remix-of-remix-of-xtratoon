@@ -138,6 +138,12 @@ const VerifyEmailPage: React.FC = () => {
   const mailtoHref = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(code + ' — Komixora Verification')}&body=${encodeURIComponent(`My verification code is: ${code}\n\nEmail: ${userEmail}`)}`;
 
   const handleCheckInbox = async () => {
+    if (!code || resendCooldown <= 0) {
+      setShowManual(true);
+      setError('Code expired. Generate a new code first.');
+      return;
+    }
+
     setState('checking');
     setError('');
 
@@ -156,20 +162,30 @@ const VerifyEmailPage: React.FC = () => {
         return;
       }
 
-      if (data?.imapUnavailable) {
+      if (data?.codeExpired) {
         setShowManual(true);
-        setError('Automatic inbox check is not available. Please enter the code manually below.');
+        setError(data?.error || 'Code expired. Generate a new code first.');
         setState('ready');
         return;
       }
 
-      setCheckAttempts(prev => prev + 1);
-      if (checkAttempts >= 2) {
+      if (data?.imapUnavailable) {
+        setShowManual(true);
+        setError(data?.error || 'Automatic inbox check is not available. Please enter the code manually below.');
+        setState('ready');
+        return;
+      }
+
+      const nextAttempts = checkAttempts + 1;
+      setCheckAttempts(nextAttempts);
+
+      if (nextAttempts >= 2) {
         setShowManual(true);
         setError('Email not found yet. You can enter the code manually below.');
       } else {
         setError('Email not received yet. Make sure you sent it from ' + userEmail + ' and try again.');
       }
+
       setState('ready');
     } catch (err: any) {
       setShowManual(true);
@@ -293,8 +309,8 @@ const VerifyEmailPage: React.FC = () => {
                 {/* Check inbox button */}
                 <button
                   onClick={handleCheckInbox}
-                  disabled={false}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-accent-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity border border-border"
+                  disabled={resendCooldown <= 0}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-accent-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity border border-border disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw className="w-4 h-4" />
                   I've sent it — Check now
