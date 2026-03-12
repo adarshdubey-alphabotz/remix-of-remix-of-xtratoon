@@ -323,6 +323,7 @@ export type Database = {
           chapter_id: string | null
           content: string
           created_at: string
+          gif_url: string | null
           id: string
           is_pinned: boolean
           manga_id: string
@@ -335,6 +336,7 @@ export type Database = {
           chapter_id?: string | null
           content: string
           created_at?: string
+          gif_url?: string | null
           id?: string
           is_pinned?: boolean
           manga_id: string
@@ -347,6 +349,7 @@ export type Database = {
           chapter_id?: string | null
           content?: string
           created_at?: string
+          gif_url?: string | null
           id?: string
           is_pinned?: boolean
           manga_id?: string
