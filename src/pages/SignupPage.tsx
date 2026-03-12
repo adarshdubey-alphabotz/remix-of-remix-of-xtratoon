@@ -35,9 +35,7 @@ const SignupPage: React.FC = () => {
   const checkRate = useRateLimit(5, 60000);
 
   React.useEffect(() => {
-    if (!user) return;
-    const isVerified = user.app_metadata?.email_verified === true;
-    navigate(isVerified ? '/' : '/verify', { replace: true });
+    if (user) navigate('/verify', { replace: true });
   }, [user, navigate]);
 
   const handleSignup = async (e: React.FormEvent) => {
