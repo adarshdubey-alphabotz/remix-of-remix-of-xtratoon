@@ -31,9 +31,11 @@ const LoginPage: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const checkRate = useRateLimit(5, 60000);
 
-  // Redirect if already logged in
+  // Redirect based on verification status
   React.useEffect(() => {
-    if (user) navigate('/', { replace: true });
+    if (!user) return;
+    const isVerified = Boolean(user.app_metadata?.email_verified);
+    navigate(isVerified ? '/' : '/verify', { replace: true });
   }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {

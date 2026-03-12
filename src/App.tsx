@@ -130,32 +130,25 @@ const RouteFallback = () => (
   </div>
 );
 
-// Verification gate: redirect unverified users to /verify
+const isEmailVerified = (appUser: ReturnType<typeof useAuth>["user"]) =>
+  Boolean(appUser?.app_metadata?.email_verified);
+
+// Verification gate: force unverified users to /verify only
 const RequireVerification: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Public routes that don't need verification
-  const publicPaths = ['/', '/about', '/browse', '/charts', '/login', '/signup', '/verify', '/reset-password',
-    '/terms', '/privacy', '/content-guidelines', '/disclaimer', '/dmca', '/cookie-policy', '/blog', '/creators',
-    '/community', '/upcoming'];
-  
-  const isPublicRoute = publicPaths.some(p => location.pathname === p) || 
-    location.pathname.startsWith('/title/') || 
-    location.pathname.startsWith('/manhwa/') ||
-    location.pathname.startsWith('/read/') ||
-    location.pathname.startsWith('/publisher/') ||
-    location.pathname.startsWith('/reader/') ||
-    location.pathname.startsWith('/user/') ||
-    location.pathname.startsWith('/blog/') ||
-    location.pathname.startsWith('/upcoming/') ||
-    location.pathname.startsWith('/community/post/');
+  const allowedWhileUnverified = ['/verify', '/login', '/signup', '/reset-password'];
+  const isAllowedWhileUnverified = allowedWhileUnverified.some((path) => location.pathname === path);
 
   if (loading) return null;
 
-  // If logged in but email not confirmed, redirect to /verify (unless already there or on public routes)
-  if (user && !user.email_confirmed_at && !isPublicRoute) {
+  if (user && !isEmailVerified(user) && !isAllowedWhileUnverified) {
     return <Navigate to="/verify" replace />;
+  }
+
+  if (user && isEmailVerified(user) && location.pathname === '/verify') {
+    return <Navigate to="/profile" replace />;
   }
 
   return <>{children}</>;

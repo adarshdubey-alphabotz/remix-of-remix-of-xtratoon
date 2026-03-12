@@ -54,9 +54,13 @@ serve(async (req) => {
       .update({ verified: true })
       .eq('id', pending.id);
 
-    // Confirm email in Supabase Auth using admin API
+    // Mark custom verification + confirm auth email
+    const { data: authUserData } = await supabase.auth.admin.getUserById(pending.user_id);
+    const existingAppMetadata = authUserData?.user?.app_metadata || {};
+
     const { error: confirmError } = await supabase.auth.admin.updateUserById(pending.user_id, {
       email_confirm: true,
+      app_metadata: { ...existingAppMetadata, email_verified: true },
     });
 
     if (confirmError) {

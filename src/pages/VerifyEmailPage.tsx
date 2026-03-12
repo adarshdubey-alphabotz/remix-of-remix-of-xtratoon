@@ -8,10 +8,9 @@ import DynamicMeta from '@/components/DynamicMeta';
 type VerifyState = 'loading' | 'waiting' | 'checking' | 'verified' | 'expired' | 'error';
 
 const VerifyEmailPage: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [state, setState] = useState<VerifyState>('loading');
-  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [inputCode, setInputCode] = useState('');
 
@@ -29,7 +28,6 @@ const VerifyEmailPage: React.FC = () => {
       });
 
       if (fnError) throw fnError;
-      if (data?.code) setCode(data.code);
       setState('waiting');
     } catch (err: any) {
       setError(err.message || 'Failed to send verification email');
@@ -44,9 +42,9 @@ const VerifyEmailPage: React.FC = () => {
       return;
     }
 
-    // If email already confirmed, go home
-    if (user.email_confirmed_at) {
-      navigate('/', { replace: true });
+    // If already verified, go to profile
+    if (Boolean(user.app_metadata?.email_verified)) {
+      navigate('/profile', { replace: true });
       return;
     }
 
@@ -67,9 +65,9 @@ const VerifyEmailPage: React.FC = () => {
 
       if (data?.verified) {
         setState('verified');
-        // Refresh session to pick up confirmed email
+        // Refresh session to pick up verified app metadata
         await supabase.auth.refreshSession();
-        setTimeout(() => navigate('/', { replace: true }), 2000);
+        setTimeout(() => navigate('/profile', { replace: true }), 1500);
       } else {
         setError(data?.error || 'Invalid or expired code. Please try again.');
         setState('waiting');
@@ -79,9 +77,6 @@ const VerifyEmailPage: React.FC = () => {
       setState('waiting');
     }
   };
-
-  // Also support mailto approach
-  const mailtoLink = `mailto:support@komixora.fun?subject=${encodeURIComponent(code)}&body=${encodeURIComponent(`Verification code: ${code}\n\nSent from: ${userEmail}`)}`;
 
   if (!user) return null;
 
