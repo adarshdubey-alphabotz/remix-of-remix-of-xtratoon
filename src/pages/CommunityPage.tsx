@@ -136,24 +136,25 @@ const CommunityPage: React.FC = () => {
 
     viewedPostsRef.current.add(postId);
 
-    supabase
-      .rpc('increment_community_post_views', { p_post_id: postId })
-      .then(({ error }) => {
-        if (error) {
-          console.error('Feed post view count error:', error.message);
-          viewedPostsRef.current.delete(postId);
-          return;
-        }
+    const incrementFeedView = async () => {
+      const { error } = await supabase.rpc('increment_community_post_views', { p_post_id: postId });
 
-        sessionStorage.setItem(viewKey, '1');
-        queryClient.setQueryData(['community-posts', tab, followingIds], (old: any[] | undefined) =>
-          old?.map((post) => (post.id === postId ? { ...post, views_count: Number(post.views_count || 0) + 1 } : post)) || old
-        );
-      })
-      .catch((err) => {
-        console.error('Feed post view count error:', err);
+      if (error) {
+        console.error('Feed post view count error:', error.message);
         viewedPostsRef.current.delete(postId);
-      });
+        return;
+      }
+
+      sessionStorage.setItem(viewKey, '1');
+      queryClient.setQueryData(['community-posts', tab, followingIds], (old: any[] | undefined) =>
+        old?.map((post) => (post.id === postId ? { ...post, views_count: Number(post.views_count || 0) + 1 } : post)) || old
+      );
+    };
+
+    incrementFeedView().catch((err) => {
+      console.error('Feed post view count error:', err);
+      viewedPostsRef.current.delete(postId);
+    });
   }, [followingIds, queryClient, tab]);
 
 
