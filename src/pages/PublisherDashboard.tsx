@@ -850,6 +850,11 @@ const PublisherDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* SCHEDULED TAB */}
+          {activeTab === 'scheduled' && user && (
+            <ScheduledContentManager creatorId={user.id} />
+          )}
+
           {/* EARNINGS TAB */}
           {activeTab === 'earnings' && (
             <div>
