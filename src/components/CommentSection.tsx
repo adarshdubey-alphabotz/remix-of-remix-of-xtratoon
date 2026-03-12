@@ -51,8 +51,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
   const isCreator = !!user && !!creatorId && user.id === creatorId;
 
-  // Fetch comments
-  const { data: comments = [], isLoading } = useQuery({
+  const { data: commentsData, isLoading } = useQuery({
     queryKey: ['comments', mangaId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -92,7 +91,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
         c.replies?.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       }
 
-      return { topLevel, commentMap };
+      return { topLevel, commentIds: Array.from(commentMap.keys()) };
     },
     enabled: !!mangaId,
   });
