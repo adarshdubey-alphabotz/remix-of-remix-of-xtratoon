@@ -81,6 +81,11 @@ export default {
       return fetch(request);
     }
 
+    // Server-side 301 redirects for old routes (fixes Google redirect errors)
+    if (url.pathname === "/home" || url.pathname === "/explore") {
+      return Response.redirect(`${SITE_URL}/`, 301);
+    }
+
     // Check if request is from a bot
     const ua = request.headers.get("user-agent") || "";
     if (BOT_AGENTS.test(ua)) {

@@ -102,18 +102,11 @@ const CommunityPage: React.FC = () => {
     },
   });
 
-  // Realtime: auto-refresh on new posts, likes, replies
+  // Realtime: only listen to community_posts updates (likes/replies triggers update this table)
   useEffect(() => {
     const channel = supabase
       .channel('community-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_post_likes' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
-        queryClient.invalidateQueries({ queryKey: ['community-likes'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_replies' }, () => {
         queryClient.invalidateQueries({ queryKey: ['community-posts'] });
       })
       .subscribe();
@@ -258,9 +251,32 @@ const CommunityPage: React.FC = () => {
         await supabase.from('community_post_likes' as any).insert({ user_id: user.id, post_id: postId });
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['community-likes'] });
+    onMutate: async (postId) => {
+      // Optimistic update — toggle like immediately in UI
+      await queryClient.cancelQueries({ queryKey: ['community-likes'] });
+      const prevLikes = queryClient.getQueryData<string[]>(['community-likes', user?.id, posts.map((p: any) => p.id)]) || [];
+      const isLiked = prevLikes.includes(postId);
+      queryClient.setQueryData(['community-likes', user?.id, posts.map((p: any) => p.id)], 
+        isLiked ? prevLikes.filter(id => id !== postId) : [...prevLikes, postId]
+      );
+      // Optimistic count update
+      queryClient.setQueryData(['community-posts', tab, followingIds], (old: any[]) => 
+        old?.map(p => p.id === postId ? { ...p, likes_count: p.likes_count + (isLiked ? -1 : 1) } : p)
+      );
+      return { prevLikes };
+    },
+    onError: (_err, _postId, context) => {
+      if (context?.prevLikes) {
+        queryClient.setQueryData(['community-likes', user?.id, posts.map((p: any) => p.id)], context.prevLikes);
+      }
       queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+    },
+    onSettled: () => {
+      // Refetch after a delay to get server-confirmed counts
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['community-likes'] });
+        queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+      }, 2000);
     },
   });
 
