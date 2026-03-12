@@ -108,6 +108,13 @@ const VerifyEmailPage: React.FC = () => {
                 </p>
               </div>
 
+              {code && (
+                <div className="p-3 rounded-xl bg-muted text-foreground text-sm">
+                  <p className="font-medium">Fallback code:</p>
+                  <p className="font-mono tracking-[0.2em] mt-1">{code}</p>
+                </div>
+              )}
+
               {error && (
                 <div className="p-3 rounded-xl bg-destructive/10 text-destructive text-sm flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" /> {error}
