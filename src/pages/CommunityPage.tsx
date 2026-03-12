@@ -131,10 +131,30 @@ const CommunityPage: React.FC = () => {
   // Track views when posts become visible in feed
   const viewedPostsRef = useRef<Set<string>>(new Set());
   const trackView = useCallback((postId: string) => {
-    if (viewedPostsRef.current.has(postId)) return;
+    const viewKey = `viewed_post_${postId}`;
+    if (viewedPostsRef.current.has(postId) || sessionStorage.getItem(viewKey)) return;
+
     viewedPostsRef.current.add(postId);
-    supabase.rpc('increment_community_post_views', { p_post_id: postId });
-  }, []);
+
+    supabase
+      .rpc('increment_community_post_views', { p_post_id: postId })
+      .then(({ error }) => {
+        if (error) {
+          console.error('Feed post view count error:', error.message);
+          viewedPostsRef.current.delete(postId);
+          return;
+        }
+
+        sessionStorage.setItem(viewKey, '1');
+        queryClient.setQueryData(['community-posts', tab, followingIds], (old: any[] | undefined) =>
+          old?.map((post) => (post.id === postId ? { ...post, views_count: Number(post.views_count || 0) + 1 } : post)) || old
+        );
+      })
+      .catch((err) => {
+        console.error('Feed post view count error:', err);
+        viewedPostsRef.current.delete(postId);
+      });
+  }, [followingIds, queryClient, tab]);
 
 
   const pinPostMutation = useMutation({
