@@ -206,9 +206,7 @@ const UpcomingPage: React.FC = () => {
                   {showSearch ? <X className="w-3.5 h-3.5 text-muted-foreground" /> : <Search className="w-3.5 h-3.5 text-muted-foreground" />}
                 </button>
                 <button onClick={() => setCalendarExpanded(!calendarExpanded)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-                  <motion.div animate={{ rotate: calendarExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-                  </motion.div>
+                  <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground ${calendarExpanded ? 'rotate-180' : ''}`} />
                 </button>
               </div>
             </div>
