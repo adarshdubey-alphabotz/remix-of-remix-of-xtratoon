@@ -278,56 +278,48 @@ const UpcomingPage: React.FC = () => {
           </div>
 
           {/* Expanded Full Calendar (popup) */}
-          <AnimatePresence>
-            {calendarExpanded && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="absolute left-3 right-3 top-full mt-1 bg-card rounded-2xl border border-border shadow-2xl p-4 z-50"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-                    <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  <h3 className="text-sm font-semibold text-foreground">{MONTHS[calMonth]} {calYear}</h3>
-                  <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-7 gap-0.5 mb-1">
-                  {DAYS_SHORT.map((d, i) => (
-                    <div key={i} className="text-center text-[8px] font-medium text-muted-foreground uppercase">{d}</div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-0.5">
-                  {calDays.map((day, i) => {
-                    if (!day) return <div key={`e-${i}`} />;
-                    const isToday = day.toDateString() === todayStr;
-                    const isSelected = day.toDateString() === selectedDate.toDateString();
-                    const hasScheduled = scheduledDates.has(day.toDateString());
-                    return (
-                      <button
-                        key={day.toISOString()}
-                        onClick={() => { setSelectedDate(new Date(day)); setCalendarExpanded(false); }}
-                        className={`relative flex items-center justify-center rounded-md text-[11px] font-medium h-7 transition-all
-                          ${isSelected ? 'bg-primary text-primary-foreground' : ''}
-                          ${isToday && !isSelected ? 'bg-foreground text-background' : ''}
-                          ${!isSelected && !isToday ? 'text-muted-foreground hover:bg-muted' : ''}
-                        `}
-                      >
-                        {day.getDate()}
-                        {hasScheduled && !isSelected && !isToday && (
-                          <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-primary" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {calendarExpanded && (
+            <div className="absolute left-3 right-3 top-full mt-1 bg-card rounded-2xl border border-border shadow-2xl p-4 z-50">
+              <div className="flex items-center justify-between mb-3">
+                <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                  <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+                </button>
+                <h3 className="text-sm font-semibold text-foreground">{MONTHS[calMonth]} {calYear}</h3>
+                <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-0.5 mb-1">
+                {DAYS_SHORT.map((d, i) => (
+                  <div key={i} className="text-center text-[8px] font-medium text-muted-foreground uppercase">{d}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-0.5">
+                {calDays.map((day, i) => {
+                  if (!day) return <div key={`e-${i}`} />;
+                  const isToday = day.toDateString() === todayStr;
+                  const isSelected = day.toDateString() === selectedDate.toDateString();
+                  const hasScheduled = scheduledDates.has(day.toDateString());
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      onClick={() => { setSelectedDate(new Date(day)); setCalendarExpanded(false); }}
+                      className={`relative flex items-center justify-center rounded-md text-[11px] font-medium h-7 transition-all
+                        ${isSelected ? 'bg-primary text-primary-foreground' : ''}
+                        ${isToday && !isSelected ? 'bg-foreground text-background' : ''}
+                        ${!isSelected && !isToday ? 'text-muted-foreground hover:bg-muted' : ''}
+                      `}
+                    >
+                      {day.getDate()}
+                      {hasScheduled && !isSelected && !isToday && (
+                        <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-primary" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ─── Feed Toggle — underline tab style ─── */}
