@@ -2,6 +2,7 @@
 -- SQL Updates for Self-Hosted Supabase
 -- Run these in your self-hosted Supabase SQL Editor
 -- Covers: schedule_upvotes table + schedule_verified column + Upcoming page support
+-- GitHub update for: manga scheduling + comment_votes + upcoming features
 -- =====================================================
 
 -- 1. Add schedule_verified column to chapters (if not exists)
@@ -118,6 +119,15 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 -- );
 
 -- =====================================================
+-- NOTE ON MANGA SCHEDULING:
+-- Manga scheduling works via the chapters table itself.
+-- When creating a new manga, the first chapter's
+-- scheduled_at + is_published=false + schedule_verified
+-- columns control the schedule. No additional tables needed.
+-- The publisher dashboard handles this at creation time.
+-- =====================================================
+
+-- =====================================================
 -- DONE! Your self-hosted Supabase now supports the
--- Upcoming page with voting and scheduling features.
+-- Upcoming page with voting, scheduling, and comments.
 -- =====================================================
