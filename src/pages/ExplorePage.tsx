@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Eye, Bookmark, Play, ChevronRight, TrendingUp, Clock, Crown, Sparkles, Flame, Loader2, Heart, Swords, BookHeart, Wand2 } from 'lucide-react';
+import { Star, Eye, ChevronRight, Clock, Crown, Flame, Bookmark } from 'lucide-react';
 import BecauseYouRead from '@/components/BecauseYouRead';
 import DynamicMeta from '@/components/DynamicMeta';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { getImageUrl } from '@/lib/imageUrl';
 
 interface MangaItem {
   id: string;
@@ -29,150 +30,125 @@ const formatViews = (n: number) => {
   return n.toString();
 };
 
-import { getImageUrl } from '@/lib/imageUrl';
-const resolveCover = getImageUrl;
+// Simple cover card — clean, no bloat
+const CoverCard: React.FC<{ manhwa: MangaItem; index: number; creatorName?: string }> = ({ manhwa, index, creatorName }) => {
+  const coverSrc = getImageUrl(manhwa.cover_url);
+  const shouldPrioritize = index < 6;
 
-const genres = ['All', '⚔️ Fantasy', '🥊 Action', '💕 Romance', '🔬 Sci-Fi', '👻 Horror', '🎭 Drama', '😂 Comedy'];
-const genreMap: Record<string, string> = {
-  '⚔️ Fantasy': 'Fantasy', '🥊 Action': 'Action', '💕 Romance': 'Romance',
-  '🔬 Sci-Fi': 'Sci-Fi', '👻 Horror': 'Horror', '🎭 Drama': 'Drama', '😂 Comedy': 'Comedy',
+  return (
+    <Link to={`/title/${manhwa.slug}`} className="group block flex-shrink-0 w-[140px] sm:w-[160px]">
+      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted mb-2">
+        {coverSrc ? (
+          <img
+            src={coverSrc}
+            alt={manhwa.title}
+            loading={shouldPrioritize ? 'eager' : 'lazy'}
+            fetchPriority={shouldPrioritize ? 'high' : 'auto'}
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+            <span className="text-2xl font-display text-primary/30">{manhwa.title[0]}</span>
+          </div>
+        )}
+      </div>
+      <h3 className="text-sm font-medium leading-tight line-clamp-2 group-hover:text-primary transition-colors">{manhwa.title}</h3>
+      {creatorName && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{creatorName}</p>}
+    </Link>
+  );
 };
 
-const FeaturedHero: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => (
-  <div
-    className="relative rounded-3xl overflow-hidden border border-border/30"
-    style={{ boxShadow: '0 16px 60px -12px hsla(0, 0%, 0%, 0.3)' }}
-  >
-    <div className="absolute inset-0">
-      {manhwa.cover_url && <img src={resolveCover(manhwa.cover_url)!} alt="" className="w-full h-full object-cover scale-110 blur-sm" />}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
-    </div>
+// Featured hero banner
+const FeaturedBanner: React.FC<{ manhwa: MangaItem }> = ({ manhwa }) => {
+  const coverSrc = getImageUrl(manhwa.cover_url);
 
-    <div className="relative z-10 p-6 sm:p-10 md:p-14 min-h-[420px] sm:min-h-[480px] flex flex-col justify-end">
-      <div className="inline-flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-[0.25em] mb-4">
-        <Sparkles className="w-3.5 h-3.5" /> Featured
-      </div>
-
-      <h2 className="font-display text-4xl sm:text-5xl md:text-6xl tracking-wider text-foreground leading-[0.95] mb-4">
-        {manhwa.title}
-      </h2>
-
-      <p className="text-muted-foreground text-sm sm:text-base max-w-lg leading-relaxed mb-6 line-clamp-3">
-        {manhwa.description || 'Dive into this incredible story...'}
-      </p>
-
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Link to={`/title/${manhwa.slug}`}>
-          <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-foreground text-background font-semibold text-sm border border-border/20 hover:opacity-90 transition-opacity">
-            <Play className="w-4 h-4 fill-current" /> Read Now
-          </button>
-        </Link>
-      </div>
-
-      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-        <span className="flex items-center gap-1 font-semibold text-foreground">
-          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" /> {Number(manhwa.rating_average || 0).toFixed(1)}
-        </span>
-        <span><strong className="text-foreground">{formatViews(manhwa.views || 0)}</strong> Reads</span>
-        <span className="text-primary text-xs font-medium">{manhwa.status}</span>
-      </div>
-    </div>
-  </div>
-);
-
-const SmallCard: React.FC<{ manhwa: MangaItem; index: number; badge?: string; badgeColor?: string; creatorName?: string }> = ({ manhwa, badge, badgeColor, creatorName }) => (
-  <Link to={`/title/${manhwa.slug}`} className="group block flex-shrink-0 w-36 sm:w-44">
-    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border border-border/40 mb-2.5">
-      {manhwa.cover_url ? (
-        <img src={resolveCover(manhwa.cover_url)!} alt={manhwa.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-      ) : (
-        <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-          <span className="text-3xl font-display text-primary/50">{manhwa.title[0]}</span>
+  return (
+    <Link to={`/title/${manhwa.slug}`} className="group relative block rounded-xl overflow-hidden aspect-[21/9] sm:aspect-[3/1] bg-muted">
+      {coverSrc && <img src={coverSrc} alt="" className="absolute inset-0 w-full h-full object-cover" loading="eager" fetchPriority="high" />}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+        <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-primary text-primary-foreground rounded mb-2">Featured</span>
+        <h2 className="font-display text-2xl sm:text-4xl text-white tracking-wide leading-tight">{manhwa.title}</h2>
+        <p className="text-white/70 text-xs sm:text-sm mt-1 line-clamp-2 max-w-lg">{manhwa.description}</p>
+        <div className="flex items-center gap-4 mt-2 text-xs text-white/60">
+          <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />{Number(manhwa.rating_average || 0).toFixed(1)}</span>
+          <span>{formatViews(manhwa.views || 0)} reads</span>
+          <span className="text-primary text-[10px] font-medium">{manhwa.status}</span>
         </div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      {badge && (
-        <div className="absolute top-2.5 left-2.5 z-10">
-          <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg ${badgeColor || 'bg-primary text-primary-foreground'}`}>{badge}</span>
-        </div>
-      )}
-    </div>
-    <h3 className="font-semibold text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">{manhwa.title}</h3>
-    {creatorName && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">by {creatorName}</p>}
-    <p className="text-xs text-muted-foreground mt-0.5">{(manhwa.genres || []).slice(0, 2).join(', ')}</p>
-  </Link>
-);
+      </div>
+    </Link>
+  );
+};
 
+// Horizontal scroll section
 const ScrollSection: React.FC<{
   title: string;
   icon: React.ReactNode;
   items: MangaItem[];
-  badge?: (item: MangaItem, i: number) => { text: string; color: string } | null;
   viewAllLink?: string;
   creatorMap?: Record<string, string>;
-}> = ({ title, icon, items, badge, viewAllLink, creatorMap }) => (
-  <section>
-    <div className="flex items-center justify-between mb-5">
-      <div className="flex items-center gap-3">
-        <span className="text-primary">{icon}</span>
-        <h2 className="font-display text-2xl sm:text-3xl tracking-wider text-foreground">{title}</h2>
-      </div>
-      {viewAllLink && (
-        <Link to={viewAllLink} className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-          View All <ChevronRight className="w-3.5 h-3.5" />
-        </Link>
-      )}
-    </div>
-    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
-      {items.length > 0 ? items.map((m, i) => {
-        const b = badge?.(m, i);
-        return <SmallCard key={m.id} manhwa={m} index={i} badge={b?.text} badgeColor={b?.color} creatorName={creatorMap?.[m.creator_id]} />;
-      }) : (
-        <p className="text-muted-foreground text-sm py-8">No manhwa available yet. Be the first creator to publish!</p>
-      )}
-    </div>
-  </section>
-);
+}> = ({ title, icon, items, viewAllLink, creatorMap }) => {
+  if (items.length === 0) return null;
 
-const RankedItem: React.FC<{ manhwa: MangaItem; rank: number }> = ({ manhwa, rank }) => (
-  <Link to={`/title/${manhwa.slug}`} className="group flex items-center gap-4 py-3 px-4 rounded-2xl hover:bg-muted/40 transition-colors">
-    <span className={`font-display text-2xl tracking-wider w-8 text-center ${rank === 1 ? 'text-yellow-500' : rank === 2 ? 'text-gray-400' : rank === 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>{rank}</span>
-    <div className="w-12 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-border/40">
-      {manhwa.cover_url ? <img src={resolveCover(manhwa.cover_url)!} alt={manhwa.title} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/20" />}
-    </div>
-    <div className="flex-1 min-w-0">
-      <h4 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{manhwa.title}</h4>
-      <p className="text-xs text-muted-foreground">{(manhwa.genres || []).slice(0, 2).join(', ')}</p>
-    </div>
-    <div className="text-right flex-shrink-0">
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" /> {Number(manhwa.rating_average || 0).toFixed(1)}
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-primary">{icon}</span>
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">{title}</h2>
+        </div>
+        {viewAllLink && (
+          <Link to={viewAllLink} className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+            View All <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        )}
       </div>
-      <div className="text-[10px] text-muted-foreground">{formatViews(manhwa.views || 0)}</div>
-    </div>
-  </Link>
-);
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        {items.map((m, i) => (
+          <CoverCard key={m.id} manhwa={m} index={i} creatorName={creatorMap?.[m.creator_id]} />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+// Ranked list item
+const RankedItem: React.FC<{ manhwa: MangaItem; rank: number }> = ({ manhwa, rank }) => {
+  const coverSrc = getImageUrl(manhwa.cover_url);
+
+  return (
+    <Link to={`/title/${manhwa.slug}`} className="group flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-muted/40 transition-colors">
+      <span className={`text-lg font-bold w-6 text-center ${rank === 1 ? 'text-yellow-500' : rank === 2 ? 'text-gray-400' : rank === 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
+        {rank}
+      </span>
+      <div className="w-10 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+        {coverSrc ? <img src={coverSrc} alt={manhwa.title} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-primary/10" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{manhwa.title}</h4>
+        <p className="text-[11px] text-muted-foreground">{(manhwa.genres || []).slice(0, 2).join(' · ')}</p>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" /> {Number(manhwa.rating_average || 0).toFixed(1)}
+        </div>
+        <div className="text-[10px] text-muted-foreground">{formatViews(manhwa.views || 0)}</div>
+      </div>
+    </Link>
+  );
+};
 
 const ExplorePage: React.FC = () => {
-  const [activeGenre, setActiveGenre] = useState('All');
-
-  const genreFilter = activeGenre === 'All' ? null : genreMap[activeGenre] || activeGenre;
-
   const { data: allManga, isLoading } = useQuery({
-    queryKey: ['explore-manga', genreFilter],
+    queryKey: ['explore-manga'],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('manga')
         .select('*')
         .eq('approval_status', 'APPROVED')
         .order('created_at', { ascending: false })
         .limit(50);
-
-      if (genreFilter) {
-        query = query.contains('genres', [genreFilter]);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return (data || []) as MangaItem[];
     },
@@ -201,107 +177,54 @@ const ExplorePage: React.FC = () => {
   });
 
   const featured = manga.find(m => m.is_featured) || manga[0];
-  const topByViews = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
-  const recentlyAdded = [...manga].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 8);
+  const topByViews = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10);
+  const recentlyAdded = [...manga].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10);
   const topCharts = [...manga].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6);
-  const highRated = manga.filter(m => Number(m.rating_average) >= 4.0).slice(0, 8);
-
-  const topAction = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'action')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
-  const topRomance = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'romance')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
-  const topFantasy = manga.filter(m => (m.genres || []).some(g => g.toLowerCase() === 'fantasy')).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
-  const mostBookmarked = [...manga].sort((a, b) => (b.bookmarks || 0) - (a.bookmarks || 0)).slice(0, 8);
-
-  const oneWeekAgo = new Date();
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  const topThisWeek = manga.filter(m => new Date(m.created_at) >= oneWeekAgo).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8);
+  const mostBookmarked = [...manga].sort((a, b) => (b.bookmarks || 0) - (a.bookmarks || 0)).slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div className="min-h-screen bg-background pt-16 md:pt-16 pb-16">
       <DynamicMeta
-        title="Explore — Trending Manhwa, Manga & Webtoons"
-        description="Explore trending manhwa, manga, and webtoons on Komixora. Discover new releases, top-rated series, and popular creators. Read free online in HD."
-        keywords="explore manhwa, trending manga, new webtoons, popular manhwa, top rated manga, latest manhwa releases, Komixora explore"
+        title="Komixora — Read Manhwa, Manga & Webtoons Free"
+        description="Explore trending manhwa, manga, and webtoons on Komixora. Discover new releases, top-rated series, and popular creators."
+        keywords="explore manhwa, trending manga, new webtoons, popular manhwa, top rated manga, Komixora"
       />
 
-      {/* Genre tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-6">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-          {genres.map((g) => {
-            const isActive = activeGenre === g;
-            return (
-              <button key={g} onClick={() => setActiveGenre(g)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40'}`}>
-                {g}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-  {isLoading ? (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20 pt-16 text-center">
-          <p className="text-muted-foreground text-sm">Loading latest titles...</p>
+      {isLoading ? (
+        <div className="max-w-6xl mx-auto px-4 py-16 text-center">
+          <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       ) : (
-        <>
-          {featured && (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-10">
-              <FeaturedHero manhwa={featured} />
-            </div>
+        <div className="max-w-6xl mx-auto px-4 space-y-8 pt-4">
+          {/* Featured banner */}
+          {featured && <FeaturedBanner manhwa={featured} />}
+
+          <BecauseYouRead />
+
+          <ScrollSection title="Trending" icon={<Flame className="w-4 h-4" />} items={topByViews} viewAllLink="/charts" creatorMap={creatorMap} />
+
+          <ScrollSection title="Recently Added" icon={<Clock className="w-4 h-4" />} items={recentlyAdded} viewAllLink="/browse" creatorMap={creatorMap} />
+
+          {/* Top Charts inline */}
+          {topCharts.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-primary" />
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground">Top Charts</h2>
+                </div>
+                <Link to="/charts" className="text-xs font-medium text-muted-foreground hover:text-primary flex items-center gap-1">
+                  View All <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-0.5 rounded-xl border border-border bg-card overflow-hidden">
+                {topCharts.map((m, i) => <RankedItem key={m.id} manhwa={m} rank={i + 1} />)}
+              </div>
+            </section>
           )}
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-20">
-            <BecauseYouRead />
-
-            <ScrollSection title="TOP THIS WEEK" icon={<Flame className="w-5 h-5" />} items={topByViews} viewAllLink="/charts" creatorMap={creatorMap}
-              badge={(_, i) => i === 0 ? { text: 'HOT', color: 'bg-destructive text-destructive-foreground' } : i === 1 ? { text: 'TOP', color: 'bg-foreground text-background' } : null} />
-
-            <ScrollSection title="RECENTLY ADDED" icon={<Clock className="w-5 h-5" />} items={recentlyAdded} viewAllLink="/browse" creatorMap={creatorMap}
-              badge={(_, i) => i < 3 ? { text: 'NEW', color: 'bg-primary text-primary-foreground' } : null} />
-
-            {topCharts.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3">
-                    <span className="text-primary"><Crown className="w-5 h-5" /></span>
-                    <h2 className="font-display text-2xl sm:text-3xl tracking-wider text-foreground">TOP CHARTS</h2>
-                  </div>
-                  <Link to="/charts" className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">View All <ChevronRight className="w-3.5 h-3.5" /></Link>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-1 rounded-2xl border border-border bg-card overflow-hidden">
-                  {topCharts.map((m, i) => <RankedItem key={m.id} manhwa={m} rank={i + 1} />)}
-                </div>
-              </section>
-            )}
-
-            {highRated.length > 0 && (
-              <ScrollSection title="FEATURED PICKS" icon={<TrendingUp className="w-5 h-5" />} items={highRated} creatorMap={creatorMap}
-                badge={(m) => Number(m.rating_average) >= 4.5 ? { text: '★ TOP RATED', color: 'bg-yellow-500/90 text-black' } : null} />
-            )}
-
-            {topThisWeek.length > 0 && (
-              <ScrollSection title="NEW THIS WEEK" icon={<Sparkles className="w-5 h-5" />} items={topThisWeek} creatorMap={creatorMap}
-                badge={(_, i) => i === 0 ? { text: 'TRENDING', color: 'bg-primary text-primary-foreground' } : null} />
-            )}
-
-            {topAction.length > 0 && (
-              <ScrollSection title="TOP IN ACTION" icon={<Swords className="w-5 h-5" />} items={topAction} viewAllLink="/browse" creatorMap={creatorMap} />
-            )}
-
-            {topRomance.length > 0 && (
-              <ScrollSection title="TOP IN ROMANCE" icon={<BookHeart className="w-5 h-5" />} items={topRomance} viewAllLink="/browse" creatorMap={creatorMap} />
-            )}
-
-            {topFantasy.length > 0 && (
-              <ScrollSection title="TOP IN FANTASY" icon={<Wand2 className="w-5 h-5" />} items={topFantasy} viewAllLink="/browse" creatorMap={creatorMap} />
-            )}
-
-            {mostBookmarked.length > 0 && (
-              <ScrollSection title="MOST BOOKMARKED" icon={<Bookmark className="w-5 h-5" />} items={mostBookmarked} creatorMap={creatorMap}
-                badge={(m) => (m.bookmarks || 0) > 100 ? { text: `${formatViews(m.bookmarks || 0)} saves`, color: 'bg-foreground text-background' } : null} />
-            )}
-          </div>
-        </>
+          <ScrollSection title="Most Saved" icon={<Bookmark className="w-4 h-4" />} items={mostBookmarked} creatorMap={creatorMap} />
+        </div>
       )}
     </div>
   );

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, Grid3X3, MessageSquare, Command, Shuffle, Clock } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, MessageSquare, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +19,6 @@ const Navbar: React.FC = () => {
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [genreOpen, setGenreOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
@@ -28,7 +26,6 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Admin notifications
   const { data: adminNotifications = [] } = useQuery({
     queryKey: ['admin-notifications'],
     queryFn: async () => {
@@ -55,9 +52,7 @@ const Navbar: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
   };
 
-  // Close all dropdowns on route change
   useEffect(() => {
-    setGenreOpen(false);
     setUserMenuOpen(false);
     setNotifOpen(false);
     setMobileOpen(false);
@@ -89,9 +84,7 @@ const Navbar: React.FC = () => {
   };
   const isActive = (path: string) => location.pathname === path;
   const isReaderPage = location.pathname.startsWith('/read/');
-  const isHomePage = location.pathname === '/';
 
-  // User notifications
   const { unreadCount: userUnreadCount } = useUserNotifications();
 
   const navItems = [
@@ -102,279 +95,164 @@ const Navbar: React.FC = () => {
     { to: '/community', label: 'Community', icon: MessageSquare },
   ];
 
-  const dropdownVariants = {
-    hidden: { opacity: 0, scale: 0.95, y: -8 },
-    visible: { opacity: 1, scale: 1, y: 0 },
-    exit: { opacity: 0, scale: 0.95, y: -8 },
-  };
-
-  // Hide navbar completely in reader mode
   if (isReaderPage) return null;
 
   return (
     <>
-      {/* Desktop: floating glass pill navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 hidden md:flex items-center justify-center pointer-events-none" style={{ paddingTop: '16px' }}>
-        <motion.div
-          className="pointer-events-auto flex items-center gap-1 rounded-full p-1.5 border"
-          style={{
-            background: isHomePage && !scrolled
-              ? 'hsla(var(--background) / 0.15)'
-              : scrolled
-              ? 'hsla(var(--glass-bg))'
-              : 'hsla(var(--background) / 0.4)',
-            backdropFilter: 'blur(60px) saturate(1.8)',
-            WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
-            borderColor: isHomePage && !scrolled
-              ? 'hsla(0, 0%, 100% / 0.15)'
-              : scrolled
-              ? 'hsla(var(--glass-border))'
-              : 'hsla(var(--border) / 0.3)',
-            boxShadow: scrolled
-              ? '0 8px 40px -8px hsla(0, 0%, 0%, 0.15), inset 0 1px 0 0 hsla(0, 0%, 100%, 0.1)'
-              : '0 4px 20px -4px hsla(0, 0%, 0%, 0.08)',
-          }}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {/* Logo */}
-          <Link to="/" className="px-4 py-2 flex-shrink-0">
-            <span className="text-display text-xl tracking-wider">
-              <span className="font-normal">KOMI</span>
-              <span className="text-primary">XORA</span>
-            </span>
-          </Link>
+      {/* Desktop navbar */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 hidden md:block transition-colors duration-200 ${scrolled ? 'bg-background/95 backdrop-blur-sm border-b border-border/50' : 'bg-background border-b border-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+          {/* Left: Logo + Nav */}
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex-shrink-0">
+              <span className="text-display text-xl tracking-wider">
+                <span className="font-normal">KOMI</span>
+                <span className="text-primary">XORA</span>
+              </span>
+            </Link>
 
-          {/* Nav pill items */}
-          <div className="flex items-center gap-0.5">
-            {navItems.map(item => {
-              const Icon = item.icon;
-              const active = isActive(item.to);
-              return (
+            <div className="flex items-center gap-1">
+              {navItems.map(item => (
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-full transition-all duration-300 ${
-                    active
-                      ? 'text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isActive(item.to)
+                      ? 'text-foreground bg-muted/60'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                   }`}
                 >
-                  {active && (
-                    <motion.div
-                      layoutId="nav-pill-active"
-                      className="absolute inset-0 bg-muted/70 rounded-full"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-10 flex items-center gap-2">
-                    <Icon className="w-4 h-4" />
-                    {item.label}
-                  </span>
+                  {item.label}
                 </Link>
-              );
-            })}
-
-            {/* Genres dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setGenreOpen(!genreOpen)}
-                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-all rounded-full"
-              >
-                <Grid3X3 className="w-4 h-4" />
-                Genres
-                <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${genreOpen ? 'rotate-180' : ''}`} />
-              </button>
-              <AnimatePresence>
-                {genreOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setGenreOpen(false)} />
-                    <motion.div
-                      variants={dropdownVariants}
-                      initial="hidden" animate="visible" exit="exit"
-                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute top-full mt-3 left-0 w-64 glass-dropdown p-2 grid grid-cols-2 gap-0.5"
-                    >
-                      {allGenres.map(g => (
-                        <Link key={g} to={`/browse?genre=${g}`} onClick={() => setGenreOpen(false)} className="px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl">
-                          {g}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
+              ))}
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-border/40 mx-1" />
+          {/* Right: Search + Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 text-sm text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">Search</span>
+              <kbd className="hidden lg:inline text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">⌘K</kbd>
+            </button>
 
-          {/* Search — triggers ⌘K spotlight */}
-          <button
-            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-            className="flex items-center gap-2 px-3 py-2 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
-          >
-            <Search className="w-4 h-4" />
-            <span className="hidden lg:inline">Search...</span>
-            <kbd className="hidden lg:inline-flex px-1.5 py-0.5 text-[9px] font-bold bg-muted rounded border border-border/50">⌘K</kbd>
-          </button>
+            <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground" aria-label="Toggle theme">
+              {theme === 'light' ? <Moon className="w-4 h-4" /> : theme === 'dark' ? <Smartphone className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            </button>
 
-          {/* Theme toggle */}
-          <button onClick={toggleTheme} className="p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground" aria-label="Toggle theme" title={`Theme: ${theme}`}>
-            <AnimatePresence mode="wait">
-              {theme === 'light' ? (
-                <motion.div key="moon" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                  <Moon className="w-[18px] h-[18px]" />
-                </motion.div>
-              ) : theme === 'dark' ? (
-                <motion.div key="amoled" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                  <Smartphone className="w-[18px] h-[18px]" />
-                </motion.div>
-              ) : (
-                <motion.div key="sun" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                  <Sun className="w-[18px] h-[18px]" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </button>
+            {user && (
+              <div className="relative">
+                <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground">
+                  <Bell className="w-4 h-4" />
+                  {(() => {
+                    const showAdminNotifs = isAdmin && adminMode;
+                    const count = showAdminNotifs ? unreadCount + userUnreadCount : userUnreadCount;
+                    return count > 0 ? (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
+                        {count > 9 ? '9+' : count}
+                      </span>
+                    ) : null;
+                  })()}
+                </button>
+                <NotificationCenter
+                  open={notifOpen}
+                  onClose={() => setNotifOpen(false)}
+                  adminNotifications={adminNotifications}
+                  adminMode={adminMode}
+                  onMarkAdminRead={markNotifRead}
+                  onMarkAllAdminRead={markAllRead}
+                />
+              </div>
+            )}
 
-          {/* Notifications */}
-          {user && (
-            <div className="relative">
-              <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2.5 rounded-full hover:bg-muted/60 transition-all text-muted-foreground hover:text-foreground">
-                <Bell className="w-[18px] h-[18px]" />
-                {(() => {
-                  const showAdminNotifs = isAdmin && adminMode;
-                  const count = showAdminNotifs ? unreadCount + userUnreadCount : userUnreadCount;
-                  return count > 0 ? (
-                    <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                      {count > 9 ? '9+' : count}
-                    </span>
-                  ) : null;
-                })()}
-              </button>
-              <NotificationCenter
-                open={notifOpen}
-                onClose={() => setNotifOpen(false)}
-                adminNotifications={adminNotifications}
-                adminMode={adminMode}
-                onMarkAdminRead={markNotifRead}
-                onMarkAllAdminRead={markAllRead}
-              />
-            </div>
-          )}
-
-          {/* Auth */}
-          {user ? (
-          <div className="relative">
-              <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 p-1.5 rounded-full hover:bg-muted/60 transition-all">
-                <div className="w-8 h-8 gradient-cover-1 rounded-full flex items-center justify-center text-xs font-bold text-foreground">{(profile?.username || profile?.display_name || user.email || 'U')[0].toUpperCase()}</div>
-                {userUnreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center">
-                    {userUnreadCount > 9 ? '9+' : userUnreadCount}
-                  </span>
-                )}
-              </button>
-              <AnimatePresence>
+            {user ? (
+              <div className="relative">
+                <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 p-1 rounded-lg hover:bg-muted/60 transition-colors">
+                  <div className="w-7 h-7 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-bold">
+                    {(profile?.username || profile?.display_name || user.email || 'U')[0].toUpperCase()}
+                  </div>
+                  <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                </button>
                 {userMenuOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                     <motion.div
-                       variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
-                       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                       className="absolute right-0 top-full mt-3 w-60 glass-dropdown p-2 overflow-hidden"
-                     >
-                       {/* Profile header */}
-                       <div className="px-3 py-3 border-b border-border/30 mb-1">
-                         <p className="text-sm font-bold text-foreground truncate">{profile?.display_name || profile?.username || user.email}</p>
-                         {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
-                          <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">
-                            {isAdmin ? (adminMode ? '🛡️ Admin' : '✨ Creator') : (profile?.role_type || 'reader')}
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-popover border border-border rounded-xl shadow-lg p-1.5 z-50">
+                      <div className="px-3 py-2 border-b border-border/50 mb-1">
+                        <p className="text-sm font-semibold text-foreground truncate">{profile?.display_name || profile?.username || user.email}</p>
+                        {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
+                        <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase bg-primary/10 text-primary rounded-full">
+                          {isAdmin ? (adminMode ? 'Admin' : 'Creator') : (profile?.role_type || 'reader')}
+                        </span>
+                      </div>
+                      <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/60 rounded-lg transition-colors"><UserIcon className="w-4 h-4" /> My Profile</Link>
+                      <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/60 rounded-lg transition-colors"><BookOpen className="w-4 h-4" /> My Library</Link>
+                      {(isPublisher || (isAdmin && !adminMode)) && (
+                        <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/60 rounded-lg transition-colors"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
+                      )}
+                      {isAdmin && adminMode && (
+                        <>
+                          <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/60 rounded-lg transition-colors"><Shield className="w-4 h-4" /> Admin Panel</Link>
+                          <Link to="/admin/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/60 rounded-lg transition-colors"><Shield className="w-4 h-4" /> Admin Settings</Link>
+                        </>
+                      )}
+                      {isAdmin && (
+                        <button
+                          onClick={() => setAdminMode(!adminMode)}
+                          className="flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-muted/60 rounded-lg transition-colors"
+                        >
+                          <span className="flex items-center gap-2"><Shield className="w-4 h-4" />{adminMode ? 'Switch to Creator' : 'Switch to Admin'}</span>
+                          <span className={`w-7 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                            <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
                           </span>
-                        </div>
-                         <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><UserIcon className="w-4 h-4" /> My Profile</Link>
-                         <Link to="/library" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><BookOpen className="w-4 h-4" /> My Library</Link>
-                         {(isPublisher || (isAdmin && !adminMode)) && (
-                           <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><LayoutDashboard className="w-4 h-4" /> Dashboard</Link>
-                         )}
-                         {isAdmin && adminMode && (
-                           <>
-                             <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Panel</Link>
-                             <Link to="/admin/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-all font-medium rounded-xl"><Shield className="w-4 h-4" /> Admin Settings</Link>
-                           </>
-                         )}
-                         {isAdmin && (
-                           <button
-                             onClick={() => setAdminMode(!adminMode)}
-                             className="flex items-center justify-between w-full px-3 py-2.5 text-sm hover:bg-primary/10 transition-all font-medium rounded-xl"
-                           >
-                             <span className="flex items-center gap-2.5">
-                               <Shield className="w-4 h-4" />
-                               {adminMode ? 'Switch to Creator' : 'Switch to Admin'}
-                             </span>
-                             <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
-                               <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
-                             </span>
-                           </button>
-                         )}
-                        <div className="my-1 border-t border-border/30" />
-                        <button onClick={handleLogout} disabled={logoutPending} className="flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-destructive/10 transition-all w-full text-left text-destructive font-medium rounded-xl disabled:opacity-60"><LogOut className="w-4 h-4" /> {logoutPending ? 'Logging out...' : 'Logout'}</button>
-                    </motion.div>
+                        </button>
+                      )}
+                      <div className="my-1 border-t border-border/50" />
+                      <button onClick={handleLogout} disabled={logoutPending} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-60"><LogOut className="w-4 h-4" /> {logoutPending ? 'Logging out...' : 'Logout'}</button>
+                    </div>
                   </>
                 )}
-              </AnimatePresence>
-            </div>
-          ) : (
-            <button onClick={handleSignup} className="btn-accent text-xs py-2 px-5 rounded-full">Sign Up</button>
-          )}
-        </motion.div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button onClick={handleLogin} className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Log in</button>
+                <button onClick={handleSignup} className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">Sign Up</button>
+              </div>
+            )}
+          </div>
+        </div>
       </nav>
 
-      {/* Mobile: compact glass bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 md:hidden">
-        <div
-          className="mx-3 mt-3 rounded-2xl border flex items-center justify-between px-4 h-14"
-          style={{
-            background: 'hsla(var(--glass-bg))',
-            backdropFilter: 'blur(60px) saturate(1.8)',
-            WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
-            borderColor: 'hsla(var(--glass-border))',
-            boxShadow: '0 8px 40px -8px hsla(0, 0%, 0%, 0.15), inset 0 1px 0 0 hsla(0, 0%, 100%, 0.1)',
-          }}
-        >
+      {/* Mobile top bar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-b border-border/50">
+        <div className="flex items-center justify-between px-4 h-12">
           <Link to="/" className="flex-shrink-0">
-            <span className="text-display text-xl tracking-wider">
+            <span className="text-display text-lg tracking-wider">
               <span className="font-normal">KOMI</span>
               <span className="text-primary">XORA</span>
             </span>
           </Link>
           <div className="flex items-center gap-1">
-            <Link to="/creators" className="p-2 rounded-full hover:bg-muted/60 transition-all text-muted-foreground" aria-label="Search creators">
+            <button
+              onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+              className="p-2 rounded-lg text-muted-foreground"
+            >
               <Search className="w-4 h-4" />
-            </Link>
-            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-muted/60 transition-all text-muted-foreground" aria-label="Toggle theme" title={`Theme: ${theme}`}>
+            </button>
+            <button onClick={toggleTheme} className="p-2 rounded-lg text-muted-foreground">
               {theme === 'light' ? <Moon className="w-4 h-4" /> : theme === 'dark' ? <Smartphone className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-full hover:bg-muted/60 transition-all text-foreground">
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg text-foreground">
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile bottom pill nav */}
-        <div className="fixed bottom-4 left-4 right-4 z-50">
-          <div
-            className="flex items-center justify-around rounded-full p-1.5 border"
-            style={{
-              background: 'hsla(var(--glass-bg))',
-              backdropFilter: 'blur(60px) saturate(1.8)',
-              WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
-              borderColor: 'hsla(var(--glass-border))',
-              boxShadow: '0 8px 40px -8px hsla(0, 0%, 0%, 0.2), inset 0 1px 0 0 hsla(0, 0%, 100%, 0.1)',
-            }}
-          >
+        {/* Mobile bottom tab bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/50">
+          <div className="flex items-center justify-around h-12">
             {navItems.map(item => {
               const Icon = item.icon;
               const active = isActive(item.to);
@@ -382,119 +260,86 @@ const Navbar: React.FC = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`relative flex items-center justify-center p-3 rounded-full transition-all duration-300 ${
-                    active ? 'text-foreground' : 'text-muted-foreground'
+                  className={`flex flex-col items-center justify-center gap-0.5 p-1.5 transition-colors ${
+                    active ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
-                  {active && (
-                    <motion.div
-                      layoutId="mobile-nav-pill"
-                      className="absolute inset-0 bg-muted/70 rounded-full"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <Icon className="w-5 h-5 relative z-10" />
+                  <Icon className="w-5 h-5" />
+                  <span className="text-[9px] font-medium">{item.label}</span>
                 </Link>
               );
             })}
             {user ? (
               <Link
                 to="/profile"
-                className={`relative flex items-center justify-center p-3 rounded-full transition-all duration-300 ${
-                  isActive('/profile') || isActive('/settings') ? 'text-foreground' : 'text-muted-foreground'
+                className={`flex flex-col items-center justify-center gap-0.5 p-1.5 transition-colors ${
+                  isActive('/profile') ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
-                {(isActive('/profile') || isActive('/settings')) && (
-                  <motion.div
-                    layoutId="mobile-nav-pill"
-                    className="absolute inset-0 bg-muted/70 rounded-full"
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <UserIcon className="w-5 h-5 relative z-10" />
+                <UserIcon className="w-5 h-5" />
+                <span className="text-[9px] font-medium">Profile</span>
                 {userUnreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center z-20">
+                  <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[7px] font-bold rounded-full flex items-center justify-center">
                     {userUnreadCount > 9 ? '9+' : userUnreadCount}
                   </span>
                 )}
               </Link>
             ) : (
-              <button
-                onClick={handleSignup}
-                className="relative flex items-center justify-center p-3 rounded-full text-muted-foreground transition-all duration-300"
-              >
+              <button onClick={handleSignup} className="flex flex-col items-center justify-center gap-0.5 p-1.5 text-muted-foreground">
                 <UserIcon className="w-5 h-5" />
+                <span className="text-[9px] font-medium">Sign Up</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Mobile expanded menu */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="mx-3 mt-1 rounded-2xl border overflow-hidden"
-              style={{
-                background: 'hsla(var(--glass-bg))',
-                backdropFilter: 'blur(60px) saturate(1.8)',
-                WebkitBackdropFilter: 'blur(60px) saturate(1.8)',
-                borderColor: 'hsla(var(--glass-border))',
-              }}
-            >
-              <div className="p-4 space-y-2">
-                <form onSubmit={handleSearch}>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search manhwa..." className="w-full pl-9 pr-3 py-2.5 bg-muted/30 border border-border/30 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  </div>
-                </form>
-                {navItems.map(l => (
-                  <Link key={l.to} to={l.to} onClick={() => setMobileOpen(false)} className={`block px-4 py-3 text-sm font-semibold transition-all rounded-xl ${isActive(l.to) ? 'text-primary bg-primary/10' : 'hover:bg-muted/40'}`}>{l.label}</Link>
-                ))}
-                <div className="grid grid-cols-3 gap-2 pt-2">
-                  {allGenres.slice(0, 6).map(g => (
-                    <Link key={g} to={`/browse?genre=${g}`} onClick={() => setMobileOpen(false)} className="px-3 py-2 text-xs text-center border border-border/30 rounded-xl hover:border-primary hover:text-primary transition-all font-medium">{g}</Link>
-                  ))}
-                </div>
-                {!user && (
-                  <div className="flex gap-2 pt-3 border-t border-border/30">
-                    <button onClick={handleLogin} className="flex-1 btn-outline text-xs py-3">Login</button>
-                    <button onClick={handleSignup} className="flex-1 btn-accent text-xs py-3">Sign Up</button>
-                  </div>
-                )}
-                {user && (
-                  <div className="pt-3 border-t border-border/30 space-y-1">
-                    <div className="px-4 py-2">
-                      <p className="text-sm font-bold">{profile?.display_name || user.email}</p>
-                      {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
-                    </div>
-                    <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Profile</Link>
-                    <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">My Library</Link>
-                    {(isPublisher || (isAdmin && !adminMode)) && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Dashboard</Link>}
-                    {isAdmin && adminMode && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Panel</Link>}
-                    {isAdmin && adminMode && <Link to="/admin/settings" onClick={() => setMobileOpen(false)} className="block px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl">Admin Settings</Link>}
-                    {isAdmin && (
-                      <button
-                        onClick={() => setAdminMode(!adminMode)}
-                        className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold hover:bg-muted/40 rounded-xl"
-                      >
-                        <span>{adminMode ? 'Switch to Creator' : 'Switch to Admin'}</span>
-                        <span className={`w-8 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
-                          <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
-                        </span>
-                      </button>
-                    )}
-                    <button onClick={handleLogout} disabled={logoutPending} className="block w-full text-left px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-xl disabled:opacity-60">{logoutPending ? 'Logging out...' : 'Logout'}</button>
-                  </div>
-                )}
+        {/* Mobile dropdown menu */}
+        {mobileOpen && (
+          <div className="bg-background border-b border-border/50 px-4 py-3 space-y-1">
+            <form onSubmit={handleSearch}>
+              <div className="relative mb-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search manhwa..." className="w-full pl-9 pr-3 py-2 bg-muted/40 border border-border/50 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary/30" />
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </form>
+            <div className="flex flex-wrap gap-1.5 pb-2">
+              {allGenres.slice(0, 6).map(g => (
+                <Link key={g} to={`/browse?genre=${g}`} onClick={() => setMobileOpen(false)} className="px-2.5 py-1 text-xs border border-border/50 rounded-lg hover:border-primary hover:text-primary transition-colors">
+                  {g}
+                </Link>
+              ))}
+            </div>
+            {!user && (
+              <div className="flex gap-2 pt-2 border-t border-border/30">
+                <button onClick={handleLogin} className="flex-1 py-2 text-sm font-medium border border-border rounded-lg hover:bg-muted/40 transition-colors">Login</button>
+                <button onClick={handleSignup} className="flex-1 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg">Sign Up</button>
+              </div>
+            )}
+            {user && (
+              <div className="pt-2 border-t border-border/30 space-y-0.5">
+                <div className="px-3 py-1.5">
+                  <p className="text-sm font-semibold">{profile?.display_name || user.email}</p>
+                  {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
+                </div>
+                <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">My Profile</Link>
+                <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">My Library</Link>
+                {(isPublisher || (isAdmin && !adminMode)) && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">Dashboard</Link>}
+                {isAdmin && adminMode && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">Admin Panel</Link>}
+                {isAdmin && (
+                  <button onClick={() => setAdminMode(!adminMode)} className="flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">
+                    <span>{adminMode ? 'Switch to Creator' : 'Switch to Admin'}</span>
+                    <span className={`w-7 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                      <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                    </span>
+                  </button>
+                )}
+                <button onClick={handleLogout} disabled={logoutPending} className="block w-full text-left px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg disabled:opacity-60">
+                  {logoutPending ? 'Logging out...' : 'Logout'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </nav>
     </>
   );
