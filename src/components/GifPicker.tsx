@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 
-const TENOR_API_KEY = 'AIzaSyA3rMEqMHhnQjQ0e2MXx8e3y7WBDP2t3Gs'; // Free public Tenor API key
-const TENOR_CLIENT_KEY = 'komixora';
+// Using GIPHY API (free tier, safe search enforced)
+const GIPHY_API_KEY = 'dc6zaTOxFJmzC'; // GIPHY public beta key
+const GIPHY_BASE = 'https://api.giphy.com/v1/gifs';
 
 interface GifResult {
   id: string;
-  url: string; // tinygif URL for preview
-  fullUrl: string; // gif URL for posting
+  url: string; // fixed_height_small for preview
+  fullUrl: string; // original or fixed_height for posting
 }
 
 interface Props {
@@ -23,13 +24,11 @@ const GifPicker: React.FC<Props> = ({ onSelect, onClose }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Load trending on mount
   useEffect(() => {
     inputRef.current?.focus();
     fetchTrending();
   }, []);
 
-  // Debounced search
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!query.trim()) { setResults([]); return; }
@@ -38,17 +37,17 @@ const GifPicker: React.FC<Props> = ({ onSelect, onClose }) => {
   }, [query]);
 
   const parseResults = (data: any): GifResult[] => {
-    return (data?.results || []).map((r: any) => ({
+    return (data?.data || []).map((r: any) => ({
       id: r.id,
-      url: r.media_formats?.tinygif?.url || r.media_formats?.nanogif?.url || '',
-      fullUrl: r.media_formats?.gif?.url || r.media_formats?.mediumgif?.url || '',
+      url: r.images?.fixed_height_small?.url || r.images?.fixed_height?.url || '',
+      fullUrl: r.images?.fixed_height?.url || r.images?.original?.url || '',
     })).filter((g: GifResult) => g.url);
   };
 
   const fetchTrending = async () => {
     try {
       const res = await fetch(
-        `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&client_key=${TENOR_CLIENT_KEY}&contentfilter=high&media_filter=gif,tinygif,nanogif&limit=20`
+        `${GIPHY_BASE}/trending?api_key=${GIPHY_API_KEY}&rating=pg&limit=20`
       );
       const data = await res.json();
       setTrending(parseResults(data));
@@ -59,7 +58,7 @@ const GifPicker: React.FC<Props> = ({ onSelect, onClose }) => {
     setLoading(true);
     try {
       const res = await fetch(
-        `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(q)}&key=${TENOR_API_KEY}&client_key=${TENOR_CLIENT_KEY}&contentfilter=high&media_filter=gif,tinygif,nanogif&limit=20`
+        `${GIPHY_BASE}/search?q=${encodeURIComponent(q)}&api_key=${GIPHY_API_KEY}&rating=pg&limit=20`
       );
       const data = await res.json();
       setResults(parseResults(data));
@@ -113,9 +112,9 @@ const GifPicker: React.FC<Props> = ({ onSelect, onClose }) => {
         )}
       </div>
 
-      {/* Powered by Tenor */}
+      {/* Powered by GIPHY */}
       <div className="px-2 py-1 border-t border-border/30 text-[10px] text-muted-foreground text-center">
-        Powered by Tenor
+        Powered by GIPHY
       </div>
     </div>
   );
