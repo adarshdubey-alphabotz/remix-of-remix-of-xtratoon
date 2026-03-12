@@ -18,7 +18,7 @@ interface Comment {
   gif_url?: string | null;
   created_at: string;
   is_pinned?: boolean;
-  profile?: { username: string | null; display_name: string | null; avatar_url: string | null; is_verified?: boolean };
+  profile?: { username: string | null; display_name: string | null; avatar_url: string | null; is_verified?: boolean; role_type?: string };
   replies?: Comment[];
 }
 
