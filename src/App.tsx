@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -15,7 +15,7 @@ import BanNotice from "@/components/BanNotice";
 import OnboardingModal from "@/components/OnboardingModal";
 import GoogleOnboardingModal from "@/components/GoogleOnboardingModal";
 import TermsAcceptanceModal from "@/components/TermsAcceptanceModal";
-
+import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import NetworkStatus from "@/components/NetworkStatus";
 import { lazy, Suspense, useEffect } from "react";
 
@@ -130,30 +130,6 @@ const RouteFallback = () => (
   </div>
 );
 
-const isEmailVerified = (appUser: ReturnType<typeof useAuth>["user"]) =>
-  appUser?.app_metadata?.email_verified === true;
-
-// Verification gate: force unverified users to /verify only
-const RequireVerification: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-
-  const allowedWhileUnverified = ['/verify', '/login', '/signup', '/reset-password'];
-  const isAllowedWhileUnverified = allowedWhileUnverified.some((path) => location.pathname === path);
-
-  if (loading) return null;
-
-  if (user && !isEmailVerified(user) && !isAllowedWhileUnverified) {
-    return <Navigate to="/verify" replace />;
-  }
-
-  if (user && isEmailVerified(user) && location.pathname === '/verify') {
-    return <Navigate to="/profile" replace />;
-  }
-
-  return <>{children}</>;
-};
-
 const AnimatedRoutes = () => {
   const location = useLocation();
 
@@ -161,49 +137,47 @@ const AnimatedRoutes = () => {
     <>
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>
-        <RequireVerification>
-          <Routes location={location}>
-            <Route path="/" element={<ExplorePage />} />
-            <Route path="/home" element={<Navigate to="/" replace />} />
-            <Route path="/explore" element={<Navigate to="/" replace />} />
-            <Route path="/about" element={<Index />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/verify" element={<VerifyEmailPage />} />
-            <Route path="/title/:id" element={<ManhwaDetail />} />
-            <Route path="/manhwa/:id" element={<ManhwaDetail />} />
-            <Route path="/read/:id/:chapter" element={<ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary>} />
-            <Route path="/browse" element={<BrowsePage />} />
-            <Route path="/charts" element={<TopChartsPage />} />
-            <Route path="/publisher/:id" element={<PublisherProfile />} />
-            <Route path="/reader/:id" element={<UserProfilePage />} />
-            <Route path="/user/:id" element={<UserProfilePage />} />
-            <Route path="/dashboard" element={<PublisherDashboard />} />
-            <Route path="/upcoming" element={<UpcomingPage />} />
-            <Route path="/upcoming/:slug/:chapter" element={<UpcomingDetailPage />} />
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/library" element={<MyLibrary />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/settings" element={<ProfilePage />} />
-            <Route path="/creators" element={<SearchCreators />} />
-            <Route path="/community" element={<CommunityPage />} />
-            <Route path="/community/post/:postId" element={<PostDetailPage />} />
-            <Route path="/community/my-posts" element={<MyPostsPage />} />
-            <Route path="/community/bookmarks" element={<BookmarksPage />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/content-guidelines" element={<ContentGuidelines />} />
-            <Route path="/disclaimer" element={<DisclaimerPage />} />
-            <Route path="/dmca" element={<DMCAPage />} />
-            <Route path="/cookie-policy" element={<CookiePolicyPage />} />
-            <Route path="/blog" element={<BlogListPage />} />
-            <Route path="/blog/:slug" element={<BlogDetailPage />} />
-            <Route path="/admin/blog" element={<AdminBlogEditor />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </RequireVerification>
+        <Routes location={location}>
+          <Route path="/" element={<ExplorePage />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
+          <Route path="/explore" element={<Navigate to="/" replace />} />
+          <Route path="/about" element={<Index />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/verify" element={<VerifyEmailPage />} />
+          <Route path="/title/:id" element={<ManhwaDetail />} />
+          <Route path="/manhwa/:id" element={<ManhwaDetail />} />
+          <Route path="/read/:id/:chapter" element={<ErrorBoundary fallback={<ReaderErrorFallback />}><ReaderPage /></ErrorBoundary>} />
+          <Route path="/browse" element={<BrowsePage />} />
+          <Route path="/charts" element={<TopChartsPage />} />
+          <Route path="/publisher/:id" element={<PublisherProfile />} />
+          <Route path="/reader/:id" element={<UserProfilePage />} />
+          <Route path="/user/:id" element={<UserProfilePage />} />
+          <Route path="/dashboard" element={<PublisherDashboard />} />
+          <Route path="/upcoming" element={<UpcomingPage />} />
+          <Route path="/upcoming/:slug/:chapter" element={<UpcomingDetailPage />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/library" element={<MyLibrary />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<ProfilePage />} />
+          <Route path="/creators" element={<SearchCreators />} />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/community/post/:postId" element={<PostDetailPage />} />
+          <Route path="/community/my-posts" element={<MyPostsPage />} />
+          <Route path="/community/bookmarks" element={<BookmarksPage />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/content-guidelines" element={<ContentGuidelines />} />
+          <Route path="/disclaimer" element={<DisclaimerPage />} />
+          <Route path="/dmca" element={<DMCAPage />} />
+          <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+          <Route path="/blog" element={<BlogListPage />} />
+          <Route path="/blog/:slug" element={<BlogDetailPage />} />
+          <Route path="/admin/blog" element={<AdminBlogEditor />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </Suspense>
     </>
   );
@@ -215,7 +189,7 @@ const AppLayout = () => (
     <JsonLd />
     <BanNotice />
     <Navbar />
-    
+    <VerifyEmailBanner />
     <AuthModal />
     <SpotlightSearch />
     <OnboardingModal />
