@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowUp, Clock, CheckCircle2, Calendar, Eye, Tag, BookOpen }
 import { motion } from 'framer-motion';
 import DynamicMeta from '@/components/DynamicMeta';
 import CommentSection from '@/components/CommentSection';
+import SocialShareMenu from '@/components/SocialShareMenu';
 import { toast } from 'sonner';
 
 function getWeekStart(date: Date) {
@@ -247,6 +248,12 @@ const UpcomingDetailPage: React.FC = () => {
             <ArrowUp className="w-4 h-4" />
             {voteCount} {voteCount === 1 ? 'Vote' : 'Votes'}
           </button>
+
+          <SocialShareMenu
+            title={`${manga.title} Ch.${ch.chapter_number}`}
+            url={`https://www.komixora.fun/upcoming/${manga.slug}/${ch.chapter_number}`}
+            description={`${manga.title} Chapter ${ch.chapter_number} launching soon on Komixora!`}
+          />
         </div>
 
         {/* Genres */}
