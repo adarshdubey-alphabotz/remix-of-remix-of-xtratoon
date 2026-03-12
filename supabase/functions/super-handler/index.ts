@@ -17,66 +17,159 @@ function generateCode(): string {
   return code.slice(0, 4) + '-' + code.slice(4);
 }
 
-/** Basic IMAP check — works on self-hosted Supabase (real Deno). */
+type ImapSettings = {
+  hosts: string[];
+  port: number;
+  user: string;
+  pass: string;
+};
+
+function uniqueNonEmpty(values: Array<string | undefined | null>): string[] {
+  const deduped = new Set<string>();
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed) deduped.add(trimmed);
+  }
+  return [...deduped];
+}
+
+function parsePort(rawPort: string | undefined | null, fallback = 993): number {
+  if (!rawPort) return fallback;
+  const parsed = Number(rawPort);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function imapEscape(value: string): string {
+  return value.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
+}
+
+function hasSearchMatches(response: string): boolean {
+  return /\* SEARCH(?:\s+\d+)+\s*(?:\r?\n|$)/.test(response);
+}
+
+function buildImapSettings(): ImapSettings {
+  const user = Deno.env.get('SMTP_USER')?.trim();
+  const pass = Deno.env.get('SMTP_PASS')?.trim();
+
+  if (!user || !pass) {
+    throw new Error('Email credentials not configured');
+  }
+
+  const smtpHost = Deno.env.get('SMTP_HOST')?.trim();
+  const explicitImapHost = Deno.env.get('IMAP_HOST')?.trim();
+  const domain = user.includes('@') ? user.split('@').pop()?.toLowerCase() : undefined;
+
+  const derivedFromSmtp = smtpHost
+    ? smtpHost.startsWith('imap.')
+      ? smtpHost
+      : smtpHost.startsWith('smtp.')
+        ? `imap.${smtpHost.slice(5)}`
+        : `imap.${smtpHost.replace(/^(mail|mx)\./i, '')}`
+    : undefined;
+
+  const hosts = uniqueNonEmpty([
+    explicitImapHost,
+    derivedFromSmtp,
+    smtpHost?.startsWith('imap.') ? smtpHost : undefined,
+    domain ? `imap.${domain}` : undefined,
+    domain ? `mail.${domain}` : undefined,
+    domain === 'gmail.com' ? 'imap.gmail.com' : undefined,
+  ]);
+
+  if (hosts.length === 0) {
+    hosts.push('imap.gmail.com');
+  }
+
+  const port = parsePort(Deno.env.get('IMAP_PORT') ?? Deno.env.get('SMTP_PORT'), 993);
+
+  return { hosts, port, user, pass };
+}
+
+/** Inbox check with provider-aware IMAP host fallback. */
 async function checkImapForEmail(fromEmail: string, codeToFind: string): Promise<boolean> {
-  const host = (Deno.env.get('SMTP_HOST') || 'smtp.gmail.com').replace('smtp.', 'imap.');
-  const port = 993;
-  const user = Deno.env.get('SMTP_USER');
-  const pass = Deno.env.get('SMTP_PASS');
+  const { hosts, port, user, pass } = buildImapSettings();
+  const escapedUser = imapEscape(user);
+  const escapedPass = imapEscape(pass);
+  const escapedFrom = imapEscape(fromEmail.trim());
+  const normalizedCode = codeToFind.toUpperCase().trim();
+  const cleanCode = normalizedCode.replace('-', '');
 
-  if (!user || !pass) throw new Error('Email credentials not configured');
+  const searchCommands = [
+    `SEARCH UNSEEN FROM "${escapedFrom}" TEXT "${imapEscape(normalizedCode)}"`,
+    `SEARCH FROM "${escapedFrom}" TEXT "${imapEscape(normalizedCode)}"`,
+    `SEARCH UNSEEN SUBJECT "${imapEscape(normalizedCode)}"`,
+    `SEARCH SUBJECT "${imapEscape(normalizedCode)}"`,
+    `SEARCH TEXT "${imapEscape(normalizedCode)}"`,
+    `SEARCH FROM "${escapedFrom}" TEXT "${imapEscape(cleanCode)}"`,
+    `SEARCH SUBJECT "${imapEscape(cleanCode)}"`,
+    `SEARCH TEXT "${imapEscape(cleanCode)}"`,
+  ];
 
-  const conn = await (Deno as any).connectTls({ hostname: host, port });
-  const enc = new TextEncoder();
-  const dec = new TextDecoder();
+  let lastError: unknown = null;
 
-  async function read(): Promise<string> {
-    const buf = new Uint8Array(16384);
-    const n = await conn.read(buf);
-    return n ? dec.decode(buf.subarray(0, n)) : '';
-  }
+  for (const host of hosts) {
+    let conn: Deno.Conn | null = null;
+    const enc = new TextEncoder();
+    const dec = new TextDecoder();
 
-  async function cmd(tag: string, command: string): Promise<string> {
-    await conn.write(enc.encode(`${tag} ${command}\r\n`));
-    let result = '';
-    const deadline = Date.now() + 10000; // 10s timeout
-    while (Date.now() < deadline) {
-      const chunk = await read();
-      result += chunk;
-      if (chunk.includes(`${tag} OK`) || chunk.includes(`${tag} NO`) || chunk.includes(`${tag} BAD`)) break;
-    }
-    return result;
-  }
-
-  try {
-    await read(); // server greeting
-
-    const loginRes = await cmd('A1', `LOGIN "${user}" "${pass}"`);
-    if (!loginRes.includes('A1 OK')) throw new Error('IMAP login failed');
-
-    await cmd('A2', 'SELECT INBOX');
-
-    // Search for emails FROM the user containing the code in subject
-    const cleanCode = codeToFind.replace('-', '');
-    const searchRes = await cmd('A3', `SEARCH UNSEEN FROM "${fromEmail}" SUBJECT "${codeToFind}"`);
-
-    // Also try without dash
-    let found = false;
-    if (searchRes.match(/\* SEARCH\s+\d/)) {
-      found = true;
-    } else {
-      const searchRes2 = await cmd('A4', `SEARCH FROM "${fromEmail}" SUBJECT "${cleanCode}"`);
-      found = !!searchRes2.match(/\* SEARCH\s+\d/);
+    async function read(): Promise<string> {
+      if (!conn) return '';
+      const buf = new Uint8Array(16384);
+      const n = await conn.read(buf);
+      return n ? dec.decode(buf.subarray(0, n)) : '';
     }
 
-    await cmd('A5', 'LOGOUT');
-    try { conn.close(); } catch {}
+    async function cmd(tag: string, command: string): Promise<string> {
+      if (!conn) throw new Error('IMAP connection closed');
 
-    return found;
-  } catch (e) {
-    try { conn.close(); } catch {}
-    throw e;
+      await conn.write(enc.encode(`${tag} ${command}\r\n`));
+      let result = '';
+      const deadline = Date.now() + 10000;
+
+      while (Date.now() < deadline) {
+        const chunk = await read();
+        result += chunk;
+        if (chunk.includes(`${tag} OK`) || chunk.includes(`${tag} NO`) || chunk.includes(`${tag} BAD`)) {
+          break;
+        }
+      }
+
+      return result;
+    }
+
+    try {
+      conn = await (Deno as any).connectTls({ hostname: host, port });
+      await read();
+
+      const loginRes = await cmd('A1', `LOGIN "${escapedUser}" "${escapedPass}"`);
+      if (!loginRes.includes('A1 OK')) {
+        throw new Error(`IMAP login failed for host ${host}`);
+      }
+
+      await cmd('A2', 'SELECT "INBOX"');
+
+      for (let i = 0; i < searchCommands.length; i++) {
+        const tag = `S${i + 1}`;
+        const searchRes = await cmd(tag, searchCommands[i]);
+        if (hasSearchMatches(searchRes)) {
+          await cmd('A9', 'LOGOUT');
+          try { conn.close(); } catch {}
+          return true;
+        }
+      }
+
+      await cmd('A9', 'LOGOUT');
+      try { conn.close(); } catch {}
+      return false;
+    } catch (error) {
+      lastError = error;
+      try { conn?.close(); } catch {}
+      continue;
+    }
   }
+
+  console.error('IMAP login failed on all hosts', { hosts, lastError: String(lastError) });
+  throw new Error('IMAP_LOGIN_FAILED');
 }
 
 serve(async (req) => {
