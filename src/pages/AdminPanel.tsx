@@ -592,6 +592,18 @@ const AdminPanel: React.FC = () => {
           {activeTab === 'users' && (
             <div>
               <h2 className="text-display text-3xl mb-4 tracking-wider">USERS</h2>
+              {/* Search */}
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    value={userSearch}
+                    onChange={e => setUserSearch(e.target.value)}
+                    placeholder="Search by username, name, IP, or country..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
               {/* Ban appeal info */}
               <div className="brutal-card p-4 mb-4 flex items-start gap-3 border-l-4 border-primary">
                 <Mail className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
