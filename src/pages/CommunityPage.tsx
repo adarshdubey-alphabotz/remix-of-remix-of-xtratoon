@@ -491,7 +491,7 @@ const CommunityPage: React.FC = () => {
                         </div>
                       </div>
                     </article>
-                  </div>
+                  </ViewTracker>
                 );
               })}
             </div>
