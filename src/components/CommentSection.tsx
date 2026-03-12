@@ -146,8 +146,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
 
   // Sorted top-level comments
   const sortedComments = useMemo(() => {
-    const list = [...(comments.topLevel || [])];
-    // Pinned always first
+    const list = [...(commentsData?.topLevel || [])];
     list.sort((a, b) => {
       if (a.is_pinned && !b.is_pinned) return -1;
       if (!a.is_pinned && b.is_pinned) return 1;
@@ -157,7 +156,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
     return list;
-  }, [comments.topLevel, sortMode, voteScores]);
+  }, [commentsData?.topLevel, sortMode, voteScores]);
 
   const handleSubmit = async () => {
     if (!user) { toast.error('Please login to comment'); return; }
