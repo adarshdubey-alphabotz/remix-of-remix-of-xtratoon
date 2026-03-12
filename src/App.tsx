@@ -52,6 +52,9 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const UpcomingPage = lazy(() => import("./pages/UpcomingPage"));
 const UpcomingDetailPage = lazy(() => import("./pages/UpcomingDetailPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const SignupPage = lazy(() => import("./pages/SignupPage"));
+const VerifyEmailPage = lazy(() => import("./pages/VerifyEmailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
