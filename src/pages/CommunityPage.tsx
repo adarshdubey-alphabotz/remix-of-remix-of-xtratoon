@@ -67,6 +67,21 @@ const ImageGrid: React.FC<{ images: string[] }> = ({ images }) => {
   );
 };
 
+const ViewTracker: React.FC<{ postId: string; onView: (id: string) => void; children: React.ReactNode }> = ({ postId, onView, children }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { onView(postId); observer.disconnect(); } },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [postId, onView]);
+  return <div ref={ref}>{children}</div>;
+};
+
 const CommunityPage: React.FC = () => {
   const { user, profile, isPublisher, isAdmin, setShowAuthModal, setAuthTab } = useAuth();
   const queryClient = useQueryClient();
