@@ -333,6 +333,7 @@ const AdminPanel: React.FC = () => {
     { id: 'payouts', label: 'Payouts', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'submissions', label: 'Manga', icon: <FileText className="w-4 h-4" /> },
     { id: 'chapter-reviews', label: 'Chapters', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'scheduled', label: 'Scheduled', icon: <Clock className="w-4 h-4" /> },
     { id: 'reports', label: 'Reports', icon: <Flag className="w-4 h-4" /> },
     { id: 'community', label: 'Community', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 'library', label: 'Manhwa Library', icon: <BookOpen className="w-4 h-4" /> },
