@@ -212,19 +212,17 @@ const UpcomingPage: React.FC = () => {
             </div>
 
             {/* Search inline */}
-            <AnimatePresence>
-              {showSearch && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-2">
-                  <input
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search upcoming titles..."
-                    className="w-full px-3 py-1.5 bg-muted border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
-                    autoFocus
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showSearch && (
+              <div className="mb-2">
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search upcoming titles..."
+                  className="w-full px-3 py-1.5 bg-muted border border-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
+                  autoFocus
+                />
+              </div>
+            )}
 
             {/* Day headers */}
             <div className="grid grid-cols-7 gap-0.5 mb-1">
