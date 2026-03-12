@@ -40,12 +40,12 @@ const renderContent = (content: string) => {
   });
 };
 
-const ImageGrid: React.FC<{ images: string[] }> = ({ images }) => {
+const ImageGrid: React.FC<{ images: string[]; prioritize?: boolean }> = ({ images, prioritize = false }) => {
   if (images.length === 0) return null;
   if (images.length === 1) {
     return (
       <div className="mt-3 rounded-2xl overflow-hidden border border-border/30">
-        <img src={images[0]} alt="" className="w-full max-h-[400px] object-cover" loading="lazy" />
+        <img src={images[0]} alt="" className="w-full max-h-[400px] object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize ? 'high' : 'auto'} decoding="async" />
       </div>
     );
   }
@@ -53,16 +53,16 @@ const ImageGrid: React.FC<{ images: string[] }> = ({ images }) => {
     return (
       <div className="mt-3 rounded-2xl overflow-hidden border border-border/30 grid grid-cols-2 gap-0.5">
         {images.map((url, idx) => (
-          <img key={idx} src={url} alt="" className="w-full h-[200px] object-cover" loading="lazy" />
+          <img key={idx} src={url} alt="" className="w-full h-[200px] object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize && idx < 2 ? 'high' : 'auto'} decoding="async" />
         ))}
       </div>
     );
   }
   return (
     <div className="mt-3 rounded-2xl overflow-hidden border border-border/30 grid grid-cols-2 gap-0.5">
-      <img src={images[0]} alt="" className="w-full h-full row-span-2 object-cover" loading="lazy" />
-      <img src={images[1]} alt="" className="w-full h-[150px] object-cover" loading="lazy" />
-      <img src={images[2]} alt="" className="w-full h-[150px] object-cover" loading="lazy" />
+      <img src={images[0]} alt="" className="w-full h-full row-span-2 object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize ? 'high' : 'auto'} decoding="async" />
+      <img src={images[1]} alt="" className="w-full h-[150px] object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize ? 'high' : 'auto'} decoding="async" />
+      <img src={images[2]} alt="" className="w-full h-[150px] object-cover" loading={prioritize ? 'eager' : 'lazy'} fetchPriority={prioritize ? 'high' : 'auto'} decoding="async" />
     </div>
   );
 };
