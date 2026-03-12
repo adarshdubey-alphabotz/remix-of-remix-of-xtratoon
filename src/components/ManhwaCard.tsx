@@ -61,7 +61,7 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, index = 0, rank, rankCo
         <button onClick={e => { e.preventDefault(); }} className="absolute top-2.5 left-2.5 z-10 p-1.5 glass rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95">
           <Bookmark className="w-3.5 h-3.5" />
         </button>
-      </motion.div>
+      </div>
 
       <div className="space-y-1 px-0.5">
         <h3 className="font-display text-base tracking-wide leading-tight line-clamp-1 group-hover:text-primary transition-colors">{manhwa.title}</h3>
