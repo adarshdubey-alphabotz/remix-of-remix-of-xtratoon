@@ -209,10 +209,7 @@ const CommentSection: React.FC<Props> = ({ mangaId, mangaTitle, creatorId }) => 
             <div className="flex items-center gap-2 flex-wrap">
               {comment.profile?.username ? (
                 <Link
-                  to={comment.profile?.username ? (
-                    // Check role from profile data - publishers go to /publisher/, others to /reader/
-                    `/publisher/${comment.profile.username}`
-                  ) : '#'}
+                  to={comment.profile.role_type === 'publisher' || comment.profile.role_type === 'creator' ? `/publisher/${comment.profile.username}` : `/reader/${comment.profile.username}`}
                   className="text-sm font-semibold hover:text-primary transition-colors hover:underline"
                 >
                   {displayName}
