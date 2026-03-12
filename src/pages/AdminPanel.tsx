@@ -598,7 +598,7 @@ const AdminPanel: React.FC = () => {
               <div className="brutal-card overflow-hidden">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b-2 border-foreground text-left text-muted-foreground text-xs uppercase tracking-wider">
-                    <th className="px-4 py-3">Username</th><th className="px-4 py-3">Display Name</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Actions</th>
+                    <th className="px-4 py-3">Username</th><th className="px-4 py-3">Display Name</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Location</th><th className="px-4 py-3">IP</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Actions</th>
                   </tr></thead>
                   <tbody>
                     {(allUsers || []).map((u: any) => (
@@ -606,6 +606,8 @@ const AdminPanel: React.FC = () => {
                         <td className="px-4 py-3 font-semibold inline-flex items-center gap-1">{u.username || '—'} {u.is_verified && <VerifiedBadge size="sm" />}</td>
                         <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground">{[u.signup_city, u.signup_country].filter(Boolean).join(', ') || '—'}</td>
+                        <td className="px-4 py-3 font-mono text-[10px] text-muted-foreground">{u.signup_ip || '—'}</td>
                         <td className="px-4 py-3">
                           {u.is_banned ? (
                             <div>

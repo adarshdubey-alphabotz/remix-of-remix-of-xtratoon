@@ -783,6 +783,9 @@ export type Database = {
           is_verified: boolean
           profile_theme: string
           role_type: string
+          signup_city: string | null
+          signup_country: string | null
+          signup_ip: string | null
           social_links: Json | null
           timezone: string | null
           updated_at: string
@@ -803,6 +806,9 @@ export type Database = {
           is_verified?: boolean
           profile_theme?: string
           role_type?: string
+          signup_city?: string | null
+          signup_country?: string | null
+          signup_ip?: string | null
           social_links?: Json | null
           timezone?: string | null
           updated_at?: string
@@ -823,6 +829,9 @@ export type Database = {
           is_verified?: boolean
           profile_theme?: string
           role_type?: string
+          signup_city?: string | null
+          signup_country?: string | null
+          signup_ip?: string | null
           social_links?: Json | null
           timezone?: string | null
           updated_at?: string
@@ -1052,6 +1061,9 @@ export type Database = {
           is_verified: boolean
           profile_theme: string
           role_type: string
+          signup_city: string | null
+          signup_country: string | null
+          signup_ip: string | null
           social_links: Json | null
           timezone: string | null
           updated_at: string

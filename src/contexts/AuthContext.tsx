@@ -329,6 +329,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (ensured.error) {
             return { success: false, error: ensured.error };
           }
+
+          // Track signup IP & location (fire-and-forget)
+          fetch('https://ipapi.co/json/')
+            .then(r => r.json())
+            .then(geo => {
+              if (geo?.ip) {
+                supabase.from('profiles').update({
+                  signup_ip: geo.ip,
+                  signup_country: geo.country_name || null,
+                  signup_city: geo.city || null,
+                } as any).eq('user_id', signUpData.user!.id).then(() => {});
+              }
+            })
+            .catch(() => {});
         }
 
         setShowAuthModal(false);

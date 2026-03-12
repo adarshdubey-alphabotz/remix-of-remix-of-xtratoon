@@ -20,11 +20,13 @@ async function getModel() {
   if (loadingPromise) return loadingPromise;
 
   loadingPromise = (async () => {
+    // Load TensorFlow.js first
     await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js');
-    await loadScript('https://cdn.jsdelivr.net/npm/nsfwjs@4.1.0/dist/nsfwjs.min.js');
+    // Load NSFWJS v2.4.2 (stable, well-tested with CDN)
+    await loadScript('https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js');
     const nsfwjs = (window as any).nsfwjs;
     if (!nsfwjs) throw new Error('NSFWJS not loaded');
-    nsfwModel = await nsfwjs.load('https://nsfwjs.com/quant_nsfw_mobilenet/', { size: 224 });
+    nsfwModel = await nsfwjs.load();
     return nsfwModel;
   })();
 
