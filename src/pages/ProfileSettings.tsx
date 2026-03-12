@@ -99,16 +99,7 @@ const ProfileSettings: React.FC = () => {
       if (existing) { setError('Username already taken'); setSaving(false); return; }
     }
 
-    // If switching to publisher, need role entry
-    if (roleType === 'publisher' && !isPublisher) {
-      const { error: roleErr } = await supabase.from('user_roles').insert({ user_id: user!.id, role: 'publisher' as any });
-      if (roleErr && !roleErr.message.includes('duplicate')) {
-        setError('Failed to update role: ' + roleErr.message); setSaving(false); return;
-      }
-    }
-
-    // Update profile including location fields
-    const updates: any = {
+    // Role switching is locked — don't allow role_type changes
       display_name: displayName || null,
       bio: bio || null,
       role_type: roleType,
