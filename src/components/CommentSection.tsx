@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Send, Reply, Trash2, ChevronDown, ChevronUp, Pin, Link2, Smile } from 'lucide-react';
