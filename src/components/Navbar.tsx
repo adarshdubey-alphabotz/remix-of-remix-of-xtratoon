@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, MoreVertical, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, MessageSquare, Clock, Users, Eye } from 'lucide-react';
+import { Search, Bell, MoreVertical, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, MessageSquare, Clock, Users, Eye, FileText, Newspaper, Scale, Cookie, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,13 +94,12 @@ const Navbar: React.FC = () => {
   return (
     <>
       {/* Desktop navbar */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 hidden md:block transition-colors duration-200 ${scrolled ? 'bg-background/95 backdrop-blur-sm border-b border-border/50' : 'bg-background border-b border-transparent'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 hidden md:block transition-all duration-200 ${scrolled ? 'bg-background/95 backdrop-blur-md border-b border-border' : 'bg-background border-b border-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to="/" className="flex-shrink-0">
-              <span className="text-display text-xl tracking-wider">
-                <span className="font-normal">KOMI</span>
-                <span className="text-primary">XORA</span>
+              <span className="text-display text-xl">
+                KOMI<span className="text-primary">XORA</span>
               </span>
             </Link>
             <div className="flex items-center gap-1">
@@ -110,7 +109,7 @@ const Navbar: React.FC = () => {
                   to={item.to}
                   className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive(item.to)
-                      ? 'text-foreground bg-muted/60'
+                      ? 'text-primary bg-primary/10'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                   }`}
                 >
@@ -123,7 +122,7 @@ const Navbar: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 text-sm text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/20 transition-colors"
             >
               <Search className="w-3.5 h-3.5" />
               <span className="hidden lg:inline">Search</span>
@@ -209,36 +208,32 @@ const Navbar: React.FC = () => {
             ) : (
               <div className="flex items-center gap-2">
                 <button onClick={handleLogin} className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Log in</button>
-                <button onClick={handleSignup} className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">Sign Up</button>
+                <button onClick={handleSignup} className="px-4 py-1.5 text-sm font-semibold bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">Sign Up</button>
               </div>
             )}
           </div>
         </div>
       </nav>
 
-      {/* Mobile top bar - logo + search + theme + 3-dot menu */}
-      <nav className="fixed top-0 left-0 right-0 z-50 md:hidden bg-background border-b border-border/50">
+      {/* Mobile top bar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 md:hidden bg-background border-b border-border">
         <div className="flex items-center justify-between px-3 h-12">
           <Link to="/" className="flex-shrink-0">
-            <span className="text-display text-lg tracking-wider">
-              <span className="font-normal">KOMI</span>
-              <span className="text-primary">XORA</span>
+            <span className="text-display text-lg">
+              KOMI<span className="text-primary">XORA</span>
             </span>
           </Link>
           <div className="flex items-center gap-0.5">
             <button
               onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-              className="p-2 rounded-lg text-muted-foreground"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground"
               aria-label="Search"
             >
-              <Search className="w-4.5 h-4.5" />
-            </button>
-            <button onClick={toggleTheme} className="p-2 rounded-lg text-muted-foreground" aria-label={themeLabel}>
-              {themeIcon}
+              <Search className="w-[18px] h-[18px]" />
             </button>
             {user && (
-              <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2 rounded-lg text-muted-foreground">
-                <Bell className="w-4.5 h-4.5" />
+              <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground">
+                <Bell className="w-[18px] h-[18px]" />
                 {(() => {
                   const showAdminNotifs = isAdmin && adminMode;
                   const count = showAdminNotifs ? unreadCount + userUnreadCount : userUnreadCount;
@@ -270,84 +265,111 @@ const Navbar: React.FC = () => {
           </div>
         )}
 
-        {/* Mobile 3-dot dropdown */}
+        {/* Mobile 3-dot dropdown — full menu with legal & blog links */}
         {mobileMenuOpen && (
           <>
-            <div className="fixed inset-0 z-40 bg-foreground/10" onClick={() => setMobileMenuOpen(false)} />
-            <div className="absolute right-2 top-12 z-50 w-64 bg-popover border border-border rounded-xl shadow-xl p-1.5">
-              {user && (
-                <div className="px-3 py-2 border-b border-border/50 mb-1">
-                  <p className="text-sm font-semibold text-foreground truncate">{profile?.display_name || profile?.username || user.email}</p>
-                  {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
-                </div>
-              )}
+            <div className="fixed inset-0 z-40 bg-foreground/10 backdrop-blur-[2px]" onClick={() => setMobileMenuOpen(false)} />
+            <div className="absolute right-2 top-12 z-50 w-72 bg-popover border border-border rounded-xl shadow-xl overflow-hidden">
+              <div className="max-h-[70vh] overflow-y-auto p-1.5">
+                {user && (
+                  <div className="px-3 py-2.5 border-b border-border/50 mb-1">
+                    <p className="text-sm font-semibold text-foreground truncate">{profile?.display_name || profile?.username || user.email}</p>
+                    {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
+                    <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase bg-primary/10 text-primary rounded-full">
+                      {isAdmin ? (adminMode ? 'Admin' : 'Creator') : (profile?.role_type || 'reader')}
+                    </span>
+                  </div>
+                )}
 
-              <Link to="/creators" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
-                <Users className="w-4 h-4 text-muted-foreground" /> Search Creators
-              </Link>
+                {/* Navigation */}
+                <Link to="/creators" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                  <Users className="w-4 h-4 text-muted-foreground" /> Search Creators
+                </Link>
 
-              {user && (
-                <>
-                  <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
-                    <UserIcon className="w-4 h-4 text-muted-foreground" /> My Profile
-                  </Link>
-                  <Link to="/library" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
-                    <BookOpen className="w-4 h-4 text-muted-foreground" /> My Library
-                  </Link>
-                  {(isPublisher || (isAdmin && !adminMode)) && (
-                    <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
-                      <LayoutDashboard className="w-4 h-4 text-muted-foreground" /> Dashboard
+                {user && (
+                  <>
+                    <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                      <UserIcon className="w-4 h-4 text-muted-foreground" /> My Profile
                     </Link>
-                  )}
-                  {isAdmin && adminMode && (
-                    <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
-                      <Shield className="w-4 h-4 text-muted-foreground" /> Admin Panel
+                    <Link to="/library" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                      <BookOpen className="w-4 h-4 text-muted-foreground" /> My Library
                     </Link>
-                  )}
-                  {isAdmin && (
-                    <button
-                      onClick={() => { setAdminMode(!adminMode); setMobileMenuOpen(false); }}
-                      className="flex items-center justify-between w-full px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors"
-                    >
-                      <span className="flex items-center gap-3"><Shield className="w-4 h-4 text-muted-foreground" />{adminMode ? 'Creator Mode' : 'Admin Mode'}</span>
-                      <span className={`w-7 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
-                        <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
-                      </span>
-                    </button>
-                  )}
-                </>
-              )}
+                    {(isPublisher || (isAdmin && !adminMode)) && (
+                      <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                        <LayoutDashboard className="w-4 h-4 text-muted-foreground" /> Dashboard
+                      </Link>
+                    )}
+                    {isAdmin && adminMode && (
+                      <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                        <Shield className="w-4 h-4 text-muted-foreground" /> Admin Panel
+                      </Link>
+                    )}
+                    {isAdmin && (
+                      <button
+                        onClick={() => { setAdminMode(!adminMode); setMobileMenuOpen(false); }}
+                        className="flex items-center justify-between w-full px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors"
+                      >
+                        <span className="flex items-center gap-3"><Shield className="w-4 h-4 text-muted-foreground" />{adminMode ? 'Creator Mode' : 'Admin Mode'}</span>
+                        <span className={`w-7 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                          <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                        </span>
+                      </button>
+                    )}
+                  </>
+                )}
 
-              <div className="my-1 border-t border-border/50" />
+                {/* Theme toggle */}
+                <div className="my-1 border-t border-border/50" />
+                <button
+                  onClick={() => { toggleTheme(); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors"
+                >
+                  {themeIcon} <span>{themeLabel}</span>
+                </button>
 
-              <button
-                onClick={() => { toggleTheme(); setMobileMenuOpen(false); }}
-                className="flex items-center gap-3 w-full px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors"
-              >
-                {themeIcon} <span className="text-muted-foreground">{themeLabel}</span>
-              </button>
+                {/* Legal & Info section */}
+                <div className="my-1 border-t border-border/50" />
+                <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Info & Legal</p>
+                <Link to="/blog" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg transition-colors">
+                  <Newspaper className="w-4 h-4" /> Blog
+                </Link>
+                <Link to="/terms" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg transition-colors">
+                  <FileText className="w-4 h-4" /> Terms of Service
+                </Link>
+                <Link to="/privacy" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg transition-colors">
+                  <Scale className="w-4 h-4" /> Privacy Policy
+                </Link>
+                <Link to="/content-guidelines" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg transition-colors">
+                  <AlertTriangle className="w-4 h-4" /> Content Guidelines
+                </Link>
+                <Link to="/dmca" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg transition-colors">
+                  <Shield className="w-4 h-4" /> DMCA
+                </Link>
+                <Link to="/cookie-policy" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg transition-colors">
+                  <Cookie className="w-4 h-4" /> Cookie Policy
+                </Link>
 
-              {!user ? (
-                <div className="flex gap-2 p-2 border-t border-border/50 mt-1">
-                  <button onClick={handleLogin} className="flex-1 py-2 text-sm font-medium border border-border rounded-lg hover:bg-muted/40 transition-colors">Login</button>
-                  <button onClick={handleSignup} className="flex-1 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg">Sign Up</button>
-                </div>
-              ) : (
-                <>
-                  <div className="my-1 border-t border-border/50" />
+                {/* Auth buttons / Logout */}
+                <div className="my-1 border-t border-border/50" />
+                {!user ? (
+                  <div className="flex gap-2 p-2">
+                    <button onClick={handleLogin} className="flex-1 py-2 text-sm font-medium border border-border rounded-lg hover:bg-muted/40 transition-colors">Login</button>
+                    <button onClick={handleSignup} className="flex-1 py-2 text-sm font-semibold bg-primary text-primary-foreground rounded-lg">Sign Up</button>
+                  </div>
+                ) : (
                   <button onClick={handleLogout} disabled={logoutPending} className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-60">
                     <LogOut className="w-4 h-4" /> {logoutPending ? 'Logging out...' : 'Logout'}
                   </button>
-                </>
-              )}
+                )}
+              </div>
             </div>
           </>
         )}
       </nav>
 
       {/* Mobile bottom tab bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background border-t border-border/50">
-        <div className="flex items-center justify-around h-12 max-w-md mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-md border-t border-border">
+        <div className="flex items-center justify-around h-13 max-w-md mx-auto">
           {bottomNavItems.map(item => {
             const Icon = item.icon;
             const active = isActive(item.to);
@@ -355,24 +377,24 @@ const Navbar: React.FC = () => {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-colors ${
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors ${
                   active ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="text-[9px] font-medium">{item.label}</span>
+                <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : ''}`} />
+                <span className={`text-[9px] ${active ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
               </Link>
             );
           })}
           {user ? (
             <Link
               to="/profile"
-              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-colors ${
+              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors ${
                 isActive('/profile') ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
-              <UserIcon className="w-5 h-5" />
-              <span className="text-[9px] font-medium">Profile</span>
+              <UserIcon className={`w-5 h-5 ${isActive('/profile') ? 'stroke-[2.5]' : ''}`} />
+              <span className={`text-[9px] ${isActive('/profile') ? 'font-bold' : 'font-medium'}`}>Profile</span>
               {userUnreadCount > 0 && (
                 <span className="absolute top-0.5 right-1/4 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[7px] font-bold rounded-full flex items-center justify-center">
                   {userUnreadCount > 9 ? '9+' : userUnreadCount}
@@ -380,7 +402,7 @@ const Navbar: React.FC = () => {
               )}
             </Link>
           ) : (
-            <button onClick={handleSignup} className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 text-muted-foreground">
+            <button onClick={handleSignup} className="flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-muted-foreground">
               <UserIcon className="w-5 h-5" />
               <span className="text-[9px] font-medium">Sign Up</span>
             </button>
