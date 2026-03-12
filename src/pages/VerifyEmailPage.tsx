@@ -91,7 +91,10 @@ const VerifyEmailPage: React.FC = () => {
         body: { email: userEmail, code: inputCode.trim().toUpperCase() },
       });
 
-      if (fnError) throw fnError;
+      if (fnError) {
+        const resolvedMessage = await resolveFunctionErrorMessage(fnError, 'check-verification');
+        throw new Error(resolvedMessage);
+      }
 
       if (data?.verified) {
         setState('verified');
