@@ -327,7 +327,7 @@ const PostDetailPage: React.FC = () => {
                 {reportMutation.isPending ? 'Reporting...' : 'Report'}
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 
