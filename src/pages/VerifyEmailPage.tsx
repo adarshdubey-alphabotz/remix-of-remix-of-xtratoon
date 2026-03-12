@@ -309,7 +309,7 @@ const VerifyEmailPage: React.FC = () => {
                 {/* Check inbox button */}
                 <button
                   onClick={handleCheckInbox}
-                  disabled={resendCooldown <= 0 || state === 'checking'}
+                  disabled={resendCooldown <= 0}
                   className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-accent-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity border border-border disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw className="w-4 h-4" />
