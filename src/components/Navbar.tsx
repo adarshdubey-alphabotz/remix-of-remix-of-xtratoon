@@ -97,6 +97,7 @@ const Navbar: React.FC = () => {
   const navItems = [
     { to: '/', label: 'Home', icon: Home },
     { to: '/browse', label: 'Browse', icon: Search },
+    { to: '/upcoming', label: 'Upcoming', icon: Clock },
     { to: '/charts', label: 'Charts', icon: BarChart3 },
     { to: '/community', label: 'Community', icon: MessageSquare },
   ];
