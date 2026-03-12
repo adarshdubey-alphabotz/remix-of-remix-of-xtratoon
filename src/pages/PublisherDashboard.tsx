@@ -29,6 +29,9 @@ const PublisherDashboard: React.FC = () => {
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [copyrightChecked, setCopyrightChecked] = useState(false);
+  const [mangaScheduleEnabled, setMangaScheduleEnabled] = useState(false);
+  const [mangaScheduledDate, setMangaScheduledDate] = useState('');
+  const [mangaScheduledTime, setMangaScheduledTime] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
