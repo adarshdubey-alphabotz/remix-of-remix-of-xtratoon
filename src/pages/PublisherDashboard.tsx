@@ -184,10 +184,20 @@ const PublisherDashboard: React.FC = () => {
         if (!coverResult.success) console.error('Cover upload failed:', coverResult.error);
       }
 
-      // 3. Create chapter 1 and upload pages
+      // 3. Create chapter 1 and upload pages (with optional scheduling)
+      const ch1ScheduledAt = mangaScheduleEnabled && mangaScheduledDate && mangaScheduledTime
+        ? new Date(`${mangaScheduledDate}T${mangaScheduledTime}`).toISOString()
+        : null;
+
       const { data: chapter, error: chapterError } = await supabase
         .from('chapters')
-        .insert({ manga_id: manga.id, chapter_number: 1, title: ch1Title || null })
+        .insert({
+          manga_id: manga.id,
+          chapter_number: 1,
+          title: ch1Title || null,
+          is_published: !ch1ScheduledAt,
+          scheduled_at: ch1ScheduledAt,
+        } as any)
         .select()
         .single();
 
