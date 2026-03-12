@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, MessageSquare, Clock } from 'lucide-react';
+import { Search, Bell, MoreVertical, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, MessageSquare, Clock, Users, Eye } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,19 +8,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
 import NotificationCenter from '@/components/NotificationCenter';
 
-const allGenres = [
-  'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
-  'Mystery', 'Horror', 'Slice of Life', 'Adventure', 'Historical', 'School',
-];
-
 const Navbar: React.FC = () => {
   const { user, profile, logout, setShowAuthModal, setAuthTab, isAdmin, isPublisher, adminMode, setAdminMode } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const queryClient = useQueryClient();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
   const location = useLocation();
@@ -55,7 +49,7 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     setUserMenuOpen(false);
     setNotifOpen(false);
-    setMobileOpen(false);
+    setMobileMenuOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -64,21 +58,13 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/browse?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-    }
-  };
-
-  const handleLogin = () => { setAuthTab('login'); setShowAuthModal(true); setMobileOpen(false); };
-  const handleSignup = () => { setAuthTab('signup'); setShowAuthModal(true); setMobileOpen(false); };
+  const handleLogin = () => { setAuthTab('login'); setShowAuthModal(true); setMobileMenuOpen(false); };
+  const handleSignup = () => { setAuthTab('signup'); setShowAuthModal(true); setMobileMenuOpen(false); };
   const handleLogout = async () => {
     setLogoutPending(true);
     await logout();
     setUserMenuOpen(false);
-    setMobileOpen(false);
+    setMobileMenuOpen(false);
     navigate('/');
     setLogoutPending(false);
   };
@@ -87,7 +73,7 @@ const Navbar: React.FC = () => {
 
   const { unreadCount: userUnreadCount } = useUserNotifications();
 
-  const navItems = [
+  const bottomNavItems = [
     { to: '/', label: 'Home', icon: Home },
     { to: '/browse', label: 'Browse', icon: Search },
     { to: '/upcoming', label: 'Upcoming', icon: Clock },
@@ -95,14 +81,21 @@ const Navbar: React.FC = () => {
     { to: '/community', label: 'Community', icon: MessageSquare },
   ];
 
+  const desktopNavItems = [
+    ...bottomNavItems,
+    { to: '/creators', label: 'Creators', icon: Users },
+  ];
+
   if (isReaderPage) return null;
+
+  const themeIcon = theme === 'light' ? <Moon className="w-4 h-4" /> : theme === 'dark' ? <Smartphone className="w-4 h-4" /> : <Sun className="w-4 h-4" />;
+  const themeLabel = theme === 'light' ? 'Dark Mode' : theme === 'dark' ? 'AMOLED Mode' : 'Light Mode';
 
   return (
     <>
       {/* Desktop navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 hidden md:block transition-colors duration-200 ${scrolled ? 'bg-background/95 backdrop-blur-sm border-b border-border/50' : 'bg-background border-b border-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-          {/* Left: Logo + Nav */}
           <div className="flex items-center gap-8">
             <Link to="/" className="flex-shrink-0">
               <span className="text-display text-xl tracking-wider">
@@ -110,9 +103,8 @@ const Navbar: React.FC = () => {
                 <span className="text-primary">XORA</span>
               </span>
             </Link>
-
             <div className="flex items-center gap-1">
-              {navItems.map(item => (
+              {desktopNavItems.map(item => (
                 <Link
                   key={item.to}
                   to={item.to}
@@ -128,7 +120,6 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Search + Actions */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
@@ -140,7 +131,7 @@ const Navbar: React.FC = () => {
             </button>
 
             <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground" aria-label="Toggle theme">
-              {theme === 'light' ? <Moon className="w-4 h-4" /> : theme === 'dark' ? <Smartphone className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+              {themeIcon}
             </button>
 
             {user && (
@@ -225,122 +216,177 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile top bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-b border-border/50">
-        <div className="flex items-center justify-between px-4 h-12">
+      {/* Mobile top bar - logo + search + theme + 3-dot menu */}
+      <nav className="fixed top-0 left-0 right-0 z-50 md:hidden bg-background border-b border-border/50">
+        <div className="flex items-center justify-between px-3 h-12">
           <Link to="/" className="flex-shrink-0">
             <span className="text-display text-lg tracking-wider">
               <span className="font-normal">KOMI</span>
               <span className="text-primary">XORA</span>
             </span>
           </Link>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <button
               onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
               className="p-2 rounded-lg text-muted-foreground"
+              aria-label="Search"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-4.5 h-4.5" />
             </button>
-            <button onClick={toggleTheme} className="p-2 rounded-lg text-muted-foreground">
-              {theme === 'light' ? <Moon className="w-4 h-4" /> : theme === 'dark' ? <Smartphone className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            <button onClick={toggleTheme} className="p-2 rounded-lg text-muted-foreground" aria-label={themeLabel}>
+              {themeIcon}
             </button>
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg text-foreground">
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile bottom tab bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border/50">
-          <div className="flex items-center justify-around h-12">
-            {navItems.map(item => {
-              const Icon = item.icon;
-              const active = isActive(item.to);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`flex flex-col items-center justify-center gap-0.5 p-1.5 transition-colors ${
-                    active ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-[9px] font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
-            {user ? (
-              <Link
-                to="/profile"
-                className={`flex flex-col items-center justify-center gap-0.5 p-1.5 transition-colors ${
-                  isActive('/profile') ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                <UserIcon className="w-5 h-5" />
-                <span className="text-[9px] font-medium">Profile</span>
-                {userUnreadCount > 0 && (
-                  <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[7px] font-bold rounded-full flex items-center justify-center">
-                    {userUnreadCount > 9 ? '9+' : userUnreadCount}
-                  </span>
-                )}
-              </Link>
-            ) : (
-              <button onClick={handleSignup} className="flex flex-col items-center justify-center gap-0.5 p-1.5 text-muted-foreground">
-                <UserIcon className="w-5 h-5" />
-                <span className="text-[9px] font-medium">Sign Up</span>
+            {user && (
+              <button onClick={() => setNotifOpen(!notifOpen)} className="relative p-2 rounded-lg text-muted-foreground">
+                <Bell className="w-4.5 h-4.5" />
+                {(() => {
+                  const showAdminNotifs = isAdmin && adminMode;
+                  const count = showAdminNotifs ? unreadCount + userUnreadCount : userUnreadCount;
+                  return count > 0 ? (
+                    <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[7px] font-bold rounded-full flex items-center justify-center">
+                      {count > 9 ? '9+' : count}
+                    </span>
+                  ) : null;
+                })()}
               </button>
             )}
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg text-foreground" aria-label="Menu">
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <MoreVertical className="w-5 h-5" />}
+            </button>
           </div>
         </div>
 
-        {/* Mobile dropdown menu */}
-        {mobileOpen && (
-          <div className="bg-background border-b border-border/50 px-4 py-3 space-y-1">
-            <form onSubmit={handleSearch}>
-              <div className="relative mb-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search manhwa..." className="w-full pl-9 pr-3 py-2 bg-muted/40 border border-border/50 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary/30" />
-              </div>
-            </form>
-            <div className="flex flex-wrap gap-1.5 pb-2">
-              {allGenres.slice(0, 6).map(g => (
-                <Link key={g} to={`/browse?genre=${g}`} onClick={() => setMobileOpen(false)} className="px-2.5 py-1 text-xs border border-border/50 rounded-lg hover:border-primary hover:text-primary transition-colors">
-                  {g}
-                </Link>
-              ))}
-            </div>
-            {!user && (
-              <div className="flex gap-2 pt-2 border-t border-border/30">
-                <button onClick={handleLogin} className="flex-1 py-2 text-sm font-medium border border-border rounded-lg hover:bg-muted/40 transition-colors">Login</button>
-                <button onClick={handleSignup} className="flex-1 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg">Sign Up</button>
-              </div>
-            )}
-            {user && (
-              <div className="pt-2 border-t border-border/30 space-y-0.5">
-                <div className="px-3 py-1.5">
-                  <p className="text-sm font-semibold">{profile?.display_name || user.email}</p>
-                  {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
-                </div>
-                <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">My Profile</Link>
-                <Link to="/library" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">My Library</Link>
-                {(isPublisher || (isAdmin && !adminMode)) && <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">Dashboard</Link>}
-                {isAdmin && adminMode && <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">Admin Panel</Link>}
-                {isAdmin && (
-                  <button onClick={() => setAdminMode(!adminMode)} className="flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-muted/40 rounded-lg">
-                    <span>{adminMode ? 'Switch to Creator' : 'Switch to Admin'}</span>
-                    <span className={`w-7 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
-                      <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
-                    </span>
-                  </button>
-                )}
-                <button onClick={handleLogout} disabled={logoutPending} className="block w-full text-left px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg disabled:opacity-60">
-                  {logoutPending ? 'Logging out...' : 'Logout'}
-                </button>
-              </div>
-            )}
+        {/* Notification center for mobile */}
+        {notifOpen && (
+          <div className="absolute right-2 top-12 z-50">
+            <NotificationCenter
+              open={notifOpen}
+              onClose={() => setNotifOpen(false)}
+              adminNotifications={adminNotifications}
+              adminMode={adminMode}
+              onMarkAdminRead={markNotifRead}
+              onMarkAllAdminRead={markAllRead}
+            />
           </div>
         )}
+
+        {/* Mobile 3-dot dropdown */}
+        {mobileMenuOpen && (
+          <>
+            <div className="fixed inset-0 z-40 bg-foreground/10" onClick={() => setMobileMenuOpen(false)} />
+            <div className="absolute right-2 top-12 z-50 w-64 bg-popover border border-border rounded-xl shadow-xl p-1.5">
+              {user && (
+                <div className="px-3 py-2 border-b border-border/50 mb-1">
+                  <p className="text-sm font-semibold text-foreground truncate">{profile?.display_name || profile?.username || user.email}</p>
+                  {profile?.username && <p className="text-xs text-muted-foreground">@{profile.username}</p>}
+                </div>
+              )}
+
+              <Link to="/creators" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                <Users className="w-4 h-4 text-muted-foreground" /> Search Creators
+              </Link>
+
+              {user && (
+                <>
+                  <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                    <UserIcon className="w-4 h-4 text-muted-foreground" /> My Profile
+                  </Link>
+                  <Link to="/library" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                    <BookOpen className="w-4 h-4 text-muted-foreground" /> My Library
+                  </Link>
+                  {(isPublisher || (isAdmin && !adminMode)) && (
+                    <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                      <LayoutDashboard className="w-4 h-4 text-muted-foreground" /> Dashboard
+                    </Link>
+                  )}
+                  {isAdmin && adminMode && (
+                    <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors">
+                      <Shield className="w-4 h-4 text-muted-foreground" /> Admin Panel
+                    </Link>
+                  )}
+                  {isAdmin && (
+                    <button
+                      onClick={() => { setAdminMode(!adminMode); setMobileMenuOpen(false); }}
+                      className="flex items-center justify-between w-full px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors"
+                    >
+                      <span className="flex items-center gap-3"><Shield className="w-4 h-4 text-muted-foreground" />{adminMode ? 'Creator Mode' : 'Admin Mode'}</span>
+                      <span className={`w-7 h-4 rounded-full transition-colors flex items-center ${adminMode ? 'bg-primary justify-end' : 'bg-muted justify-start'}`}>
+                        <span className="w-3 h-3 bg-background rounded-full mx-0.5" />
+                      </span>
+                    </button>
+                  )}
+                </>
+              )}
+
+              <div className="my-1 border-t border-border/50" />
+
+              <button
+                onClick={() => { toggleTheme(); setMobileMenuOpen(false); }}
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-sm hover:bg-muted/60 rounded-lg transition-colors"
+              >
+                {themeIcon} <span className="text-muted-foreground">{themeLabel}</span>
+              </button>
+
+              {!user ? (
+                <div className="flex gap-2 p-2 border-t border-border/50 mt-1">
+                  <button onClick={handleLogin} className="flex-1 py-2 text-sm font-medium border border-border rounded-lg hover:bg-muted/40 transition-colors">Login</button>
+                  <button onClick={handleSignup} className="flex-1 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg">Sign Up</button>
+                </div>
+              ) : (
+                <>
+                  <div className="my-1 border-t border-border/50" />
+                  <button onClick={handleLogout} disabled={logoutPending} className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-60">
+                    <LogOut className="w-4 h-4" /> {logoutPending ? 'Logging out...' : 'Logout'}
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </nav>
+
+      {/* Mobile bottom tab bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background border-t border-border/50">
+        <div className="flex items-center justify-around h-12 max-w-md mx-auto">
+          {bottomNavItems.map(item => {
+            const Icon = item.icon;
+            const active = isActive(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-colors ${
+                  active ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[9px] font-medium">{item.label}</span>
+              </Link>
+            );
+          })}
+          {user ? (
+            <Link
+              to="/profile"
+              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-colors ${
+                isActive('/profile') ? 'text-primary' : 'text-muted-foreground'
+              }`}
+            >
+              <UserIcon className="w-5 h-5" />
+              <span className="text-[9px] font-medium">Profile</span>
+              {userUnreadCount > 0 && (
+                <span className="absolute top-0.5 right-1/4 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[7px] font-bold rounded-full flex items-center justify-center">
+                  {userUnreadCount > 9 ? '9+' : userUnreadCount}
+                </span>
+              )}
+            </Link>
+          ) : (
+            <button onClick={handleSignup} className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 text-muted-foreground">
+              <UserIcon className="w-5 h-5" />
+              <span className="text-[9px] font-medium">Sign Up</span>
+            </button>
+          )}
+        </div>
+      </div>
     </>
   );
 };
