@@ -517,7 +517,7 @@ const CommunityPage: React.FC = () => {
 
                           {post.content && <p className="text-sm mt-1 whitespace-pre-wrap leading-relaxed">{renderContent(post.content)}</p>}
 
-                          <ImageGrid images={images} />
+                          <ImageGrid images={images} prioritize={i < 4} />
 
                           {/* Action bar */}
                           <div className="flex items-center justify-between mt-3 -ml-2 max-w-[400px]">
