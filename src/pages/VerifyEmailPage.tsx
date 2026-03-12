@@ -275,6 +275,11 @@ const VerifyEmailPage: React.FC = () => {
                     }
                   </button>
                 </div>
+                <p className="text-[11px] text-center text-muted-foreground">
+                  {resendCooldown > 0
+                    ? `Code expires in ${resendCooldown}s`
+                    : 'Code expired. Generate a new code.'}
+                </p>
 
                 {/* Mailto button */}
                 <a
