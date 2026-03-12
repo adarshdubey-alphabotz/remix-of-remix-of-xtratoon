@@ -606,11 +606,11 @@ const ReaderPage: React.FC = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={displayMode !== 'strip' ? handleTap : undefined}
+        style={{ touchAction: displayMode === 'strip' ? 'pan-y' : 'pan-x' }}
       >
         {/* Strip mode */}
         {displayMode === 'strip' && pages && pages.length > 0 && (
-          <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden" onClick={() => setShowNav(s => !s)}
-            style={{ transform: `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)`, transformOrigin: 'center top' }}>
+          <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden" onClick={() => setShowNav(s => !s)}>
             <div className="mx-auto" style={{ width: widthStyle, maxWidth: '100%' }}>
               <div className="pt-14 pb-20">
                 {pages.map((page) => (
