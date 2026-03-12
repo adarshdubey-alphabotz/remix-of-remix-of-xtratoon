@@ -606,6 +606,8 @@ const AdminPanel: React.FC = () => {
                         <td className="px-4 py-3 font-semibold inline-flex items-center gap-1">{u.username || '—'} {u.is_verified && <VerifiedBadge size="sm" />}</td>
                         <td className="px-4 py-3 text-muted-foreground">{u.display_name || '—'}</td>
                         <td className="px-4 py-3"><span className="px-2 py-0.5 text-xs font-bold border border-foreground/30 uppercase">{u.role_type}</span></td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground">{[u.signup_city, u.signup_country].filter(Boolean).join(', ') || '—'}</td>
+                        <td className="px-4 py-3 font-mono text-[10px] text-muted-foreground">{u.signup_ip || '—'}</td>
                         <td className="px-4 py-3">
                           {u.is_banned ? (
                             <div>
