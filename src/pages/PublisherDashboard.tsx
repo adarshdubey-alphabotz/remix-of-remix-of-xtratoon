@@ -21,6 +21,8 @@ const PublisherDashboard: React.FC = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('works');
 
+  const isEmailVerified = user?.app_metadata?.email_verified === true;
+
   // Upload manga state
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadDesc, setUploadDesc] = useState('');
@@ -382,6 +384,26 @@ const PublisherDashboard: React.FC = () => {
     };
     return colors[status] || 'border-foreground/30';
   };
+
+  // Block unverified creators
+  if (user && !isEmailVerified) {
+    return (
+      <div className="min-h-screen pt-28 pb-20 px-4 flex items-center justify-center">
+        <div className="max-w-sm text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Upload className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Verify Your Email First</h2>
+          <p className="text-sm text-muted-foreground">
+            You need to verify your email address before you can access the Creator Dashboard and publish content.
+          </p>
+          <a href="/verify" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+            Verify Email Now
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-background">
