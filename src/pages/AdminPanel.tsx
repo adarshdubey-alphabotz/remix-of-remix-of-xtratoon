@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import AdminRevenueAnalytics from '@/components/AdminRevenueAnalytics';
 import AdminPayoutManager from '@/components/AdminPayoutManager';
 import AdminAnnouncementManager from '@/components/AdminAnnouncementManager';
+import ScheduledContentManager from '@/components/ScheduledContentManager';
 
 const AdminPanel: React.FC = () => {
   const { isAdmin } = useAuth();
