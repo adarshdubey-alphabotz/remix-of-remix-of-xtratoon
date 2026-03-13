@@ -420,44 +420,44 @@ export const AchievementGrid: React.FC = () => {
         {showUnlockPopup && unlockAch && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-3 pb-3 sm:px-4 sm:pb-4"
             onClick={() => setShowUnlockPopup(null)}
           >
             <motion.div
               initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="bg-card border border-border rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl"
+              className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-xs sm:max-w-sm w-full text-center shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-              <button onClick={() => setShowUnlockPopup(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
+              <button onClick={() => setShowUnlockPopup(null)} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground">
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <p className="text-sm font-semibold text-muted-foreground mb-3">You unlocked this badge!</p>
+              <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 sm:mb-3">You unlocked this badge!</p>
 
-              <div className="flex justify-center mb-4">
-                <WavyBadge size={110} color1="#4f8bff" color2="#6366f1">
+              <div className="flex justify-center mb-3 sm:mb-4">
+                <WavyBadge size={90} color1="#4f8bff" color2="#6366f1">
                   <div className="text-white">
-                    <BadgeIcon type={unlockAch.iconType} size={48} />
+                    <BadgeIcon type={unlockAch.iconType} size={40} />
                   </div>
                 </WavyBadge>
               </div>
 
-              <h3 className="text-xl font-black">{unlockAch.label}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{unlockAch.desc}</p>
-              <span className="inline-block mt-2 px-3 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold capitalize">{unlockAch.tier}</span>
+              <h3 className="text-lg sm:text-xl font-black line-clamp-2">{unlockAch.label}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">{unlockAch.desc}</p>
+              <span className="inline-block mt-1.5 sm:mt-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] sm:text-xs font-bold capitalize">{unlockAch.tier}</span>
 
-              <div className="flex gap-3 mt-5">
+              <div className="flex gap-2 mt-3 sm:mt-5">
                 <button
                   onClick={() => { toggleDisplay(unlockAch.key, !displayedKeys.has(unlockAch.key)); setShowUnlockPopup(null); }}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-bold hover:opacity-90 transition-opacity"
+                  className="flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs sm:text-sm font-bold hover:opacity-90 transition-opacity"
                 >
                   {displayedKeys.has(unlockAch.key) ? 'Hide from Profile' : 'Show on Profile'}
                 </button>
               </div>
 
               <button onClick={() => setShowUnlockPopup(null)}
-                className="mt-2 text-xs text-primary font-medium hover:underline">
+                className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-primary font-medium hover:underline">
                 View all badges
               </button>
             </motion.div>
@@ -491,41 +491,41 @@ export const DailyStreakPopup: React.FC = () => {
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm px-6"
+        className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm px-3 pb-3 sm:px-6 sm:pb-0"
         onClick={() => setShow(false)}
       >
         <motion.div
           initial={{ scale: 0.7, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.7, y: 50 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="relative bg-card border border-border rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl"
+          className="relative bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-xs sm:max-w-sm w-full text-center shadow-2xl"
           onClick={e => e.stopPropagation()}
         >
-          <button onClick={() => setShow(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-            <X className="w-5 h-5" />
+          <button onClick={() => setShow(false)} className="absolute top-3 right-3 sm:top-4 sm:right-4 text-muted-foreground hover:text-foreground">
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
-          <p className="text-sm font-semibold text-muted-foreground mb-2">You just hit a streak!</p>
+          <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2">You just hit a streak!</p>
 
           <div className="flex justify-center mb-3">
-            <WavyBadge size={110} color1="#3b82f6" color2="#6366f1">
+            <WavyBadge size={90} color1="#3b82f6" color2="#6366f1">
               <div className="flex flex-col items-center text-white">
-                <span className="text-3xl font-black leading-none">{streak}</span>
-                <Flame className="w-6 h-6 text-orange-300 mt-0.5" />
+                <span className="text-2xl sm:text-3xl font-black leading-none">{streak}</span>
+                <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-300 mt-0.5" />
               </div>
             </WavyBadge>
           </div>
 
-          <h2 className="text-xl font-black">{streak} days in a row!</h2>
-          <p className="text-sm text-muted-foreground mt-1">Great work keeping your streak alive.</p>
+          <h2 className="text-lg sm:text-xl font-black">{streak} days in a row!</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Great work keeping your streak alive.</p>
 
           <button
             onClick={() => { setShow(false); navigate('/'); }}
-            className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm hover:opacity-90 transition-opacity"
+            className="mt-4 sm:mt-5 w-full py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xs sm:text-sm hover:opacity-90 transition-opacity"
           >
             Collect Badge
           </button>
 
-          <button onClick={() => setShow(false)} className="mt-2 text-xs text-primary font-medium hover:underline">
+          <button onClick={() => setShow(false)} className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-primary font-medium hover:underline">
             View all badges
           </button>
         </motion.div>
@@ -583,41 +583,41 @@ export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => 
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-3 pb-3 sm:px-4 sm:pb-0"
             onClick={() => setSelectedAchievement(null)}
           >
             <motion.div
-              initial={{ y: 200, opacity: 0, scale: 0.95 }} 
-              animate={{ y: 0, opacity: 1, scale: 1 }} 
+              initial={{ y: 200, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 200, opacity: 0, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 40, mass: 0.4 }}
-              className="bg-card border border-border rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-sm w-full text-center shadow-2xl max-h-[85vh] overflow-y-auto"
+              className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-xs sm:max-w-sm w-full text-center shadow-2xl"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
-              <button 
-                onClick={() => setSelectedAchievement(null)} 
-                className="relative ml-auto flex items-center justify-center w-8 h-8 -mt-2 -mr-2 mb-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors active:scale-95"
+              <button
+                onClick={() => setSelectedAchievement(null)}
+                className="relative ml-auto flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 -mt-1 -mr-1 mb-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-4">Achievement</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Achievement</p>
 
-              <div className="flex justify-center mb-5 sm:mb-6">
-                <WavyBadge size={Math.min(100, Math.max(80, window.innerWidth / 4))} color1="#4f8bff" color2="#6366f1">
+              <div className="flex justify-center mb-3 sm:mb-4">
+                <WavyBadge size={85} color1="#4f8bff" color2="#6366f1">
                   <div className="text-white">
-                    <BadgeIcon type={selectedDef.iconType} size={40} />
+                    <BadgeIcon type={selectedDef.iconType} size={36} />
                   </div>
                 </WavyBadge>
               </div>
 
-              <h3 className="text-lg sm:text-2xl font-black break-words">{selectedDef.label}</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3 leading-relaxed">{selectedDef.desc}</p>
-              <span className="inline-block mt-3 sm:mt-4 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold capitalize">{selectedDef.tier}</span>
+              <h3 className="text-base sm:text-xl font-black break-words line-clamp-2">{selectedDef.label}</h3>
+              <p className="text-[11px] sm:text-xs text-muted-foreground mt-1.5 sm:mt-2 leading-relaxed">{selectedDef.desc}</p>
+              <span className="inline-block mt-2 sm:mt-3 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] sm:text-xs font-bold capitalize">{selectedDef.tier}</span>
 
-              <button 
+              <button
                 onClick={() => setSelectedAchievement(null)}
-                className="mt-5 sm:mt-6 w-full py-2.5 sm:py-3 text-xs sm:text-sm text-primary font-medium hover:bg-primary/5 rounded-lg transition-colors active:scale-95">
+                className="mt-3 sm:mt-4 w-full py-2 sm:py-2.5 text-[11px] sm:text-xs text-primary font-medium hover:bg-primary/5 rounded-lg transition-colors active:scale-95">
                 Close
               </button>
             </motion.div>
