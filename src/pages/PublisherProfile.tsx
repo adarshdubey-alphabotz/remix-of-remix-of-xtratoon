@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { PublicAchievements } from '@/components/AchievementSystem';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import { Users, Eye, BookOpen, Calendar, MapPin, Clock, User, Heart, MessageCircle, Trash2, Send, Loader2, Link2, Check, Share2, ArrowLeft, Mail, ExternalLink } from 'lucide-react';
@@ -378,13 +377,6 @@ const PublisherProfile: React.FC = () => {
                 </a>
               );
             })}
-          </div>
-        )}
-
-        {/* Public Achievements */}
-        {profile?.user_id && (
-          <div className="mb-5">
-            <PublicAchievements userId={profile.user_id} />
           </div>
         )}
 

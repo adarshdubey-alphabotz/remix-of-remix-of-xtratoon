@@ -3,84 +3,28 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Check, Lock, X } from 'lucide-react';
+import { Flame, Check, Lock, Share2, ChevronRight, Crown, Trophy, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// ─── WAVY BADGE SVG (like reference image) ───
-const WavyBadge: React.FC<{ size?: number; color1: string; color2: string; children: React.ReactNode }> = ({ size = 120, color1, color2, children }) => {
-  const id = `wb-${color1.replace('#', '')}`;
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 100 100" width={size} height={size}>
-        <defs>
-          <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={color1} />
-            <stop offset="100%" stopColor={color2} />
-          </linearGradient>
-        </defs>
-        <path
-          d="M50 2 L58 12 L70 6 L72 20 L86 20 L82 34 L96 40 L86 50 L96 60 L82 66 L86 80 L72 80 L70 94 L58 88 L50 98 L42 88 L30 94 L28 80 L14 80 L18 66 L4 60 L14 50 L4 40 L18 34 L14 20 L28 20 L30 6 L42 12Z"
-          fill={`url(#${id})`}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">{children}</div>
-    </div>
-  );
-};
-
-// ─── MEDAL BADGE (Bronze / Silver / Gold style) ───
-const MedalBadge: React.FC<{
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
-  size?: number;
-  children?: React.ReactNode;
-  locked?: boolean;
-}> = ({ tier, size = 72, children, locked }) => {
-  const colors = {
-    bronze: { bg: 'from-amber-700 to-amber-900', ring: 'ring-amber-600/40', ribbon: '#92400e' },
-    silver: { bg: 'from-gray-300 to-gray-500', ring: 'ring-gray-400/40', ribbon: '#6b7280' },
-    gold: { bg: 'from-yellow-400 to-amber-500', ring: 'ring-yellow-400/40', ribbon: '#d97706' },
-    platinum: { bg: 'from-violet-400 to-purple-600', ring: 'ring-violet-400/40', ribbon: '#7c3aed' },
-    diamond: { bg: 'from-cyan-300 to-blue-500', ring: 'ring-cyan-400/40', ribbon: '#0891b2' },
-  };
-  const c = colors[tier];
-
-  return (
-    <div className="relative flex flex-col items-center" style={{ width: size }}>
-      {/* Ribbon */}
-      <svg viewBox="0 0 72 20" width={size * 0.8} height={size * 0.22} className="absolute -top-1 z-0">
-        <path d="M10 0 L36 8 L62 0 L58 20 L36 14 L14 20Z" fill={c.ribbon} opacity="0.6" />
-      </svg>
-      {/* Medal circle */}
-      <div className={`relative z-10 rounded-full bg-gradient-to-br ${c.bg} ring-4 ${c.ring} flex items-center justify-center shadow-lg transition-transform ${locked ? 'opacity-40 grayscale' : 'hover:scale-105'}`}
-        style={{ width: size, height: size }}>
-        {children}
-        {locked && (
-          <div className="absolute inset-0 rounded-full bg-background/50 backdrop-blur-[2px] flex items-center justify-center">
-            <Lock className="w-5 h-5 text-muted-foreground/60" />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ─── CUSTOM SVG BADGE ICONS ───
+// ─── CUSTOM SVG BADGE ICONS (GitHub-style) ───
 const BadgeIcon: React.FC<{ type: string; size?: number; className?: string }> = ({ type, size = 40, className = '' }) => {
   const icons: Record<string, JSX.Element> = {
+    // Streak badges
     spark: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
-        <path d="M32 12 L36 28 L48 28 L38 38 L42 52 L32 44 L22 52 L26 38 L16 28 L28 28Z" fill="currentColor" opacity="0.95"/>
+        <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.2"/>
+        <path d="M32 12 L36 28 L48 28 L38 38 L42 52 L32 44 L22 52 L26 38 L16 28 L28 28Z" fill="currentColor" opacity="0.9"/>
       </svg>
     ),
     fire: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
-        <path d="M32 8C32 8 20 22 20 36C20 43.5 25.4 50 32 52C38.6 50 44 43.5 44 36C44 22 32 8 32 8Z" fill="currentColor" opacity="0.9"/>
+        <path d="M32 8C32 8 20 22 20 36C20 43.5 25.4 50 32 52C38.6 50 44 43.5 44 36C44 22 32 8 32 8Z" fill="currentColor" opacity="0.85"/>
         <path d="M32 24C32 24 26 32 26 38C26 42 28.7 45 32 46C35.3 45 38 42 38 38C38 32 32 24 32 24Z" fill="currentColor" opacity="0.4"/>
       </svg>
     ),
     bolt: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
-        <path d="M36 8L18 36H30L28 56L46 28H34L36 8Z" fill="currentColor" opacity="0.95"/>
+        <path d="M36 8L18 36H30L28 56L46 28H34L36 8Z" fill="currentColor" opacity="0.9"/>
       </svg>
     ),
     muscle: (
@@ -93,23 +37,24 @@ const BadgeIcon: React.FC<{ type: string; size?: number; className?: string }> =
     ),
     crown: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
-        <path d="M12 44L16 20L26 32L32 16L38 32L48 20L52 44Z" fill="currentColor" opacity="0.95"/>
+        <path d="M12 44L16 20L26 32L32 16L38 32L48 20L52 44Z" fill="currentColor" opacity="0.9"/>
         <rect x="12" y="44" width="40" height="6" rx="2" fill="currentColor" opacity="0.7"/>
       </svg>
     ),
     trophy: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
-        <path d="M20 12H44V28C44 36 38.6 42 32 42C25.4 42 20 36 20 28V12Z" fill="currentColor" opacity="0.85"/>
+        <path d="M20 12H44V28C44 36 38.6 42 32 42C25.4 42 20 36 20 28V12Z" fill="currentColor" opacity="0.8"/>
         <path d="M20 18H14C14 18 12 18 12 22C12 26 16 28 20 28" stroke="currentColor" strokeWidth="3" fill="none"/>
         <path d="M44 18H50C50 18 52 18 52 22C52 26 48 28 44 28" stroke="currentColor" strokeWidth="3" fill="none"/>
         <rect x="28" y="42" width="8" height="8" fill="currentColor" opacity="0.6"/>
         <rect x="22" y="50" width="20" height="4" rx="2" fill="currentColor" opacity="0.7"/>
       </svg>
     ),
+    // Reading badges
     book: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
         <path d="M12 14C12 12 14 10 16 10H28C30 10 32 12 32 14V50C32 48 30 46 28 46H16C14 46 12 44 12 42V14Z" fill="currentColor" opacity="0.7"/>
-        <path d="M52 14C52 12 50 10 48 10H36C34 10 32 12 32 14V50C32 48 34 46 36 46H48C50 46 52 44 52 42V14Z" fill="currentColor" opacity="0.95"/>
+        <path d="M52 14C52 12 50 10 48 10H36C34 10 32 12 32 14V50C32 48 34 46 36 46H48C50 46 52 44 52 42V14Z" fill="currentColor" opacity="0.9"/>
       </svg>
     ),
     books: (
@@ -123,19 +68,20 @@ const BadgeIcon: React.FC<{ type: string; size?: number; className?: string }> =
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
         <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
         <circle cx="32" cy="32" r="16" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.5"/>
-        <circle cx="32" cy="32" r="8" fill="currentColor" opacity="0.95"/>
+        <circle cx="32" cy="32" r="8" fill="currentColor" opacity="0.9"/>
       </svg>
     ),
     century: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
-        <text x="32" y="42" textAnchor="middle" fontSize="28" fontWeight="900" fill="currentColor" opacity="0.95">100</text>
+        <text x="32" y="42" textAnchor="middle" fontSize="28" fontWeight="900" fill="currentColor" opacity="0.9">100</text>
       </svg>
     ),
     star: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
-        <path d="M32 6L39.6 24.4L60 26.8L44.8 40.4L48.8 60L32 50.8L15.2 60L19.2 40.4L4 26.8L24.4 24.4Z" fill="currentColor" opacity="0.95"/>
+        <path d="M32 6L39.6 24.4L60 26.8L44.8 40.4L48.8 60L32 50.8L15.2 60L19.2 40.4L4 26.8L24.4 24.4Z" fill="currentColor" opacity="0.9"/>
       </svg>
     ),
+    // Account badges
     wave: (
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
         <circle cx="32" cy="24" r="10" fill="currentColor" opacity="0.8"/>
@@ -147,9 +93,9 @@ const BadgeIcon: React.FC<{ type: string; size?: number; className?: string }> =
       <svg viewBox="0 0 64 64" width={size} height={size} className={className}>
         <rect x="12" y="16" width="40" height="36" rx="4" fill="currentColor" opacity="0.3"/>
         <rect x="12" y="16" width="40" height="12" rx="4" fill="currentColor" opacity="0.8"/>
-        <circle cx="24" cy="40" r="3" fill="currentColor" opacity="0.95"/>
-        <circle cx="32" cy="40" r="3" fill="currentColor" opacity="0.95"/>
-        <circle cx="40" cy="40" r="3" fill="currentColor" opacity="0.95"/>
+        <circle cx="24" cy="40" r="3" fill="currentColor" opacity="0.9"/>
+        <circle cx="32" cy="40" r="3" fill="currentColor" opacity="0.9"/>
+        <circle cx="40" cy="40" r="3" fill="currentColor" opacity="0.9"/>
         <rect x="22" y="10" width="4" height="10" rx="2" fill="currentColor" opacity="0.7"/>
         <rect x="38" y="10" width="4" height="10" rx="2" fill="currentColor" opacity="0.7"/>
       </svg>
@@ -175,30 +121,31 @@ const BadgeIcon: React.FC<{ type: string; size?: number; className?: string }> =
       </svg>
     ),
   };
+
   return icons[type] || icons.star;
 };
 
-// Achievement definitions with medal tier
+// Achievement definitions with custom SVG icon types + gradient colors
 const ACHIEVEMENTS = [
   // Streak achievements
-  { key: 'streak_1d', label: 'First Spark', desc: 'Opened the app for the first time', iconType: 'spark', category: 'streak', requirement: 1, tier: 'bronze' as const, gradient: 'from-emerald-400 to-green-600', color: 'text-white', ring: 'ring-emerald-400/40' },
-  { key: 'streak_3d', label: 'Hot Streak', desc: 'Read 3 days in a row', iconType: 'fire', category: 'streak', requirement: 3, tier: 'bronze' as const, gradient: 'from-orange-400 to-red-500', color: 'text-white', ring: 'ring-orange-400/40' },
-  { key: 'streak_7d', label: 'Week Warrior', desc: 'Read 7 days in a row', iconType: 'bolt', category: 'streak', requirement: 7, tier: 'silver' as const, gradient: 'from-yellow-400 to-amber-600', color: 'text-white', ring: 'ring-yellow-400/40' },
-  { key: 'streak_14d', label: 'Two-Week Titan', desc: '14 day streak', iconType: 'muscle', category: 'streak', requirement: 14, tier: 'gold' as const, gradient: 'from-blue-400 to-indigo-600', color: 'text-white', ring: 'ring-blue-400/40' },
-  { key: 'streak_30d', label: 'Monthly Master', desc: '30 day streak', iconType: 'crown', category: 'streak', requirement: 30, tier: 'platinum' as const, gradient: 'from-purple-400 to-violet-600', color: 'text-white', ring: 'ring-purple-400/40' },
-  { key: 'streak_90d', label: 'Legendary', desc: '90 day streak', iconType: 'trophy', category: 'streak', requirement: 90, tier: 'diamond' as const, gradient: 'from-amber-300 to-yellow-600', color: 'text-white', ring: 'ring-amber-300/40' },
+  { key: 'streak_1d', label: 'First Spark', desc: 'Opened the app for the first time', iconType: 'spark', category: 'streak', requirement: 1, gradient: 'from-emerald-400 to-green-600', color: 'text-emerald-100', ring: 'ring-emerald-400/40' },
+  { key: 'streak_3d', label: 'Hot Streak', desc: 'Read 3 days in a row', iconType: 'fire', category: 'streak', requirement: 3, gradient: 'from-orange-400 to-red-500', color: 'text-orange-100', ring: 'ring-orange-400/40' },
+  { key: 'streak_7d', label: 'Week Warrior', desc: 'Read 7 days in a row', iconType: 'bolt', category: 'streak', requirement: 7, gradient: 'from-yellow-400 to-amber-600', color: 'text-yellow-100', ring: 'ring-yellow-400/40' },
+  { key: 'streak_14d', label: 'Two-Week Titan', desc: '14 day streak', iconType: 'muscle', category: 'streak', requirement: 14, gradient: 'from-blue-400 to-indigo-600', color: 'text-blue-100', ring: 'ring-blue-400/40' },
+  { key: 'streak_30d', label: 'Monthly Master', desc: '30 day streak', iconType: 'crown', category: 'streak', requirement: 30, gradient: 'from-purple-400 to-violet-600', color: 'text-purple-100', ring: 'ring-purple-400/40' },
+  { key: 'streak_90d', label: 'Legendary', desc: '90 day streak', iconType: 'trophy', category: 'streak', requirement: 90, gradient: 'from-amber-300 to-yellow-600', color: 'text-amber-100', ring: 'ring-amber-300/40' },
   // Reading achievements
-  { key: 'read_1', label: 'First Chapter', desc: 'Read your first chapter', iconType: 'book', category: 'reading', requirement: 1, tier: 'bronze' as const, gradient: 'from-sky-400 to-blue-500', color: 'text-white', ring: 'ring-sky-400/40' },
-  { key: 'read_10', label: 'Bookworm', desc: 'Read 10 chapters', iconType: 'books', category: 'reading', requirement: 10, tier: 'silver' as const, gradient: 'from-teal-400 to-cyan-600', color: 'text-white', ring: 'ring-teal-400/40' },
-  { key: 'read_50', label: 'Avid Reader', desc: 'Read 50 chapters', iconType: 'target', category: 'reading', requirement: 50, tier: 'gold' as const, gradient: 'from-rose-400 to-pink-600', color: 'text-white', ring: 'ring-rose-400/40' },
-  { key: 'read_100', label: 'Century Club', desc: 'Read 100 chapters', iconType: 'century', category: 'reading', requirement: 100, tier: 'platinum' as const, gradient: 'from-fuchsia-400 to-purple-600', color: 'text-white', ring: 'ring-fuchsia-400/40' },
-  { key: 'read_500', label: 'Reading Legend', desc: 'Read 500 chapters', iconType: 'star', category: 'reading', requirement: 500, tier: 'diamond' as const, gradient: 'from-amber-400 to-orange-600', color: 'text-white', ring: 'ring-amber-400/40' },
+  { key: 'read_1', label: 'First Chapter', desc: 'Read your first chapter', iconType: 'book', category: 'reading', requirement: 1, gradient: 'from-sky-400 to-blue-500', color: 'text-sky-100', ring: 'ring-sky-400/40' },
+  { key: 'read_10', label: 'Bookworm', desc: 'Read 10 chapters', iconType: 'books', category: 'reading', requirement: 10, gradient: 'from-teal-400 to-cyan-600', color: 'text-teal-100', ring: 'ring-teal-400/40' },
+  { key: 'read_50', label: 'Avid Reader', desc: 'Read 50 chapters', iconType: 'target', category: 'reading', requirement: 50, gradient: 'from-rose-400 to-pink-600', color: 'text-rose-100', ring: 'ring-rose-400/40' },
+  { key: 'read_100', label: 'Century Club', desc: 'Read 100 chapters', iconType: 'century', category: 'reading', requirement: 100, gradient: 'from-fuchsia-400 to-purple-600', color: 'text-fuchsia-100', ring: 'ring-fuchsia-400/40' },
+  { key: 'read_500', label: 'Reading Legend', desc: 'Read 500 chapters', iconType: 'star', category: 'reading', requirement: 500, gradient: 'from-amber-400 to-orange-600', color: 'text-amber-100', ring: 'ring-amber-400/40' },
   // Account age achievements
-  { key: 'age_1d', label: 'Newcomer', desc: 'Joined Komixora', iconType: 'wave', category: 'account', requirement: 1, tier: 'bronze' as const, gradient: 'from-lime-400 to-green-500', color: 'text-white', ring: 'ring-lime-400/40' },
-  { key: 'age_7d', label: 'Regular', desc: 'Member for 1 week', iconType: 'calendar', category: 'account', requirement: 7, tier: 'silver' as const, gradient: 'from-cyan-400 to-teal-600', color: 'text-white', ring: 'ring-cyan-400/40' },
-  { key: 'age_30d', label: 'Veteran', desc: 'Member for 1 month', iconType: 'medal', category: 'account', requirement: 30, tier: 'gold' as const, gradient: 'from-indigo-400 to-blue-600', color: 'text-white', ring: 'ring-indigo-400/40' },
-  { key: 'age_90d', label: 'Old Guard', desc: '3 months member', iconType: 'shield', category: 'account', requirement: 90, tier: 'platinum' as const, gradient: 'from-violet-400 to-purple-600', color: 'text-white', ring: 'ring-violet-400/40' },
-  { key: 'age_365d', label: 'OG Member', desc: '1 year member', iconType: 'diamond', category: 'account', requirement: 365, tier: 'diamond' as const, gradient: 'from-amber-300 to-yellow-500', color: 'text-white', ring: 'ring-amber-300/40' },
+  { key: 'age_1d', label: 'Newcomer', desc: 'Joined Komixora', iconType: 'wave', category: 'account', requirement: 1, gradient: 'from-lime-400 to-green-500', color: 'text-lime-100', ring: 'ring-lime-400/40' },
+  { key: 'age_7d', label: 'Regular', desc: 'Member for 1 week', iconType: 'calendar', category: 'account', requirement: 7, gradient: 'from-cyan-400 to-teal-600', color: 'text-cyan-100', ring: 'ring-cyan-400/40' },
+  { key: 'age_30d', label: 'Veteran', desc: 'Member for 1 month', iconType: 'medal', category: 'account', requirement: 30, gradient: 'from-indigo-400 to-blue-600', color: 'text-indigo-100', ring: 'ring-indigo-400/40' },
+  { key: 'age_90d', label: 'Old Guard', desc: '3 months member', iconType: 'shield', category: 'account', requirement: 90, gradient: 'from-violet-400 to-purple-600', color: 'text-violet-100', ring: 'ring-violet-400/40' },
+  { key: 'age_365d', label: 'OG Member', desc: '1 year member', iconType: 'diamond', category: 'account', requirement: 365, gradient: 'from-amber-300 to-yellow-500', color: 'text-amber-100', ring: 'ring-amber-300/40' },
 ] as const;
 
 type AchievementKey = typeof ACHIEVEMENTS[number]['key'];
@@ -288,88 +235,247 @@ export const useAchievements = () => {
     queryClient.invalidateQueries({ queryKey: ['user-achievements'] });
   };
 
-  const points = useMemo(() => {
-    let pts = 0;
-    for (const a of unlockedAchievements) {
-      const def = ACHIEVEMENTS.find(d => d.key === a.achievement_key);
-      if (!def) continue;
-      if (def.tier === 'bronze') pts += 100;
-      else if (def.tier === 'silver') pts += 200;
-      else if (def.tier === 'gold') pts += 300;
-      else if (def.tier === 'platinum') pts += 500;
-      else if (def.tier === 'diamond') pts += 1000;
-    }
-    return pts;
-  }, [unlockedAchievements]);
-
-  return { achievements: ACHIEVEMENTS, unlockedKeys, displayedKeys, streak, totalChaptersRead, accountAge, toggleDisplay, points, newUnlocks: checkAndUnlock.data || [] };
+  return { achievements: ACHIEVEMENTS, unlockedKeys, displayedKeys, streak, totalChaptersRead, accountAge, toggleDisplay, newUnlocks: checkAndUnlock.data || [] };
 };
 
-// ─── ACHIEVEMENT GRID (Main Page - matches reference design) ───
-export const AchievementGrid: React.FC = () => {
-  const { achievements, unlockedKeys, displayedKeys, toggleDisplay, streak, totalChaptersRead, points } = useAchievements();
-  const [showUnlockPopup, setShowUnlockPopup] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'streak' | 'reading' | 'account'>('all');
-
-  const filtered = filter === 'all' ? achievements : achievements.filter(a => a.category === filter);
-  const unlockAch = showUnlockPopup ? achievements.find(a => a.key === showUnlockPopup) : null;
-  const badgeCount = [...unlockedKeys].length;
+// ─── STREAK CARD ───
+export const StreakCard: React.FC<{ streak: number; totalRead: number; accountAge: number }> = ({ streak, totalRead, accountAge }) => {
+  const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const today = new Date();
+  const currentDayOfWeek = (today.getDay() + 6) % 7;
 
   return (
-    <div className="space-y-6">
-      {/* ── Hero: Current Streak with wavy badge ── */}
-      <div className="rounded-2xl bg-gradient-to-b from-violet-600 via-violet-700 to-violet-900 text-white p-6 text-center">
-        <div className="flex justify-center mb-3">
-          <WavyBadge size={100} color1="#8b5cf6" color2="#6d28d9">
-            <div className="flex flex-col items-center">
-              <span className="text-2xl font-black leading-none">{streak}</span>
-              <Flame className="w-5 h-5 text-orange-300 mt-0.5" />
+    <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-amber-900/80 via-amber-800/70 to-orange-900/80 text-white">
+      <div className="p-5 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <span className="text-5xl font-black">{streak}</span>
+              <Flame className="absolute -top-2 -right-3 w-6 h-6 text-orange-400 animate-pulse" />
             </div>
-          </WavyBadge>
-        </div>
-        <h2 className="text-lg font-bold">Current Streak</h2>
-
-        {/* Stats row: Badges + Points */}
-        <div className="flex items-center justify-center gap-8 mt-4">
-          <div className="flex flex-col items-center">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mb-1">
-              <BadgeIcon type="shield" size={18} className="text-white" />
+            <div>
+              <p className="text-lg font-bold">Days Streak!!</p>
+              <p className="text-xs text-white/70">Every day counts!</p>
             </div>
-            <span className="text-xl font-black">{badgeCount}</span>
-            <span className="text-[10px] uppercase tracking-wider text-white/60">Badges</span>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mb-1">
-              <BadgeIcon type="star" size={18} className="text-white" />
+          <button
+            onClick={() => {
+              const text = `I'm on a ${streak}-day reading streak on Komixora! Can you beat me?`;
+              if (navigator.share) navigator.share({ text, url: 'https://komixora.fun' }).catch(() => {});
+              else navigator.clipboard.writeText(text + ' https://komixora.fun');
+            }}
+            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex justify-center gap-3 px-5 pb-4">
+        {dayLabels.map((label, idx) => {
+          const isPast = idx <= currentDayOfWeek;
+          const isToday = idx === currentDayOfWeek;
+          const isActive = isPast && idx >= currentDayOfWeek - Math.min(streak - 1, currentDayOfWeek);
+          return (
+            <div key={idx} className="flex flex-col items-center gap-1.5">
+              <span className={`text-[11px] font-bold ${isToday ? 'text-white' : 'text-white/50'}`}>{label}</span>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
+                isActive ? 'bg-gradient-to-br from-orange-400 to-red-500 shadow-lg shadow-orange-500/30' :
+                isToday ? 'border-2 border-white/60 bg-transparent' :
+                isPast ? 'bg-white/10' : 'bg-white/5 border border-white/10'
+              }`}>
+                {isActive && <Flame className="w-4 h-4 text-white" />}
+              </div>
             </div>
-            <span className="text-xl font-black">{points}</span>
-            <span className="text-[10px] uppercase tracking-wider text-white/60">Points</span>
+          );
+        })}
+      </div>
+
+      {streak > 0 && (
+        <div className="mx-4 mb-3 px-3 py-2 rounded-xl bg-white/10 flex items-center gap-2">
+          <span className="text-sm">⏰</span>
+          <p className="text-[11px] text-white/80">Your streak will break if you don't read today!</p>
+        </div>
+      )}
+
+      <div className="px-5 pb-4">
+        <p className="text-xs text-white/60 mb-2">Read a chapter to extend your streak!</p>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-medium text-white/80">Today's Reading</span>
+          <span className="text-xs font-bold">{totalRead > 0 ? '✅ Done' : '0 chapters'}</span>
+        </div>
+        <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-700 ${totalRead > 0 ? 'w-full bg-gradient-to-r from-green-400 to-emerald-500' : 'w-0 bg-red-500'}`} />
+        </div>
+      </div>
+
+      <div className="border-t border-white/10">
+        <div className="grid grid-cols-3 divide-x divide-white/10">
+          <div className="py-3 text-center">
+            <p className="text-[10px] text-white/50 uppercase">Member</p>
+            <p className="text-lg font-bold">{accountAge}d</p>
+          </div>
+          <div className="py-3 text-center">
+            <p className="text-[10px] text-white/50 uppercase">Chapters</p>
+            <p className="text-lg font-bold">{totalRead}</p>
+          </div>
+          <div className="py-3 text-center">
+            <p className="text-[10px] text-white/50 uppercase">Streak</p>
+            <p className="text-lg font-bold flex items-center justify-center gap-1">{streak}<Flame className="w-4 h-4 text-orange-400"/></p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
 
-        {/* Weekly activity dots */}
-        <div className="flex justify-center gap-2 mt-4">
-          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, idx) => {
-            const today = new Date();
-            const currentDayOfWeek = (today.getDay() + 6) % 7;
-            const isPast = idx <= currentDayOfWeek;
-            const isActive = isPast && idx >= currentDayOfWeek - Math.min(streak - 1, currentDayOfWeek);
+// ─── TOP READERS LEADERBOARD ───
+export const TopReadersLeaderboard: React.FC = () => {
+  const { data: topReaders = [], isLoading } = useQuery({
+    queryKey: ['top-readers-leaderboard'],
+    queryFn: async () => {
+      const { data } = await supabase.from('reading_history').select('user_id');
+      if (!data || data.length === 0) return [];
+      const counts: Record<string, number> = {};
+      data.forEach((r: any) => { counts[r.user_id] = (counts[r.user_id] || 0) + 1; });
+      const sorted = Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 10);
+      const userIds = sorted.map(([id]) => id);
+      if (userIds.length === 0) return [];
+      const { data: profiles } = await supabase.from('profiles').select('user_id, username, display_name, avatar_url').in('user_id', userIds);
+      return sorted.map(([userId, readCount], idx) => {
+        const p = (profiles || []).find((pr: any) => pr.user_id === userId) as any;
+        return { rank: idx + 1, userId, name: p?.display_name || p?.username || 'Reader', username: p?.username, avatar: p?.avatar_url, xp: readCount };
+      });
+    },
+    staleTime: 60000,
+  });
+
+  if (isLoading) return <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="h-14 rounded-xl bg-muted/30" />)}</div>;
+  if (topReaders.length === 0) return <p className="text-sm text-muted-foreground text-center py-6">No readers yet. Start reading!</p>;
+
+  const podium = topReaders.slice(0, 3);
+  const rest = topReaders.slice(3);
+  const podiumOrder = podium.length >= 3 ? [podium[1], podium[0], podium[2]] : podium;
+  const podiumHeights = ['h-16', 'h-24', 'h-12'];
+  const podiumLabels = ['2nd', '1st', '3rd'];
+  const podiumColors = ['bg-muted/50', 'bg-gradient-to-t from-amber-500/20 to-amber-400/10', 'bg-muted/30'];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <Crown className="w-5 h-5 text-amber-500" />
+        <h3 className="text-base font-bold">Top Readers</h3>
+      </div>
+
+      {podium.length >= 3 && (
+        <div className="flex items-end justify-center gap-2 px-4 pb-2">
+          {podiumOrder.map((reader, idx) => {
+            const isFirst = idx === 1;
             return (
-              <div key={idx} className="flex flex-col items-center gap-1">
-                <span className="text-[10px] text-white/50">{label}</span>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
-                  isActive ? 'bg-orange-400 shadow-lg shadow-orange-500/30' :
-                  isPast ? 'bg-white/10' : 'bg-white/5 border border-white/10'
-                }`}>
-                  {isActive && <Flame className="w-3.5 h-3.5 text-white" />}
+              <div key={reader.userId} className="flex flex-col items-center gap-1.5 flex-1">
+                <div className="relative">
+                  <div className={`${isFirst ? 'w-16 h-16' : 'w-12 h-12'} rounded-full overflow-hidden border-2 ${isFirst ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-border'} bg-muted`}>
+                    {reader.avatar ? (
+                      <img src={reader.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <span className="w-full h-full flex items-center justify-center text-lg font-bold text-primary">{reader.name[0]}</span>
+                    )}
+                  </div>
+                  {isFirst && <Crown className="absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-5 text-amber-400" />}
+                </div>
+                <p className="text-xs font-semibold line-clamp-1 text-center max-w-[80px]">{reader.name}</p>
+                <p className="text-[10px] font-bold text-primary">{reader.xp} XP</p>
+                <div className={`w-full ${podiumHeights[idx]} ${podiumColors[idx]} rounded-t-xl flex items-end justify-center pb-1`}>
+                  <span className="text-xs font-black text-muted-foreground/60">{podiumLabels[idx]}</span>
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {rest.length > 0 && <p className="text-[11px] text-muted-foreground text-center">Top 5 advance to the next league</p>}
+
+      <div className="space-y-1">
+        {rest.map((reader, idx) => (
+          <div key={reader.userId} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 transition-colors ${idx === 1 ? 'border-b-2 border-dashed border-green-500/30' : ''}`}>
+            <span className="text-sm font-bold text-muted-foreground w-5 text-center">{reader.rank}</span>
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-border bg-muted shrink-0">
+              {reader.avatar ? (
+                <img src={reader.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <span className="w-full h-full flex items-center justify-center text-sm font-bold text-primary">{reader.name[0]}</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold line-clamp-1">{reader.name}</p>
+              {reader.username && <p className="text-[10px] text-muted-foreground">@{reader.username}</p>}
+            </div>
+            <span className="text-sm font-bold text-muted-foreground">{reader.xp} XP</span>
+          </div>
+        ))}
+        {rest.length > 1 && (
+          <div className="flex items-center gap-2 px-4 py-1">
+            <span className="text-[10px] text-green-500 font-semibold">● Promotion zone</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── GITHUB-STYLE ACHIEVEMENT BADGE ───
+const AchievementBadge: React.FC<{
+  ach: typeof ACHIEVEMENTS[number];
+  isUnlocked: boolean;
+  isDisplayed: boolean;
+  onClick: () => void;
+}> = ({ ach, isUnlocked, isDisplayed, onClick }) => (
+  <button onClick={onClick} className="flex flex-col items-center gap-1.5 group">
+    <div className="relative">
+      {/* Outer glow ring for unlocked */}
+      <div className={`w-[76px] h-[76px] rounded-full flex items-center justify-center transition-all duration-300 ${
+        isUnlocked
+          ? `bg-gradient-to-br ${ach.gradient} shadow-lg ring-4 ${ach.ring} group-hover:scale-110 group-hover:shadow-xl`
+          : 'bg-muted/30 border-2 border-dashed border-muted-foreground/20 group-hover:border-muted-foreground/40'
+      }`}>
+        <div className={`${isUnlocked ? ach.color : 'text-muted-foreground/30'} transition-all`}>
+          <BadgeIcon type={ach.iconType} size={isUnlocked ? 36 : 32} />
+        </div>
+        {!isUnlocked && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background/40 backdrop-blur-[1px]">
+            <Lock className="w-4 h-4 text-muted-foreground/50" />
+          </div>
+        )}
+      </div>
+      {isDisplayed && (
+        <div className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+          <Check className="w-3 h-3 text-primary-foreground" />
+        </div>
+      )}
+    </div>
+    <p className={`text-[11px] font-semibold text-center line-clamp-1 max-w-[80px] ${isUnlocked ? 'text-foreground' : 'text-muted-foreground/50'}`}>{ach.label}</p>
+  </button>
+);
+
+// ─── ACHIEVEMENT GRID ───
+export const AchievementGrid: React.FC = () => {
+  const { achievements, unlockedKeys, displayedKeys, toggleDisplay, streak, totalChaptersRead, accountAge } = useAchievements();
+  const [showUnlockPopup, setShowUnlockPopup] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'streak' | 'reading' | 'account'>('all');
+
+  const filtered = filter === 'all' ? achievements : achievements.filter(a => a.category === filter);
+  const unlockAch = showUnlockPopup ? achievements.find(a => a.key === showUnlockPopup) : null;
+
+  return (
+    <div className="space-y-5">
+      <StreakCard streak={streak} totalRead={totalChaptersRead} accountAge={accountAge} />
+
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <TopReadersLeaderboard />
       </div>
 
-      {/* ── Filter tabs ── */}
+      {/* Filter tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {([
           { key: 'all', label: 'All Badges' },
@@ -384,82 +490,53 @@ export const AchievementGrid: React.FC = () => {
         ))}
       </div>
 
-      {/* ── Tier label: Badges ── */}
-      <h3 className="text-center text-sm font-bold text-foreground">Badges</h3>
-
-      {/* ── Medal-style badge grid ── */}
-      <div className="grid grid-cols-3 gap-y-6 gap-x-3 justify-items-center">
-        {filtered.map(ach => {
-          const isUnlocked = unlockedKeys.has(ach.key);
-          const isDisplayed = displayedKeys.has(ach.key);
-          return (
-            <button
-              key={ach.key}
-              onClick={() => { if (isUnlocked) setShowUnlockPopup(ach.key); }}
-              className="flex flex-col items-center gap-1.5 group relative"
-            >
-              <MedalBadge tier={ach.tier} size={68} locked={!isUnlocked}>
-                <div className={isUnlocked ? 'text-white' : 'text-white/30'}>
-                  <BadgeIcon type={ach.iconType} size={30} />
-                </div>
-              </MedalBadge>
-              {isDisplayed && (
-                <div className="absolute top-0 right-0 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center z-20">
-                  <Check className="w-3 h-3 text-primary-foreground" />
-                </div>
-              )}
-              <p className={`text-[11px] font-semibold text-center line-clamp-1 max-w-[80px] ${isUnlocked ? 'text-foreground' : 'text-muted-foreground/50'}`}>{ach.label}</p>
-              <p className={`text-[9px] capitalize ${isUnlocked ? 'text-muted-foreground' : 'text-muted-foreground/30'}`}>{ach.tier}</p>
-            </button>
-          );
-        })}
+      {/* GitHub-style circular achievement badges with custom SVGs */}
+      <div className="grid grid-cols-3 gap-4">
+        {filtered.map(ach => (
+          <AchievementBadge
+            key={ach.key}
+            ach={ach}
+            isUnlocked={unlockedKeys.has(ach.key)}
+            isDisplayed={displayedKeys.has(ach.key)}
+            onClick={() => { if (unlockedKeys.has(ach.key)) setShowUnlockPopup(ach.key); }}
+          />
+        ))}
       </div>
 
-      {/* ── Unlock popup (wavy badge style like reference) ── */}
+      {/* Unlock popup */}
       <AnimatePresence>
         {showUnlockPopup && unlockAch && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-6"
             onClick={() => setShowUnlockPopup(null)}
           >
             <motion.div
-              initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
               className="bg-card border border-border rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-              <button onClick={() => setShowUnlockPopup(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
-              </button>
-
-              <p className="text-sm font-semibold text-muted-foreground mb-3">You unlocked this badge!</p>
-
-              <div className="flex justify-center mb-4">
-                <WavyBadge size={110} color1="#4f8bff" color2="#6366f1">
-                  <div className="text-white">
-                    <BadgeIcon type={unlockAch.iconType} size={48} />
-                  </div>
-                </WavyBadge>
+              <div className={`w-28 h-28 mx-auto rounded-full bg-gradient-to-br ${unlockAch.gradient} flex items-center justify-center mb-4 shadow-xl ring-4 ${unlockAch.ring}`}>
+                <div className={unlockAch.color}>
+                  <BadgeIcon type={unlockAch.iconType} size={56} />
+                </div>
               </div>
-
               <h3 className="text-xl font-black">{unlockAch.label}</h3>
               <p className="text-sm text-muted-foreground mt-1">{unlockAch.desc}</p>
-              <span className="inline-block mt-2 px-3 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold capitalize">{unlockAch.tier}</span>
+              <p className="text-xs text-primary font-semibold mt-2">Achievement Unlocked!</p>
 
               <div className="flex gap-3 mt-5">
                 <button
                   onClick={() => { toggleDisplay(unlockAch.key, !displayedKeys.has(unlockAch.key)); setShowUnlockPopup(null); }}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-bold hover:opacity-90 transition-opacity"
+                  className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
                 >
                   {displayedKeys.has(unlockAch.key) ? 'Hide from Profile' : 'Show on Profile'}
                 </button>
+                <button onClick={() => setShowUnlockPopup(null)}
+                  className="px-4 py-3 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors">
+                  Close
+                </button>
               </div>
-
-              <button onClick={() => setShowUnlockPopup(null)}
-                className="mt-2 text-xs text-primary font-medium hover:underline">
-                View all badges
-              </button>
             </motion.div>
           </motion.div>
         )}
@@ -497,36 +574,29 @@ export const DailyStreakPopup: React.FC = () => {
         <motion.div
           initial={{ scale: 0.7, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.7, y: 50 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="relative bg-card border border-border rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl"
+          className="relative bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 rounded-3xl p-6 max-w-sm w-full text-center text-white shadow-2xl"
           onClick={e => e.stopPropagation()}
         >
-          <button onClick={() => setShow(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+          <button onClick={() => setShow(false)} className="absolute top-4 right-4 text-white/50 hover:text-white">
             <X className="w-5 h-5" />
           </button>
-
-          <p className="text-sm font-semibold text-muted-foreground mb-2">You just hit a streak!</p>
-
-          <div className="flex justify-center mb-3">
-            <WavyBadge size={110} color1="#3b82f6" color2="#6366f1">
-              <div className="flex flex-col items-center text-white">
-                <span className="text-3xl font-black leading-none">{streak}</span>
-                <Flame className="w-6 h-6 text-orange-300 mt-0.5" />
-              </div>
-            </WavyBadge>
+          <div className="w-24 h-24 mx-auto mb-3 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center ring-4 ring-orange-400/30 shadow-xl">
+            <div className="text-orange-100">
+              <BadgeIcon type="fire" size={48} />
+            </div>
           </div>
+          <h2 className="text-3xl font-black">{streak} Day Streak!</h2>
+          <p className="text-sm text-white/70 mt-1">You're on fire! Keep reading to grow your streak.</p>
 
-          <h2 className="text-xl font-black">{streak} days in a row!</h2>
-          <p className="text-sm text-muted-foreground mt-1">Great work keeping your streak alive.</p>
+          <div className="mt-4 px-4 py-3 rounded-xl bg-white/10">
+            <p className="text-xs text-white/60">Read a chapter today to keep it alive!</p>
+          </div>
 
           <button
             onClick={() => { setShow(false); navigate('/'); }}
-            className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm hover:opacity-90 transition-opacity"
+            className="mt-4 w-full py-3 rounded-xl bg-white text-amber-900 font-bold text-sm hover:bg-white/90 transition-colors"
           >
-            Collect Badge
-          </button>
-
-          <button onClick={() => setShow(false)} className="mt-2 text-xs text-primary font-medium hover:underline">
-            View all badges
+            Extend My Streak
           </button>
         </motion.div>
       </motion.div>
@@ -548,23 +618,18 @@ export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => 
   if (displayed.length === 0) return null;
 
   return (
-    <div className="mt-4">
-      <p className="text-xs text-muted-foreground mb-2 font-medium">Achievements</p>
-      <div className="flex flex-wrap gap-2 justify-center">
-        {displayed.map((a: any) => {
-          const def = ACHIEVEMENTS.find(d => d.key === a.achievement_key);
-          if (!def) return null;
-          return (
-            <div key={a.achievement_key} title={`${def.label}: ${def.desc}`}>
-              <MedalBadge tier={def.tier} size={44}>
-                <div className="text-white">
-                  <BadgeIcon type={def.iconType} size={20} />
-                </div>
-              </MedalBadge>
+    <div className="flex flex-wrap gap-2 justify-center mt-3">
+      {displayed.map((a: any) => {
+        const def = ACHIEVEMENTS.find(d => d.key === a.achievement_key);
+        if (!def) return null;
+        return (
+          <div key={a.achievement_key} className={`w-11 h-11 rounded-full bg-gradient-to-br ${def.gradient} flex items-center justify-center shadow-md ring-2 ${def.ring}`} title={`${def.label}: ${def.desc}`}>
+            <div className={def.color}>
+              <BadgeIcon type={def.iconType} size={22} />
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
