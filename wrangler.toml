@@ -1,0 +1,3 @@
+name = "komixora-worker"
+main = "cloudflare-worker/worker.js"
+compatibility_date = "2026-01-01"
