@@ -420,7 +420,7 @@ export const AchievementGrid: React.FC = () => {
         {showUnlockPopup && unlockAch && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-3 pb-3 sm:px-4 sm:pb-4"
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-3 pb-24 sm:px-4 sm:pb-4"
             onClick={() => setShowUnlockPopup(null)}
           >
             <motion.div
@@ -491,7 +491,7 @@ export const DailyStreakPopup: React.FC = () => {
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm px-3 pb-3 sm:px-6 sm:pb-0"
+        className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm px-3 pb-24 sm:px-6 sm:pb-0"
         onClick={() => setShow(false)}
       >
         <motion.div
@@ -583,7 +583,7 @@ export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => 
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-3 pb-3 sm:px-4 sm:pb-0"
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-3 pb-24 sm:px-4 sm:pb-0"
             onClick={() => setSelectedAchievement(null)}
           >
             <motion.div
