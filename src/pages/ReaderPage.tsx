@@ -736,10 +736,9 @@ const ReaderPage: React.FC = () => {
           <>
             {!isEnd && currentPageData ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="flex items-center justify-center w-full h-full"
+              <div ref={dynamicWrapperRef} className="flex items-center justify-center w-full h-full"
                   style={{
                     width: widthStyle, maxWidth: '100%', margin: '0 auto',
-                    transform: dynamicMode && scale > 1 ? `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)` : undefined,
                     transformOrigin: 'center center',
                     willChange: dynamicMode ? 'transform' : undefined,
                   }}>
