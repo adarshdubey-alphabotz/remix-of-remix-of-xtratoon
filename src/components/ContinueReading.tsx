@@ -13,7 +13,6 @@ const ContinueReading: React.FC = () => {
     queryKey: ['continue-reading', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      // Get latest reading history entries (distinct manga)
       const { data: history } = await supabase
         .from('reading_history')
         .select('manga_id, chapter_id, page_number, read_at')
@@ -22,7 +21,6 @@ const ContinueReading: React.FC = () => {
         .limit(20);
       if (!history || history.length === 0) return [];
 
-      // Deduplicate by manga_id, keep latest
       const seen = new Set<string>();
       const unique = history.filter(h => {
         if (seen.has(h.manga_id)) return false;
@@ -33,27 +31,53 @@ const ContinueReading: React.FC = () => {
       const mangaIds = unique.map(h => h.manga_id);
       const chapterIds = unique.map(h => h.chapter_id);
 
-      const [{ data: mangaData }, { data: chapterData }] = await Promise.all([
+      const [{ data: mangaData }, { data: chapterData }, { data: totalChapters }] = await Promise.all([
         supabase.from('manga').select('id, title, slug, cover_url').in('id', mangaIds),
         supabase.from('chapters').select('id, chapter_number, manga_id').in('id', chapterIds),
+        supabase.from('chapters').select('manga_id').in('manga_id', mangaIds),
       ]);
 
       const mangaMap = new Map((mangaData || []).map(m => [m.id, m]));
       const chapterMap = new Map((chapterData || []).map(c => [c.id, c]));
+      
+      // Count total chapters per manga
+      const totalChapterMap: Record<string, number> = {};
+      (totalChapters || []).forEach(c => {
+        totalChapterMap[c.manga_id] = (totalChapterMap[c.manga_id] || 0) + 1;
+      });
+
+      // Count total pages per chapter for progress
+      const chapterIdList = chapterIds.filter(Boolean);
+      let totalPageMap: Record<string, number> = {};
+      if (chapterIdList.length > 0) {
+        const { data: pageCountData } = await supabase
+          .from('chapter_pages')
+          .select('chapter_id')
+          .in('chapter_id', chapterIdList);
+        (pageCountData || []).forEach(p => {
+          totalPageMap[p.chapter_id] = (totalPageMap[p.chapter_id] || 0) + 1;
+        });
+      }
 
       return unique.map(h => {
         const manga = mangaMap.get(h.manga_id);
         const ch = chapterMap.get(h.chapter_id);
         if (!manga) return null;
+        const totalPages = totalPageMap[h.chapter_id] || 1;
+        const pageNum = h.page_number || 1;
+        const progress = Math.min(Math.round((pageNum / totalPages) * 100), 100);
         return {
           mangaId: h.manga_id,
           title: manga.title,
           slug: manga.slug,
           coverUrl: manga.cover_url,
           chapterNum: ch?.chapter_number || 1,
-          pageNum: h.page_number || 1,
+          pageNum,
+          totalPages,
+          totalChapters: totalChapterMap[h.manga_id] || 1,
+          progress,
         };
-      }).filter(Boolean) as { mangaId: string; title: string; slug: string; coverUrl: string | null; chapterNum: number; pageNum: number }[];
+      }).filter(Boolean) as any[];
     },
     enabled: !!user,
     staleTime: 30000,
@@ -64,11 +88,11 @@ const ContinueReading: React.FC = () => {
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="flex items-center gap-2 text-[15px] font-bold text-foreground">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-foreground tracking-tight">
           <BookOpen className="w-4 h-4 text-primary" /> Continue Reading
         </h2>
-        <Link to="/library" className="text-xs text-primary font-medium flex items-center gap-0.5 hover:underline">
-          Library <ChevronRight className="w-3.5 h-3.5" />
+        <Link to="/library" className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline">
+          Library <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
@@ -78,28 +102,45 @@ const ContinueReading: React.FC = () => {
             <Link
               key={item.mangaId}
               to={`/read/${item.slug}/chapter-${item.chapterNum}`}
-              className="group block flex-shrink-0 w-[120px] sm:w-[140px]"
+              className="group block flex-shrink-0 w-[220px] sm:w-[260px]"
             >
-              <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted/50">
-                {coverSrc ? (
-                  <img src={coverSrc} alt={item.title} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                    <span className="text-xl font-bold text-primary/30">{item.title[0]}</span>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="w-10 h-10 rounded-full bg-primary/90 flex items-center justify-center">
-                    <Play className="w-4 h-4 text-primary-foreground fill-current" />
+              <div className="flex gap-3 p-2.5 rounded-2xl bg-card border border-border/40 hover:border-primary/30 transition-all">
+                {/* Cover */}
+                <div className="relative w-16 h-22 sm:w-20 sm:h-28 rounded-xl overflow-hidden bg-muted/50 flex-shrink-0">
+                  {coverSrc ? (
+                    <img src={coverSrc} alt={item.title} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                      <span className="text-lg font-bold text-primary/30">{item.title[0]}</span>
+                    </div>
+                  )}
+                  {/* Play overlay on hover */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Play className="w-5 h-5 text-white fill-white" />
                   </div>
                 </div>
-                <div className="absolute bottom-1.5 left-1.5 right-1.5">
-                  <span className="px-2 py-0.5 text-[9px] font-bold bg-black/70 text-white rounded-md backdrop-blur-sm">
-                    Ch. {item.chapterNum} · P.{item.pageNum}
-                  </span>
+                {/* Info */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                  <div>
+                    <h3 className="text-xs font-bold leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors">{item.title}</h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Ch. {item.chapterNum} · Page {item.pageNum} of {item.totalPages}
+                    </p>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="mt-auto">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[9px] font-semibold text-primary">{item.progress}% complete</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-500"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <h3 className="text-xs font-medium leading-tight line-clamp-2 mt-1.5 text-foreground group-hover:text-primary transition-colors">{item.title}</h3>
             </Link>
           );
         })}

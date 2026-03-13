@@ -98,19 +98,16 @@ const VerifyEmailPage: React.FC = () => {
     return () => clearTimeout(t);
   }, [resendCooldown]);
 
-  // Check countdown timer
   useEffect(() => {
     if (checkCountdown <= 0) return;
     const t = setTimeout(() => setCheckCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [checkCountdown]);
 
-  // When countdown hits 0 and we're in checking state, actually call the backend
   useEffect(() => {
     if (checkCountdown === 0 && state === 'checking') {
       doInboxCheck();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkCountdown, state]);
 
   const handleCopy = () => {
@@ -119,7 +116,38 @@ const VerifyEmailPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const mailtoHref = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(code + ' — Komixora Verification')}&body=${encodeURIComponent(`My verification code is: ${code}\n\nEmail: ${userEmail}`)}`;
+  // Build mailto with explicit `to` parameter for maximum compatibility
+  const mailtoSubject = encodeURIComponent(code + ' — Komixora Verification');
+  const mailtoBody = encodeURIComponent(`My verification code is: ${code}\n\nEmail: ${userEmail}`);
+  const mailtoHref = `mailto:${SUPPORT_EMAIL}?subject=${mailtoSubject}&body=${mailtoBody}`;
+
+  // Fallback: open mail app with intent on Android
+  const handleSendEmail = (e: React.MouseEvent) => {
+    // Try standard mailto first
+    const link = document.createElement('a');
+    link.href = mailtoHref;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    
+    // For Android Gmail intent fallback
+    const isAndroid = /android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      // Use intent URL for Gmail as primary on Android
+      const gmailIntent = `intent://compose?to=${encodeURIComponent(SUPPORT_EMAIL)}&subject=${mailtoSubject}&body=${mailtoBody}#Intent;scheme=mailto;package=com.google.android.gm;end`;
+      // Try mailto first, Gmail intent as fallback
+      try {
+        window.location.href = mailtoHref;
+      } catch {
+        window.location.href = gmailIntent;
+      }
+      e.preventDefault();
+      return;
+    }
+    
+    // Desktop/iOS — standard mailto works fine
+    link.click();
+    e.preventDefault();
+  };
 
   const handleCheckInbox = () => {
     if (!code || resendCooldown <= 0) {
@@ -168,7 +196,6 @@ const VerifyEmailPage: React.FC = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-16">
       <DynamicMeta title="Verify Email — Komixora" description="Verify your email to access Komixora" />
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="text-display text-3xl font-black tracking-wider">
             KOMI<span className="text-primary">XORA</span>
@@ -176,7 +203,6 @@ const VerifyEmailPage: React.FC = () => {
         </div>
 
         <div className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden">
-          {/* Header */}
           <div className="bg-primary/5 border-b border-border px-6 py-5">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -196,7 +222,6 @@ const VerifyEmailPage: React.FC = () => {
           </div>
 
           <div className="p-6">
-            {/* Loading */}
             {state === 'loading' && (
               <div className="flex flex-col items-center gap-3 py-12">
                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -204,7 +229,6 @@ const VerifyEmailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Ready — show code + actions */}
             {state === 'ready' && code && (
               <div className="space-y-5">
                 <div className="text-center space-y-1">
@@ -214,7 +238,6 @@ const VerifyEmailPage: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Code display */}
                 <div className="relative bg-muted/50 border border-border rounded-xl p-5 text-center">
                   <p className="font-mono text-2xl sm:text-3xl tracking-[0.3em] font-black text-foreground select-all">
                     {code}
@@ -227,13 +250,14 @@ const VerifyEmailPage: React.FC = () => {
                   {resendCooldown > 0 ? `Code expires in ${resendCooldown}s` : 'Code expired. Generate a new code.'}
                 </p>
 
-                {/* Mailto button */}
-                <a href={mailtoHref} className="flex items-center justify-center gap-2 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity">
+                <button
+                  onClick={handleSendEmail}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity"
+                >
                   <ExternalLink className="w-4 h-4" />
                   Click here to send verification email
-                </a>
+                </button>
 
-                {/* Check inbox button */}
                 <button
                   onClick={handleCheckInbox}
                   disabled={resendCooldown <= 0}
@@ -243,14 +267,12 @@ const VerifyEmailPage: React.FC = () => {
                   I've sent it — Verify now
                 </button>
 
-                {/* Error */}
                 {error && (
                   <div className="p-3 rounded-xl bg-destructive/10 text-destructive text-xs flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{error}</span>
                   </div>
                 )}
 
-                {/* Resend */}
                 <div className="flex items-center justify-center pt-1">
                   <button
                     onClick={generateCode}
@@ -264,7 +286,6 @@ const VerifyEmailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Checking — 30 second countdown */}
             {state === 'checking' && (
               <div className="flex flex-col items-center gap-4 py-12">
                 <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -278,7 +299,6 @@ const VerifyEmailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Verified */}
             {state === 'verified' && (
               <div className="flex flex-col items-center gap-3 py-12">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -289,7 +309,6 @@ const VerifyEmailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Error state */}
             {state === 'error' && (
               <div className="flex flex-col items-center gap-3 py-12">
                 <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center">
