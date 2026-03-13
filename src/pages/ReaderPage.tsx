@@ -404,7 +404,7 @@ const ReaderPage: React.FC = () => {
     lastTouchRef.current = null;
   }, [displayMode, readDirection, currentPage, applyTransform]);
 
-  const resetZoom = () => { setScale(1); setTranslateX(0); setTranslateY(0); };
+  const resetZoom = () => { scaleRef.current = 1; txRef.current = 0; tyRef.current = 0; setScale(1); setTranslateX(0); setTranslateY(0); applyTransform(); };
 
   const goToPage = useCallback((newPage: number) => {
     if (!pages || newPage < 0 || newPage >= pages.length) return;
