@@ -407,7 +407,23 @@ const CommunityPage: React.FC = () => {
           </div>
 
           {/* Composer */}
-          {isPublisher && user && (
+          {isPublisher && user && (() => {
+            const isVerified = user?.app_metadata?.email_verified === true;
+            if (!isVerified) {
+              return (
+                <div className="px-4 py-5 border-b border-border/30 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Mail className="w-5 h-5 text-amber-500" />
+                    <p className="text-sm font-medium text-foreground">Email verification required</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">Verify your email to post in the community.</p>
+                  <button onClick={() => navigate('/verify')} className="px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all">
+                    Verify Email
+                  </button>
+                </div>
+              );
+            }
+            return (
             <div className="px-4 py-4 border-b border-border/30">
               <div className="flex gap-3">
                 <div className="flex-shrink-0">
@@ -453,7 +469,8 @@ const CommunityPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {!user && (
             <div className="px-4 py-6 border-b border-border/30 text-center">
