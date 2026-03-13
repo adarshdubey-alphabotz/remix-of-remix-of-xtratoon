@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, ChevronRight, Clock, Crown, Flame, Bookmark, Sparkles, Users, Eye, ChevronLeft } from 'lucide-react';
 import BecauseYouRead from '@/components/BecauseYouRead';
+import ContinueReading from '@/components/ContinueReading';
 import DynamicMeta from '@/components/DynamicMeta';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import { supabase } from '@/integrations/supabase/client';
@@ -348,6 +349,7 @@ const ExplorePage: React.FC = () => {
           {/* Hero Banner (like Tapas spotlight) */}
           {activeGenre === 'All' && <HeroBanner items={featuredItems} creatorMap={creatorMap} />}
 
+          <ContinueReading />
           <BecauseYouRead />
 
           <ScrollRow title="Trending Now" icon={<Flame className="w-4 h-4 text-primary" />} items={trending} viewAllLink="/charts" creatorMap={creatorMap} numbered />

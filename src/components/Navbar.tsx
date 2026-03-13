@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, MoreVertical, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, MessageSquare, Clock, Users, Eye, FileText, Newspaper, Scale, Cookie, AlertTriangle } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User as UserIcon, LogOut, BookOpen, LayoutDashboard, Shield, Sun, Moon, Smartphone, Home, BarChart3, MessageSquare, Clock, Users, Eye, FileText, Newspaper, Scale, Cookie, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
@@ -246,7 +246,7 @@ const Navbar: React.FC = () => {
               </button>
             )}
             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg text-foreground" aria-label="Menu">
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <MoreVertical className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -368,8 +368,8 @@ const Navbar: React.FC = () => {
       </nav>
 
       {/* Mobile bottom tab bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-md border-t border-border">
-        <div className="flex items-center justify-around h-13 max-w-md mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background border-t border-border safe-area-bottom">
+        <div className="flex items-center justify-around h-14 max-w-md mx-auto px-1">
           {bottomNavItems.map(item => {
             const Icon = item.icon;
             const active = isActive(item.to);
@@ -377,34 +377,36 @@ const Navbar: React.FC = () => {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors ${
+                className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-colors ${
                   active ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : ''}`} />
-                <span className={`text-[9px] ${active ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                {active && <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-primary rounded-full" />}
+                <Icon className={`w-[22px] h-[22px] ${active ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+                <span className={`text-[10px] leading-tight ${active ? 'font-bold' : 'font-normal'}`}>{item.label}</span>
               </Link>
             );
           })}
           {user ? (
             <Link
               to="/profile"
-              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors ${
+              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-colors ${
                 isActive('/profile') ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
-              <UserIcon className={`w-5 h-5 ${isActive('/profile') ? 'stroke-[2.5]' : ''}`} />
-              <span className={`text-[9px] ${isActive('/profile') ? 'font-bold' : 'font-medium'}`}>Profile</span>
+              {isActive('/profile') && <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-primary rounded-full" />}
+              <UserIcon className={`w-[22px] h-[22px] ${isActive('/profile') ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+              <span className={`text-[10px] leading-tight ${isActive('/profile') ? 'font-bold' : 'font-normal'}`}>Profile</span>
               {userUnreadCount > 0 && (
-                <span className="absolute top-0.5 right-1/4 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[7px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute top-0 right-1/4 w-4 h-4 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center">
                   {userUnreadCount > 9 ? '9+' : userUnreadCount}
                 </span>
               )}
             </Link>
           ) : (
-            <button onClick={handleSignup} className="flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-muted-foreground">
-              <UserIcon className="w-5 h-5" />
-              <span className="text-[9px] font-medium">Sign Up</span>
+            <button onClick={handleSignup} className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 text-muted-foreground">
+              <UserIcon className="w-[22px] h-[22px] stroke-[1.5]" />
+              <span className="text-[10px] leading-tight font-normal">Sign Up</span>
             </button>
           )}
         </div>

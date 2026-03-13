@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, ImageIcon, Settings, X, LayoutGrid, Image as ImageLucide, Keyboard, ChevronDown, Square, Rows3, GalleryHorizontalEnd } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, ImageIcon, Settings, X, LayoutGrid, Image as ImageLucide, Keyboard, ChevronDown, Square, Rows3, GalleryHorizontalEnd, ZoomIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getPageImageUrl } from '@/lib/imageUrl';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,6 +28,8 @@ const ReaderPage: React.FC = () => {
   const [autoHideUI, setAutoHideUI] = useState(true);
   const [imageSizing, setImageSizing] = useState<ImageSizing>('fit-width');
   const [maxWidth, setMaxWidth] = useState(100);
+  const [dynamicMode, setDynamicMode] = useState(false);
+  const [showDynamicHint, setShowDynamicHint] = useState(false);
 
   const [scale, setScale] = useState(1);
   const [translateX, setTranslateX] = useState(0);
@@ -285,6 +287,9 @@ const ReaderPage: React.FC = () => {
       else if (e.key === 'ArrowLeft') goToPage(currentPage + (isRTL ? 1 : -1));
       else if (e.key === 'ArrowDown') goToPage(currentPage + 1);
       else if (e.key === 'ArrowUp') goToPage(currentPage - 1);
+      else if (e.key === 'd' || e.key === 'D') {
+        setDynamicMode(prev => { if (prev) resetZoom(); return !prev; });
+      }
       else if (e.key === 'Escape') {
         if (scale > 1) resetZoom();
         else navigate(`/title/${manga?.slug}`);
@@ -294,21 +299,39 @@ const ReaderPage: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   });
 
-  // Touch handlers - NO zoom, NO pinch, NO double-tap zoom
+  // Touch handlers — dynamic mode enables pinch-zoom & pan
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       touchStartXRef.current = e.touches[0].clientX;
     }
-    // Ignore multi-touch completely - no pinch zoom
-  }, []);
+    if (dynamicMode && e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      lastTouchRef.current = { dist, x: cx, y: cy };
+    }
+  }, [dynamicMode]);
 
-  const handleTouchMove = useCallback((_e: React.TouchEvent) => {
-    // No zoom handling - let native scroll work in strip mode
-  }, []);
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!dynamicMode) return;
+    if (e.touches.length === 2 && lastTouchRef.current) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const newScale = Math.min(5, Math.max(1, scale * (dist / lastTouchRef.current.dist)));
+      setScale(newScale);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      setTranslateX(prev => prev + (cx - lastTouchRef.current!.x));
+      setTranslateY(prev => prev + (cy - lastTouchRef.current!.y));
+      lastTouchRef.current = { dist, x: cx, y: cy };
+    }
+  }, [dynamicMode, scale]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    // Swipe detection for page navigation (single touch only)
-    if (e.changedTouches.length === 1 && displayMode !== 'strip') {
+    if (e.changedTouches.length === 1 && displayMode !== 'strip' && scale <= 1) {
       const diff = e.changedTouches[0].clientX - touchStartXRef.current;
       const isRTL = readDirection === 'rtl';
       if (Math.abs(diff) > 50) {
@@ -317,7 +340,7 @@ const ReaderPage: React.FC = () => {
       }
     }
     lastTouchRef.current = null;
-  }, [displayMode, readDirection, currentPage]);
+  }, [displayMode, readDirection, currentPage, scale]);
 
   const resetZoom = () => { setScale(1); setTranslateX(0); setTranslateY(0); };
 
@@ -547,6 +570,22 @@ const ReaderPage: React.FC = () => {
                     <input type="checkbox" checked={autoHideUI} onChange={e => setAutoHideUI(e.target.checked)} className="w-5 h-5 rounded accent-primary" />
                     <span className="text-sm text-white/70 font-medium">Auto-Hide UI</span>
                   </label>
+
+                  <div>
+                    <p className="text-xs text-white/40 uppercase tracking-wider font-bold mb-3">Dynamic Mode</p>
+                    <label className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white/3 cursor-pointer">
+                      <div>
+                        <span className="text-sm text-white/70 font-medium">Pinch Zoom & Pan</span>
+                        <p className="text-[10px] text-white/40 mt-0.5">Enable to zoom in and pan around pages</p>
+                      </div>
+                      <button
+                        onClick={() => { setDynamicMode(!dynamicMode); if (dynamicMode) resetZoom(); }}
+                        className={`w-10 h-5 rounded-full transition-colors flex items-center ${dynamicMode ? 'bg-primary justify-end' : 'bg-white/15 justify-start'}`}
+                      >
+                        <span className="w-4 h-4 bg-white rounded-full mx-0.5" />
+                      </button>
+                    </label>
+                  </div>
                 </>
               )}
 
@@ -582,10 +621,11 @@ const ReaderPage: React.FC = () => {
               {settingsTab === 'shortcuts' && (
                 <div className="space-y-3">
                   <p className="text-xs text-white/40 uppercase tracking-wider font-bold mb-3">Keyboard Shortcuts</p>
-                  {[
+                   {[
                     { keys: '← →', desc: 'Previous / Next page' },
                     { keys: '↑ ↓', desc: 'Previous / Next page' },
                     { keys: 'Esc', desc: 'Exit reader / Reset zoom' },
+                    { keys: 'D', desc: 'Toggle Dynamic Mode' },
                   ].map(s => (
                     <div key={s.keys} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white/3">
                       <span className="text-sm text-white/70">{s.desc}</span>
@@ -606,7 +646,11 @@ const ReaderPage: React.FC = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={displayMode !== 'strip' ? handleTap : undefined}
-        style={{ touchAction: displayMode === 'strip' ? 'pan-y' : 'pan-x' }}
+        style={{
+          touchAction: dynamicMode ? 'none' : displayMode === 'strip' ? 'pan-y' : 'pan-x',
+          transform: dynamicMode && scale > 1 ? `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)` : undefined,
+          transformOrigin: 'center center',
+        }}
       >
         {/* Strip mode */}
         {displayMode === 'strip' && pages && pages.length > 0 && (
@@ -665,17 +709,52 @@ const ReaderPage: React.FC = () => {
           </>
         )}
 
-        {/* Removed zoom indicator - zoom is disabled */}
+        {/* Dynamic mode zoom indicator */}
+        {dynamicMode && scale > 1 && (
+          <div className="absolute top-16 right-3 z-50 px-2.5 py-1 bg-primary/80 text-primary-foreground text-[11px] font-bold rounded-lg backdrop-blur-sm">
+            {Math.round(scale * 100)}%
+          </div>
+        )}
       </div>
 
-      {/* BOTTOM PAGE COUNTER */}
+      {/* BOTTOM BAR — page counter + dynamic mode button */}
       {showNav && displayMode !== 'strip' && (
         <div className="absolute bottom-0 left-0 right-0 z-50">
-          <div className="flex items-center justify-center py-4 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent">
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent">
+            {/* Reading progress % */}
+            <span className="text-white/40 text-xs font-medium">
+              {totalPages > 0 ? Math.round(((currentPage + 1) / totalPages) * 100) : 0}%
+            </span>
             <span className="text-white/70 text-base font-semibold tracking-wide">
               {currentPage + 1} <span className="text-white/30">/</span> {totalPages}
             </span>
+            {/* Dynamic mode toggle */}
+            <button
+              onClick={() => {
+                const next = !dynamicMode;
+                setDynamicMode(next);
+                if (!next) resetZoom();
+                if (next && !showDynamicHint) {
+                  setShowDynamicHint(true);
+                  setTimeout(() => setShowDynamicHint(false), 3000);
+                }
+              }}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors ${
+                dynamicMode ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white/60 hover:bg-white/15'
+              }`}
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Dynamic</span>
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Dynamic mode hint toast */}
+      {showDynamicHint && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[90] px-4 py-2.5 bg-[#222]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl max-w-xs text-center">
+          <p className="text-white text-xs font-medium">🔍 Dynamic Mode ON</p>
+          <p className="text-white/50 text-[10px] mt-0.5">Pinch to zoom, drag to pan. Press <kbd className="px-1 py-0.5 bg-white/10 rounded text-[9px] font-mono">D</kbd> or tap button to toggle.</p>
         </div>
       )}
     </div>
