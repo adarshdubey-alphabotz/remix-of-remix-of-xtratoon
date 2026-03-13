@@ -702,17 +702,52 @@ const ReaderPage: React.FC = () => {
           </>
         )}
 
-        {/* Removed zoom indicator - zoom is disabled */}
+        {/* Dynamic mode zoom indicator */}
+        {dynamicMode && scale > 1 && (
+          <div className="absolute top-16 right-3 z-50 px-2.5 py-1 bg-primary/80 text-primary-foreground text-[11px] font-bold rounded-lg backdrop-blur-sm">
+            {Math.round(scale * 100)}%
+          </div>
+        )}
       </div>
 
-      {/* BOTTOM PAGE COUNTER */}
+      {/* BOTTOM BAR — page counter + dynamic mode button */}
       {showNav && displayMode !== 'strip' && (
         <div className="absolute bottom-0 left-0 right-0 z-50">
-          <div className="flex items-center justify-center py-4 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent">
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent">
+            {/* Reading progress % */}
+            <span className="text-white/40 text-xs font-medium">
+              {totalPages > 0 ? Math.round(((currentPage + 1) / totalPages) * 100) : 0}%
+            </span>
             <span className="text-white/70 text-base font-semibold tracking-wide">
               {currentPage + 1} <span className="text-white/30">/</span> {totalPages}
             </span>
+            {/* Dynamic mode toggle */}
+            <button
+              onClick={() => {
+                const next = !dynamicMode;
+                setDynamicMode(next);
+                if (!next) resetZoom();
+                if (next && !showDynamicHint) {
+                  setShowDynamicHint(true);
+                  setTimeout(() => setShowDynamicHint(false), 3000);
+                }
+              }}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors ${
+                dynamicMode ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white/60 hover:bg-white/15'
+              }`}
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Dynamic</span>
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Dynamic mode hint toast */}
+      {showDynamicHint && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[90] px-4 py-2.5 bg-[#222]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl max-w-xs text-center">
+          <p className="text-white text-xs font-medium">🔍 Dynamic Mode ON</p>
+          <p className="text-white/50 text-[10px] mt-0.5">Pinch to zoom, drag to pan. Press <kbd className="px-1 py-0.5 bg-white/10 rounded text-[9px] font-mono">D</kbd> or tap button to toggle.</p>
         </div>
       )}
     </div>
