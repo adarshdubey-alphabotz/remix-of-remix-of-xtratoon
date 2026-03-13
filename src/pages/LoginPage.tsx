@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,18 +6,40 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import DynamicMeta from '@/components/DynamicMeta';
 
-const useRateLimit = (maxAttempts: number, windowMs: number) => {
-  const attemptsRef = useRef<number[]>([]);
-  return useCallback(() => {
-    const now = Date.now();
-    attemptsRef.current = attemptsRef.current.filter(t => now - t < windowMs);
-    if (attemptsRef.current.length >= maxAttempts) {
-      const waitSec = Math.ceil((windowMs - (now - attemptsRef.current[0])) / 1000);
+const RATE_LIMIT_KEY = 'komixora_login_rl';
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 120000; // 2 minutes
+
+const useRateLimit = () => {
+  const getAttempts = useCallback((): number[] => {
+    try {
+      const raw = localStorage.getItem(RATE_LIMIT_KEY);
+      if (!raw) return [];
+      return JSON.parse(raw).filter((t: number) => Date.now() - t < WINDOW_MS);
+    } catch { return []; }
+  }, []);
+
+  const check = useCallback(() => {
+    const attempts = getAttempts();
+    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(attempts));
+    if (attempts.length >= MAX_ATTEMPTS) {
+      const waitSec = Math.ceil((WINDOW_MS - (Date.now() - attempts[0])) / 1000);
       return { allowed: false, waitSec };
     }
-    attemptsRef.current.push(now);
+    const updated = [...attempts, Date.now()];
+    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(updated));
     return { allowed: true, waitSec: 0 };
-  }, [maxAttempts, windowMs]);
+  }, [getAttempts]);
+
+  const getRemaining = useCallback(() => {
+    const attempts = getAttempts();
+    if (attempts.length >= MAX_ATTEMPTS) {
+      return Math.ceil((WINDOW_MS - (Date.now() - attempts[0])) / 1000);
+    }
+    return 0;
+  }, [getAttempts]);
+
+  return { check, getRemaining };
 };
 
 const LoginPage: React.FC = () => {
@@ -30,17 +52,37 @@ const LoginPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-  const checkRate = useRateLimit(5, 60000);
+  const [cooldown, setCooldown] = useState(0);
+  const { check, getRemaining } = useRateLimit();
 
-  React.useEffect(() => {
+  // On mount and every second, sync cooldown from localStorage
+  useEffect(() => {
+    const remaining = getRemaining();
+    if (remaining > 0) {
+      setCooldown(remaining);
+      setError(`Too many attempts. Try again in ${remaining}s`);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => {
+      const remaining = getRemaining();
+      setCooldown(remaining);
+      if (remaining <= 0) setError('');
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [cooldown, getRemaining]);
+
+  useEffect(() => {
     if (user) navigate('/', { replace: true });
   }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const { allowed, waitSec } = checkRate();
-    if (!allowed) { setError(`Too many attempts. Try again in ${waitSec}s`); return; }
+    const { allowed, waitSec } = check();
+    if (!allowed) { setCooldown(waitSec); setError(`Too many attempts. Try again in ${waitSec}s`); return; }
     if (!email || !password) { setError('All fields required'); return; }
     setSubmitting(true);
     const res = await login(email, password);
@@ -121,8 +163,8 @@ const LoginPage: React.FC = () => {
               </div>
             )}
 
-            <button type="submit" disabled={submitting} className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
-              {submitting ? 'Loading...' : forgotMode ? 'Send Reset Link' : 'Sign In'}
+            <button type="submit" disabled={submitting || cooldown > 0} className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
+              {submitting ? 'Loading...' : cooldown > 0 ? `Try again in ${cooldown}s` : forgotMode ? 'Send Reset Link' : 'Sign In'}
             </button>
           </form>
 
