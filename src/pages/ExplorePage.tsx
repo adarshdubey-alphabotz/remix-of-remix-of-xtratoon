@@ -349,6 +349,7 @@ const ExplorePage: React.FC = () => {
           {/* Hero Banner (like Tapas spotlight) */}
           {activeGenre === 'All' && <HeroBanner items={featuredItems} creatorMap={creatorMap} />}
 
+          <ContinueReading />
           <BecauseYouRead />
 
           <ScrollRow title="Trending Now" icon={<Flame className="w-4 h-4 text-primary" />} items={trending} viewAllLink="/charts" creatorMap={creatorMap} numbered />
