@@ -44,7 +44,11 @@ const LoginPage: React.FC = () => {
     if (!email || !password) { setError('All fields required'); return; }
     setSubmitting(true);
     const res = await login(email, password);
-    if (!res.success) setError(res.error || 'Login failed');
+    if (res.success) {
+      toast.success('Logged In Successfully ✨');
+    } else {
+      setError(res.error || 'Login failed');
+    }
     setSubmitting(false);
   };
 

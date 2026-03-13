@@ -190,9 +190,7 @@ const AppLayout = () => (
     <VerifyEmailBanner />
     <AuthModal />
     <SpotlightSearch />
-    <OnboardingModal />
     <GoogleOnboardingModal />
-    <TermsAcceptanceModal />
     <ErrorBoundary>
       <AnimatedRoutes />
     </ErrorBoundary>
