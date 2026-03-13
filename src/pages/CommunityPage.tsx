@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollowingIds } from '@/hooks/useFollow';
-import { Heart, MessageCircle, ImagePlus, Trash2, User, Loader2, Search, Hash, X, TrendingUp, Eye, Bookmark, Share2, Pin } from 'lucide-react';
+import { Heart, MessageCircle, ImagePlus, Trash2, User, Loader2, Search, Hash, X, TrendingUp, Eye, Bookmark, Share2, Pin, Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { toast } from 'sonner';
