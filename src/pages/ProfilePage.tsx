@@ -800,7 +800,7 @@ const ProfilePage: React.FC = () => {
           {activeSection === 'wallet' && (
             <motion.div key="wallet" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
               <SectionHeader onBack={() => setActiveSection('main')} title="My Wallet" />
-              <div className="px-4 py-6"><WalletSection /></div>
+              <div className="px-4 py-6"><WalletSection onBack={() => setActiveSection('main')} /></div>
             </motion.div>
           )}
         </AnimatePresence>
