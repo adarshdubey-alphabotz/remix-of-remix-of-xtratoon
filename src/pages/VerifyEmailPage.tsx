@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, CheckCircle, RefreshCw, AlertCircle, ShieldCheck, ArrowRight, ExternalLink, Copy, Check } from 'lucide-react';
+import { Mail, CheckCircle, RefreshCw, AlertCircle, ShieldCheck, ExternalLink, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import DynamicMeta from '@/components/DynamicMeta';
@@ -9,6 +9,7 @@ type VerifyState = 'loading' | 'ready' | 'checking' | 'verified' | 'error';
 
 const SUPPORT_EMAIL = 'support@komixora.fun';
 const VERIFICATION_CODE_TTL_SECONDS = 60;
+const CHECK_DURATION_SECONDS = 30;
 
 const VerifyEmailPage: React.FC = () => {
   const { user } = useAuth();
@@ -18,8 +19,7 @@ const VerifyEmailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [checkAttempts, setCheckAttempts] = useState(0);
-  const [showManual, setShowManual] = useState(false);
-  const [manualCode, setManualCode] = useState('');
+  const [checkCountdown, setCheckCountdown] = useState(0);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const userEmail = user?.email || '';
@@ -32,27 +32,19 @@ const VerifyEmailPage: React.FC = () => {
 
   const restoreCachedCode = useCallback(() => {
     if (!verificationCacheKey || !userEmail) return false;
-
     try {
       const raw = sessionStorage.getItem(verificationCacheKey);
       if (!raw) return false;
-
       const parsed = JSON.parse(raw) as { code?: string; email?: string; expiresAt?: string };
       if (!parsed?.code || !parsed?.expiresAt || parsed?.email !== userEmail) {
         sessionStorage.removeItem(verificationCacheKey);
         return false;
       }
-
-      const remainingSeconds = Math.max(
-        0,
-        Math.ceil((new Date(parsed.expiresAt).getTime() - Date.now()) / 1000)
-      );
-
+      const remainingSeconds = Math.max(0, Math.ceil((new Date(parsed.expiresAt).getTime() - Date.now()) / 1000));
       if (remainingSeconds <= 0) {
         sessionStorage.removeItem(verificationCacheKey);
         return false;
       }
-
       setCode(parsed.code);
       setResendCooldown(remainingSeconds);
       setState('ready');
@@ -66,44 +58,24 @@ const VerifyEmailPage: React.FC = () => {
 
   const cacheCode = useCallback((nextCode: string, expiresAt?: string | null, remainingSeconds?: number) => {
     if (!verificationCacheKey || !nextCode) return;
-
     const computedExpiresAt = expiresAt
       ? expiresAt
       : new Date(Date.now() + (Math.max(1, remainingSeconds ?? VERIFICATION_CODE_TTL_SECONDS) * 1000)).toISOString();
-
-    sessionStorage.setItem(
-      verificationCacheKey,
-      JSON.stringify({
-        code: nextCode,
-        email: userEmail,
-        expiresAt: computedExpiresAt,
-      })
-    );
+    sessionStorage.setItem(verificationCacheKey, JSON.stringify({ code: nextCode, email: userEmail, expiresAt: computedExpiresAt }));
   }, [verificationCacheKey, userEmail]);
 
   const generateCode = useCallback(async () => {
     if (!user || !userEmail) return;
-
     if (!code) setState('loading');
     setError('');
     setCheckAttempts(0);
-    setShowManual(false);
-
     try {
       const { data, error: fnError } = await supabase.functions.invoke('super-handler', {
         body: { action: 'send-verification', email: userEmail, userId: user.id },
       });
-
       if (fnError) throw new Error(fnError?.message || 'Failed to generate code');
       if (!data?.code) throw new Error('Verification code not returned');
-
-      const remainingSeconds = Math.max(
-        0,
-        Number.isFinite(Number(data?.remainingSeconds))
-          ? Number(data?.remainingSeconds)
-          : VERIFICATION_CODE_TTL_SECONDS
-      );
-
+      const remainingSeconds = Math.max(0, Number.isFinite(Number(data?.remainingSeconds)) ? Number(data?.remainingSeconds) : VERIFICATION_CODE_TTL_SECONDS);
       setCode(data.code);
       setResendCooldown(remainingSeconds);
       cacheCode(data.code, data?.expiresAt, remainingSeconds);
@@ -117,10 +89,7 @@ const VerifyEmailPage: React.FC = () => {
   useEffect(() => {
     if (!user) { navigate('/login', { replace: true }); return; }
     if (user.app_metadata?.email_verified === true) { navigate('/', { replace: true }); return; }
-
-    if (!restoreCachedCode()) {
-      generateCode();
-    }
+    if (!restoreCachedCode()) { generateCode(); }
   }, [user, navigate, restoreCachedCode, generateCode]);
 
   useEffect(() => {
@@ -128,6 +97,21 @@ const VerifyEmailPage: React.FC = () => {
     const t = setTimeout(() => setResendCooldown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [resendCooldown]);
+
+  // Check countdown timer
+  useEffect(() => {
+    if (checkCountdown <= 0) return;
+    const t = setTimeout(() => setCheckCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [checkCountdown]);
+
+  // When countdown hits 0 and we're in checking state, actually call the backend
+  useEffect(() => {
+    if (checkCountdown === 0 && state === 'checking') {
+      doInboxCheck();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkCountdown, state]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -137,21 +121,21 @@ const VerifyEmailPage: React.FC = () => {
 
   const mailtoHref = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(code + ' — Komixora Verification')}&body=${encodeURIComponent(`My verification code is: ${code}\n\nEmail: ${userEmail}`)}`;
 
-  const handleCheckInbox = async () => {
+  const handleCheckInbox = () => {
     if (!code || resendCooldown <= 0) {
-      setShowManual(true);
       setError('Code expired. Generate a new code first.');
       return;
     }
-
     setState('checking');
     setError('');
+    setCheckCountdown(CHECK_DURATION_SECONDS);
+  };
 
+  const doInboxCheck = async () => {
     try {
       const { data, error: fnError } = await supabase.functions.invoke('super-handler', {
         body: { action: 'check-inbox', email: userEmail, code, userId: user?.id },
       });
-
       if (fnError) throw new Error(fnError?.message || 'Check failed');
 
       if (data?.verified) {
@@ -163,60 +147,17 @@ const VerifyEmailPage: React.FC = () => {
       }
 
       if (data?.codeExpired) {
-        setShowManual(true);
         setError(data?.error || 'Code expired. Generate a new code first.');
-        setState('ready');
-        return;
-      }
-
-      if (data?.imapUnavailable) {
-        setShowManual(true);
-        setError(data?.error || 'Automatic inbox check is not available. Please enter the code manually below.');
         setState('ready');
         return;
       }
 
       const nextAttempts = checkAttempts + 1;
       setCheckAttempts(nextAttempts);
-
-      if (nextAttempts >= 2) {
-        setShowManual(true);
-        setError('Email not found yet. You can enter the code manually below.');
-      } else {
-        setError('Email not received yet. Make sure you sent it from ' + userEmail + ' and try again.');
-      }
-
+      setError('Email not received yet. Make sure you sent it from ' + userEmail + ' and try again.');
       setState('ready');
     } catch (err: any) {
-      setShowManual(true);
-      setError(err.message || 'Check failed — use manual entry below.');
-      setState('ready');
-    }
-  };
-
-  const handleManualVerify = async () => {
-    if (!manualCode.trim()) { setError('Enter the verification code'); return; }
-    setState('checking');
-    setError('');
-
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke('super-handler', {
-        body: { action: 'check-verification', email: userEmail, code: manualCode.trim().toUpperCase() },
-      });
-
-      if (fnError) throw new Error(fnError?.message || 'Verification failed');
-
-      if (data?.verified) {
-        setState('verified');
-        clearCachedCode();
-        await supabase.auth.refreshSession();
-        setTimeout(() => navigate('/', { replace: true }), 1500);
-      } else {
-        setError(data?.error || 'Invalid or expired code.');
-        setState('ready');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Verification failed');
+      setError(err.message || 'Check failed — please try again.');
       setState('ready');
     }
   };
@@ -241,8 +182,7 @@ const VerifyEmailPage: React.FC = () => {
               <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
                 {state === 'verified'
                   ? <ShieldCheck className="w-5 h-5 text-primary" />
-                  : <Mail className="w-5 h-5 text-primary" />
-                }
+                  : <Mail className="w-5 h-5 text-primary" />}
               </div>
               <div>
                 <h1 className="text-base font-bold text-foreground">
@@ -267,7 +207,6 @@ const VerifyEmailPage: React.FC = () => {
             {/* Ready — show code + actions */}
             {state === 'ready' && code && (
               <div className="space-y-5">
-                {/* Instructions */}
                 <div className="text-center space-y-1">
                   <p className="text-sm text-foreground font-medium">Send this code to verify your email</p>
                   <p className="text-xs text-muted-foreground">
@@ -280,28 +219,16 @@ const VerifyEmailPage: React.FC = () => {
                   <p className="font-mono text-2xl sm:text-3xl tracking-[0.3em] font-black text-foreground select-all">
                     {code}
                   </p>
-                  <button
-                    onClick={handleCopy}
-                    className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-accent transition-colors"
-                    title="Copy code"
-                  >
-                    {copied
-                      ? <Check className="w-4 h-4 text-primary" />
-                      : <Copy className="w-4 h-4 text-muted-foreground" />
-                    }
+                  <button onClick={handleCopy} className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-accent transition-colors" title="Copy code">
+                    {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
                   </button>
                 </div>
                 <p className="text-[11px] text-center text-muted-foreground">
-                  {resendCooldown > 0
-                    ? `Code expires in ${resendCooldown}s`
-                    : 'Code expired. Generate a new code.'}
+                  {resendCooldown > 0 ? `Code expires in ${resendCooldown}s` : 'Code expired. Generate a new code.'}
                 </p>
 
                 {/* Mailto button */}
-                <a
-                  href={mailtoHref}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity"
-                >
+                <a href={mailtoHref} className="flex items-center justify-center gap-2 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity">
                   <ExternalLink className="w-4 h-4" />
                   Click here to send verification email
                 </a>
@@ -313,34 +240,13 @@ const VerifyEmailPage: React.FC = () => {
                   className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-accent-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity border border-border disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  I've sent it — Check now
+                  I've sent it — Verify now
                 </button>
 
                 {/* Error */}
                 {error && (
                   <div className="p-3 rounded-xl bg-destructive/10 text-destructive text-xs flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{error}</span>
-                  </div>
-                )}
-
-                {/* Manual code entry fallback */}
-                {showManual && (
-                  <div className="pt-2 border-t border-border space-y-3">
-                    <p className="text-xs text-muted-foreground text-center font-medium">Or enter your code manually</p>
-                    <input
-                      value={manualCode}
-                      onChange={e => setManualCode(e.target.value.toUpperCase())}
-                      onKeyDown={e => e.key === 'Enter' && handleManualVerify()}
-                      className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm text-center font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                      placeholder="XXXX-XXXX"
-                      maxLength={10}
-                    />
-                    <button
-                      onClick={handleManualVerify}
-                      className="w-full py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                    >
-                      Verify Code <ArrowRight className="w-4 h-4" />
-                    </button>
                   </div>
                 )}
 
@@ -358,11 +264,17 @@ const VerifyEmailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Checking */}
+            {/* Checking — 30 second countdown */}
             {state === 'checking' && (
-              <div className="flex flex-col items-center gap-3 py-12">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Checking your inbox…</p>
+              <div className="flex flex-col items-center gap-4 py-12">
+                <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="text-center space-y-1.5">
+                  <p className="text-sm font-medium text-foreground">Verifying your email…</p>
+                  <p className="text-xs text-muted-foreground">This may take up to 30 seconds</p>
+                  {checkCountdown > 0 && (
+                    <p className="text-xs text-primary font-semibold">{checkCountdown}s remaining</p>
+                  )}
+                </div>
               </div>
             )}
 
@@ -393,7 +305,6 @@ const VerifyEmailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Skip */}
         <p className="text-xs text-muted-foreground text-center mt-4">
           You can browse without verifying, but commenting, publishing, and other features require verification.
         </p>
