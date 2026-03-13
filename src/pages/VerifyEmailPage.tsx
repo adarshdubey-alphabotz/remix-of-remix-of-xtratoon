@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import DynamicMeta from '@/components/DynamicMeta';
 
 type VerifyState = 'loading' | 'ready' | 'checking' | 'verified' | 'error';
+const CHECK_DURATION_SECONDS = 30;
 
 const SUPPORT_EMAIL = 'support@komixora.fun';
 const VERIFICATION_CODE_TTL_SECONDS = 60;
