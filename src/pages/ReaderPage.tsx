@@ -567,6 +567,22 @@ const ReaderPage: React.FC = () => {
                     <input type="checkbox" checked={autoHideUI} onChange={e => setAutoHideUI(e.target.checked)} className="w-5 h-5 rounded accent-primary" />
                     <span className="text-sm text-white/70 font-medium">Auto-Hide UI</span>
                   </label>
+
+                  <div>
+                    <p className="text-xs text-white/40 uppercase tracking-wider font-bold mb-3">Dynamic Mode</p>
+                    <label className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white/3 cursor-pointer">
+                      <div>
+                        <span className="text-sm text-white/70 font-medium">Pinch Zoom & Pan</span>
+                        <p className="text-[10px] text-white/40 mt-0.5">Enable to zoom in and pan around pages</p>
+                      </div>
+                      <button
+                        onClick={() => { setDynamicMode(!dynamicMode); if (dynamicMode) resetZoom(); }}
+                        className={`w-10 h-5 rounded-full transition-colors flex items-center ${dynamicMode ? 'bg-primary justify-end' : 'bg-white/15 justify-start'}`}
+                      >
+                        <span className="w-4 h-4 bg-white rounded-full mx-0.5" />
+                      </button>
+                    </label>
+                  </div>
                 </>
               )}
 
