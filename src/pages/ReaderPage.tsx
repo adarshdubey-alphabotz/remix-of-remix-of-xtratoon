@@ -618,10 +618,11 @@ const ReaderPage: React.FC = () => {
               {settingsTab === 'shortcuts' && (
                 <div className="space-y-3">
                   <p className="text-xs text-white/40 uppercase tracking-wider font-bold mb-3">Keyboard Shortcuts</p>
-                  {[
+                   {[
                     { keys: '← →', desc: 'Previous / Next page' },
                     { keys: '↑ ↓', desc: 'Previous / Next page' },
                     { keys: 'Esc', desc: 'Exit reader / Reset zoom' },
+                    { keys: 'D', desc: 'Toggle Dynamic Mode' },
                   ].map(s => (
                     <div key={s.keys} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white/3">
                       <span className="text-sm text-white/70">{s.desc}</span>
