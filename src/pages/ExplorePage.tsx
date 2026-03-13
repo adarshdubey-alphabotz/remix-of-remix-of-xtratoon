@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ChevronRight, Clock, Crown, Flame, Bookmark, Sparkles, Users, Eye, ChevronLeft } from 'lucide-react';
+import { Star, ChevronRight, Clock, Crown, Flame, Bookmark, TrendingUp, Users, Eye, ChevronLeft, Award, Zap, Heart } from 'lucide-react';
 import BecauseYouRead from '@/components/BecauseYouRead';
 import ContinueReading from '@/components/ContinueReading';
 import DynamicMeta from '@/components/DynamicMeta';
@@ -35,13 +35,12 @@ const formatViews = (n: number) => {
   return n.toString();
 };
 
-/* ── Hero Banner Carousel with auto-rotate + fade (Tapas style) ── */
+/* ── Hero Banner Carousel ── */
 const HeroBanner: React.FC<{ items: MangaItem[]; creatorMap: Record<string, string> }> = ({ items, creatorMap }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const slides = items.slice(0, 5);
 
-  // Auto-rotate every 5 seconds
   useEffect(() => {
     if (slides.length <= 1) return;
     const timer = setInterval(() => {
@@ -88,7 +87,6 @@ const HeroBanner: React.FC<{ items: MangaItem[]; creatorMap: Record<string, stri
         </div>
       </Link>
 
-      {/* Slide indicators + nav */}
       {slides.length > 1 && (
         <div className="absolute bottom-2 right-4 flex items-center gap-1.5">
           <button onClick={() => goToSlide(p => (p - 1 + slides.length) % slides.length)} className="w-6 h-6 rounded-full bg-foreground/10 hover:bg-foreground/20 flex items-center justify-center backdrop-blur-sm">
@@ -122,20 +120,20 @@ const ScrollRow: React.FC<{
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="flex items-center gap-2 text-[15px] font-bold text-foreground">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-foreground tracking-tight">
           {icon} {title}
         </h2>
         {viewAllLink && (
-          <Link to={viewAllLink} className="text-xs text-primary font-medium flex items-center gap-0.5 hover:underline">
-            View all <ChevronRight className="w-3.5 h-3.5" />
+          <Link to={viewAllLink} className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline">
+            See all <ChevronRight className="w-3 h-3" />
           </Link>
         )}
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
         {items.map((m, i) => {
-          const coverSrc = getImageUrl(m.cover_url);
+          const coverSrc = getImageUrl(m.cover_url, 'sm');
           return (
-            <Link key={m.id} to={`/title/${m.slug}`} className="group block flex-shrink-0 w-[120px] sm:w-[140px]">
+            <Link key={m.id} to={`/title/${m.slug}`} className="group block flex-shrink-0 w-[110px] sm:w-[130px]">
               <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted/50">
                 {coverSrc ? (
                   <img src={coverSrc} alt={m.title} loading={i < 6 ? 'eager' : 'lazy'} fetchPriority={i < 3 ? 'high' : 'auto'} decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -145,21 +143,25 @@ const ScrollRow: React.FC<{
                   </div>
                 )}
                 {numbered && (
-                  <div className="absolute bottom-1 left-1.5 z-10">
-                    <span className="text-3xl font-black text-foreground drop-shadow-lg" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{i + 1}</span>
+                  <div className="absolute bottom-0 left-0 z-10">
+                    <span className="text-[2.5rem] font-black leading-none text-foreground/90 drop-shadow-lg pl-1" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.7), -1px -1px 0 rgba(0,0,0,0.3)' }}>{i + 1}</span>
                   </div>
                 )}
                 {m.status === 'COMPLETED' && (
                   <div className="absolute top-1.5 right-1.5 z-10">
-                    <span className="px-1.5 py-0.5 text-[8px] font-bold bg-primary text-primary-foreground rounded-md">END</span>
+                    <span className="px-1.5 py-0.5 text-[7px] font-bold bg-primary text-primary-foreground rounded-md uppercase tracking-wide">End</span>
                   </div>
                 )}
+                {/* Subtle gradient overlay at bottom */}
+                <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
               </div>
-              <h3 className="text-xs font-medium leading-tight line-clamp-2 mt-1.5 text-foreground group-hover:text-primary transition-colors">{m.title}</h3>
+              <h3 className="text-[11px] font-semibold leading-tight line-clamp-2 mt-1.5 text-foreground group-hover:text-primary transition-colors">{m.title}</h3>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[10px] text-muted-foreground">{(m.genres || []).slice(0, 1).join('')}</span>
+                <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                  <Eye className="w-2.5 h-2.5" />{formatViews(m.views || 0)}
+                </span>
                 {creatorMap?.[m.creator_id] && (
-                  <span className="text-[10px] text-muted-foreground/60">· {creatorMap[m.creator_id]}</span>
+                  <span className="text-[9px] text-muted-foreground/60 truncate max-w-[60px]">· {creatorMap[m.creator_id]}</span>
                 )}
               </div>
             </Link>
@@ -170,7 +172,7 @@ const ScrollRow: React.FC<{
   );
 };
 
-/* ── Category Grid (Webtoon "Popular Series by Category" style) ── */
+/* ── Category Grid ── */
 const CategoryGrid: React.FC<{
   title: string;
   items: MangaItem[];
@@ -182,16 +184,17 @@ const CategoryGrid: React.FC<{
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="flex items-center gap-2 text-[15px] font-bold text-foreground">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-foreground tracking-tight">
           <Crown className="w-4 h-4 text-primary" /> {title}
         </h2>
-        <Link to="/charts" className="text-xs text-primary font-medium flex items-center gap-0.5 hover:underline">
-          View all <ChevronRight className="w-3.5 h-3.5" />
+        <Link to="/charts" className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline">
+          See all <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
-      <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-3 gap-2.5">
         {display.map((m, i) => {
-          const coverSrc = getImageUrl(m.cover_url);
+          const coverSrc = getImageUrl(m.cover_url, 'sm');
+          const medals = ['🥇', '🥈', '🥉'];
           return (
             <Link key={m.id} to={`/title/${m.slug}`} className="group block">
               <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted/50">
@@ -202,13 +205,17 @@ const CategoryGrid: React.FC<{
                     <span className="text-lg font-bold text-primary/30">{m.title[0]}</span>
                   </div>
                 )}
-                {/* Rank number */}
-                <div className="absolute bottom-1 left-1.5 z-10">
-                  <span className={`text-2xl font-black ${i < 3 ? 'text-primary' : 'text-foreground'}`} style={{ textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{i + 1}</span>
+                <div className="absolute top-1.5 left-1.5 z-10">
+                  {i < 3 ? (
+                    <span className="text-lg">{medals[i]}</span>
+                  ) : (
+                    <span className="w-5 h-5 flex items-center justify-center text-[10px] font-black bg-background/80 text-foreground rounded-md backdrop-blur-sm">{i + 1}</span>
+                  )}
                 </div>
+                <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
               </div>
-              <h3 className="text-xs font-medium line-clamp-1 mt-1.5 text-foreground group-hover:text-primary transition-colors">{m.title}</h3>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              <h3 className="text-[11px] font-semibold line-clamp-1 mt-1.5 text-foreground group-hover:text-primary transition-colors">{m.title}</h3>
+              <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
                 <Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" />
                 {Number(m.rating_average || 0).toFixed(1)}
                 <span className="mx-0.5">·</span>
@@ -223,37 +230,132 @@ const CategoryGrid: React.FC<{
   );
 };
 
-/* ── Top Creators row ── */
-const TopCreators: React.FC<{ creators: { user_id: string; username: string | null; display_name: string | null; avatar_url: string | null }[] }> = ({ creators }) => {
+/* ── Top Creators row — ranked by total views ── */
+const TopCreators: React.FC<{ creators: { user_id: string; username: string | null; display_name: string | null; avatar_url: string | null; totalViews: number }[] }> = ({ creators }) => {
   if (creators.length === 0) return null;
+  const medals = ['🥇', '🥈', '🥉'];
 
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="flex items-center gap-2 text-[15px] font-bold text-foreground">
-          <Users className="w-4 h-4 text-primary" /> Top Creators
+        <h2 className="flex items-center gap-2 text-sm font-bold text-foreground tracking-tight">
+          <Award className="w-4 h-4 text-primary" /> Top Creators
         </h2>
-        <Link to="/creators" className="text-xs text-primary font-medium flex items-center gap-0.5 hover:underline">
-          View all <ChevronRight className="w-3.5 h-3.5" />
+        <Link to="/creators" className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline">
+          See all <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
-      <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
-        {creators.map(c => (
+      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
+        {creators.map((c, i) => (
           <Link key={c.user_id} to={`/publisher/${c.username || c.user_id}`} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-16 group">
-            <div className="w-14 h-14 rounded-full bg-muted overflow-hidden ring-2 ring-border group-hover:ring-primary transition-all duration-200">
-              {c.avatar_url ? (
-                <img src={c.avatar_url} alt={c.display_name || c.username || ''} className="w-full h-full object-cover" loading="lazy" />
-              ) : (
-                <div className="w-full h-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">{(c.display_name || c.username || '?')[0].toUpperCase()}</div>
+            <div className="relative">
+              <div className={`w-14 h-14 rounded-full bg-muted overflow-hidden ring-2 transition-all duration-200 ${i < 3 ? 'ring-primary' : 'ring-border group-hover:ring-primary'}`}>
+                {c.avatar_url ? (
+                  <img src={c.avatar_url} alt={c.display_name || c.username || ''} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">{(c.display_name || c.username || '?')[0].toUpperCase()}</div>
+                )}
+              </div>
+              {i < 3 && (
+                <span className="absolute -bottom-0.5 -right-0.5 text-sm">{medals[i]}</span>
               )}
             </div>
             <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors truncate w-full text-center font-medium">{c.display_name || c.username || 'Creator'}</span>
+            <span className="text-[8px] text-muted-foreground/60 flex items-center gap-0.5"><Eye className="w-2 h-2" />{formatViews(c.totalViews)}</span>
           </Link>
         ))}
       </div>
     </section>
   );
 };
+
+/* ── NEW FEATURE: Editors Pick banner ── */
+const EditorsPick: React.FC<{ item: MangaItem | null; creatorMap: Record<string, string> }> = ({ item, creatorMap }) => {
+  if (!item) return null;
+  const coverSrc = getImageUrl(item.cover_url);
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-foreground tracking-tight">
+          <Zap className="w-4 h-4 text-yellow-500" /> Editor's Pick
+        </h2>
+      </div>
+      <Link to={`/title/${item.slug}`} className="group block rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/30 transition-colors">
+        <div className="flex gap-3 p-3">
+          <div className="w-20 h-28 rounded-xl overflow-hidden bg-muted/50 flex-shrink-0">
+            {coverSrc ? (
+              <img src={coverSrc} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+            ) : (
+              <div className="w-full h-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary/30">{item.title[0]}</div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="px-2 py-0.5 text-[8px] font-bold bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full uppercase tracking-wider">Staff Pick</span>
+            </div>
+            <h3 className="text-sm font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{item.title}</h3>
+            <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{item.description || 'A must-read series recommended by our editors.'}</p>
+            <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-0.5"><Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" />{Number(item.rating_average || 0).toFixed(1)}</span>
+              <span className="flex items-center gap-0.5"><Eye className="w-2.5 h-2.5" />{formatViews(item.views || 0)}</span>
+              <span className="flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{formatViews(item.likes || 0)}</span>
+              <span className="text-muted-foreground/50">by {creatorMap[item.creator_id] || 'Creator'}</span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </section>
+  );
+};
+
+/* ── NEW FEATURE: Recently Updated section ── */
+const RecentlyUpdated: React.FC<{ manga: MangaItem[]; chapterCountMap: Record<string, number>; creatorMap: Record<string, string> }> = ({ manga, chapterCountMap, creatorMap }) => {
+  if (manga.length === 0) return null;
+  const items = manga.slice(0, 5);
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-foreground tracking-tight">
+          <Clock className="w-4 h-4 text-primary" /> Recently Updated
+        </h2>
+        <Link to="/browse" className="text-[11px] text-primary font-semibold flex items-center gap-0.5 hover:underline">
+          See all <ChevronRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="space-y-2">
+        {items.map((m, i) => {
+          const coverSrc = getImageUrl(m.cover_url, 'sm');
+          const chCount = chapterCountMap[m.id] || 0;
+          return (
+            <Link key={m.id} to={`/title/${m.slug}`} className="group flex items-center gap-3 p-2 rounded-xl hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-black text-muted-foreground/40 w-5 text-center">{i + 1}</span>
+              <div className="w-11 h-14 rounded-lg overflow-hidden bg-muted/50 flex-shrink-0">
+                {coverSrc ? (
+                  <img src={coverSrc} alt={m.title} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary/30">{m.title[0]}</div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{m.title}</h3>
+                <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
+                  <span>{chCount > 0 ? `${chCount} ch` : (m.genres || []).slice(0, 1).join('')}</span>
+                  <span>·</span>
+                  <span>{creatorMap[m.creator_id] || 'Creator'}</span>
+                </div>
+              </div>
+              <div className="text-[10px] text-muted-foreground/60 flex items-center gap-0.5 flex-shrink-0">
+                <Eye className="w-2.5 h-2.5" />{formatViews(m.views || 0)}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+};
+
 
 /* ══════════════════════════ MAIN PAGE ══════════════════════════ */
 const ExplorePage: React.FC = () => {
@@ -289,16 +391,50 @@ const ExplorePage: React.FC = () => {
     staleTime: 60000,
   });
 
+  // Fetch chapter counts for recently updated
+  const { data: chapterCounts } = useQuery({
+    queryKey: ['explore-chapter-counts', manga.map(m => m.id).join(',')],
+    queryFn: async () => {
+      if (manga.length === 0) return {};
+      const { data } = await supabase
+        .from('chapters')
+        .select('manga_id')
+        .in('manga_id', manga.map(m => m.id));
+      const counts: Record<string, number> = {};
+      (data || []).forEach(c => { counts[c.manga_id] = (counts[c.manga_id] || 0) + 1; });
+      return counts;
+    },
+    enabled: manga.length > 0,
+    staleTime: 60000,
+  });
+
   const creatorMap: Record<string, string> = {};
   (creatorProfiles || []).forEach(p => { creatorMap[p.user_id] = p.display_name || p.username || 'Unknown'; });
+
+  // Aggregate views per creator for ranking
+  const creatorViewMap: Record<string, number> = {};
+  manga.forEach(m => {
+    creatorViewMap[m.creator_id] = (creatorViewMap[m.creator_id] || 0) + (m.views || 0);
+  });
+  const rankedCreators = (creatorProfiles || [])
+    .map(c => ({ ...c, totalViews: creatorViewMap[c.user_id] || 0 }))
+    .sort((a, b) => b.totalViews - a.totalViews)
+    .slice(0, 12);
 
   const featuredItems = [...filtered].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
   const trending = [...filtered].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 15);
   const recentlyAdded = [...filtered].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 15);
   const topCharts = [...filtered].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6);
   const mostBookmarked = [...filtered].sort((a, b) => (b.bookmarks || 0) - (a.bookmarks || 0)).slice(0, 15);
+  const mostLiked = [...filtered].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 15);
+  const recentlyUpdated = [...filtered].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10);
+
+  // Editor's pick: highest rated with decent views
+  const editorsPick = [...filtered].filter(m => (m.rating_average || 0) >= 3 && (m.views || 0) >= 10).sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0))[0] || null;
 
   const greeting = profile?.display_name || profile?.username;
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
     <div className="min-h-screen bg-background">
@@ -308,37 +444,49 @@ const ExplorePage: React.FC = () => {
         keywords="explore manhwa, trending manga, new webtoons, popular manhwa, top rated manga, Komixora"
       />
 
-      {/* Announcement inline below navbar */}
       <div className="pt-12 md:pt-14">
         <AnnouncementBanner />
       </div>
 
       {isLoading ? (
-        <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-muted-foreground">Loading comics...</p>
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          {/* Skeleton loading */}
+          <div className="space-y-6">
+            <div className="h-6 w-40 bg-muted rounded-lg animate-pulse" />
+            <div className="flex gap-2">
+              {[1,2,3,4,5].map(i => <div key={i} className="h-8 w-16 bg-muted rounded-full animate-pulse" />)}
+            </div>
+            <div className="aspect-[16/8] rounded-2xl bg-muted animate-pulse" />
+            <div className="flex gap-3">
+              {[1,2,3,4].map(i => <div key={i} className="w-[110px] flex-shrink-0"><div className="aspect-[2/3] rounded-xl bg-muted animate-pulse" /><div className="h-3 w-20 bg-muted rounded mt-2 animate-pulse" /></div>)}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto px-4 pt-4 pb-20 space-y-6">
+        <div className="max-w-6xl mx-auto px-4 pt-4 pb-24 space-y-7">
           {/* Greeting */}
           {greeting ? (
-            <p className="text-lg font-bold text-foreground">Hey, {greeting}! 👋</p>
+            <div>
+              <p className="text-lg font-bold text-foreground">{timeGreeting}, {greeting} 👋</p>
+              <p className="text-xs text-muted-foreground mt-0.5">What are you reading today?</p>
+            </div>
           ) : (
-            <p className="text-lg font-bold text-foreground">Discover Comics 🔥</p>
+            <div>
+              <p className="text-lg font-bold text-foreground">Discover Comics 🔥</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Free manhwa, manga & webtoons</p>
+            </div>
           )}
 
-          {/* Genre chips — Tapas "Spotlight/Daily/New" style */}
+          {/* Genre chips */}
           <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
             {GENRE_CHIPS.map(genre => (
               <button
                 key={genre}
                 onClick={() => setActiveGenre(genre)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all duration-200 ${
                   activeGenre === genre
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-accent/50'
                 }`}
               >
                 {genre}
@@ -346,23 +494,31 @@ const ExplorePage: React.FC = () => {
             ))}
           </div>
 
-          {/* Hero Banner (like Tapas spotlight) */}
+          {/* Hero Banner */}
           {activeGenre === 'All' && <HeroBanner items={featuredItems} creatorMap={creatorMap} />}
 
           <ContinueReading />
           <BecauseYouRead />
 
-          <ScrollRow title="Trending Now" icon={<Flame className="w-4 h-4 text-primary" />} items={trending} viewAllLink="/charts" creatorMap={creatorMap} numbered />
+          <ScrollRow title="Trending Now" icon={<Flame className="w-4 h-4 text-orange-500" />} items={trending} viewAllLink="/charts" creatorMap={creatorMap} numbered />
 
-          <ScrollRow title="New Releases" icon={<Sparkles className="w-4 h-4 text-primary" />} items={recentlyAdded} viewAllLink="/browse" creatorMap={creatorMap} />
+          <ScrollRow title="New Releases" icon={<TrendingUp className="w-4 h-4 text-primary" />} items={recentlyAdded} viewAllLink="/browse" creatorMap={creatorMap} />
 
-          {/* Top Creators */}
-          <TopCreators creators={(creatorProfiles || []).slice(0, 12)} />
+          {/* Editor's Pick */}
+          {activeGenre === 'All' && <EditorsPick item={editorsPick} creatorMap={creatorMap} />}
+
+          {/* Top Creators — ranked by views */}
+          <TopCreators creators={rankedCreators} />
 
           {/* Top Charts Grid */}
           <CategoryGrid title="Top Charts" items={topCharts} creatorMap={creatorMap} />
 
+          {/* Recently Updated list */}
+          {activeGenre === 'All' && <RecentlyUpdated manga={recentlyUpdated} chapterCountMap={chapterCounts || {}} creatorMap={creatorMap} />}
+
           <ScrollRow title="Most Saved" icon={<Bookmark className="w-4 h-4 text-primary" />} items={mostBookmarked} creatorMap={creatorMap} />
+
+          <ScrollRow title="Most Loved" icon={<Heart className="w-4 h-4 text-red-500" />} items={mostLiked} viewAllLink="/browse" creatorMap={creatorMap} />
         </div>
       )}
     </div>

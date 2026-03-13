@@ -53,7 +53,7 @@ const ReaderPage: React.FC = () => {
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
   // ── Queries ──
-  const { data: manga } = useQuery({
+  const { data: manga, isLoading: mangaLoading } = useQuery({
     queryKey: ['reader-manga', id],
     queryFn: async () => {
       const { data, error } = await supabase.from('manga').select('*').eq('slug', id).single();
@@ -366,7 +366,7 @@ const ReaderPage: React.FC = () => {
   const currentPageData = pages?.[currentPage];
 
   // Loading/Error guards
-  if (isLoading || pagesLoading) return (
+  if (mangaLoading || isLoading || pagesLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
   );
   if (!chapterData || !manga) return (
@@ -648,14 +648,19 @@ const ReaderPage: React.FC = () => {
         onClick={displayMode !== 'strip' ? handleTap : undefined}
         style={{
           touchAction: dynamicMode ? 'none' : displayMode === 'strip' ? 'pan-y' : 'pan-x',
-          transform: dynamicMode && scale > 1 ? `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)` : undefined,
-          transformOrigin: 'center center',
         }}
       >
         {/* Strip mode */}
         {displayMode === 'strip' && pages && pages.length > 0 && (
-          <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden" onClick={() => setShowNav(s => !s)}>
-            <div className="mx-auto" style={{ width: widthStyle, maxWidth: '100%' }}>
+          <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden" onClick={() => setShowNav(s => !s)}
+            style={{ touchAction: dynamicMode ? 'none' : 'pan-y' }}
+          >
+            <div className="mx-auto" style={{
+              width: widthStyle, maxWidth: '100%',
+              transform: dynamicMode && scale > 1 ? `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)` : undefined,
+              transformOrigin: 'top center',
+              willChange: dynamicMode ? 'transform' : undefined,
+            }}>
               <div className="pt-14 pb-20">
                 {pages.map((page) => (
                   <div key={page.id}>{renderPageContent(page)}</div>
@@ -665,13 +670,18 @@ const ReaderPage: React.FC = () => {
           </div>
         )}
 
-        {/* Single / Swipe mode — no framer-motion animations, instant page switch */}
+        {/* Single / Swipe mode */}
         {displayMode !== 'strip' && (
           <>
             {!isEnd && currentPageData ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex items-center justify-center w-full h-full"
-                  style={{ width: widthStyle, maxWidth: '100%', margin: '0 auto' }}>
+                  style={{
+                    width: widthStyle, maxWidth: '100%', margin: '0 auto',
+                    transform: dynamicMode && scale > 1 ? `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)` : undefined,
+                    transformOrigin: 'center center',
+                    willChange: dynamicMode ? 'transform' : undefined,
+                  }}>
                   {renderPageContent(currentPageData)}
                 </div>
               </div>
