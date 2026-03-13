@@ -28,6 +28,8 @@ const ReaderPage: React.FC = () => {
   const [autoHideUI, setAutoHideUI] = useState(true);
   const [imageSizing, setImageSizing] = useState<ImageSizing>('fit-width');
   const [maxWidth, setMaxWidth] = useState(100);
+  const [dynamicMode, setDynamicMode] = useState(false);
+  const [showDynamicHint, setShowDynamicHint] = useState(false);
 
   const [scale, setScale] = useState(1);
   const [translateX, setTranslateX] = useState(0);
