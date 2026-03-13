@@ -19,8 +19,7 @@ const VerifyEmailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [checkAttempts, setCheckAttempts] = useState(0);
-  const [showManual, setShowManual] = useState(false);
-  const [manualCode, setManualCode] = useState('');
+  const [checkCountdown, setCheckCountdown] = useState(0);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const userEmail = user?.email || '';
