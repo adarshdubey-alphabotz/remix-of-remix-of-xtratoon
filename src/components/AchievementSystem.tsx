@@ -536,6 +536,8 @@ export const DailyStreakPopup: React.FC = () => {
 
 // ─── PUBLIC ACHIEVEMENTS (for viewing other profiles) ───
 export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => {
+  const [selectedAchievement, setSelectedAchievement] = useState<string | null>(null);
+  
   const { data: displayed = [] } = useQuery({
     queryKey: ['public-achievements', userId],
     queryFn: async () => {
@@ -547,25 +549,75 @@ export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => 
 
   if (displayed.length === 0) return null;
 
+  const selectedDef = selectedAchievement ? ACHIEVEMENTS.find(d => d.key === selectedAchievement) : null;
+
   return (
-    <div className="mt-4">
-      <p className="text-xs text-muted-foreground mb-2 font-medium">Achievements</p>
-      <div className="flex flex-wrap gap-2 justify-center">
-        {displayed.map((a: any) => {
-          const def = ACHIEVEMENTS.find(d => d.key === a.achievement_key);
-          if (!def) return null;
-          return (
-            <div key={a.achievement_key} title={`${def.label}: ${def.desc}`}>
-              <MedalBadge tier={def.tier} size={44}>
-                <div className="text-white">
-                  <BadgeIcon type={def.iconType} size={20} />
-                </div>
-              </MedalBadge>
-            </div>
-          );
-        })}
+    <>
+      <div className="mt-4">
+        <p className="text-xs text-muted-foreground mb-2 font-medium">Achievements</p>
+        <div className="flex flex-wrap gap-2 justify-center">
+          {displayed.map((a: any) => {
+            const def = ACHIEVEMENTS.find(d => d.key === a.achievement_key);
+            if (!def) return null;
+            return (
+              <button
+                key={a.achievement_key}
+                onClick={() => setSelectedAchievement(a.achievement_key)}
+                className="hover:scale-110 transition-transform active:scale-95"
+                title={`${def.label}: ${def.desc}`}
+              >
+                <MedalBadge tier={def.tier} size={44}>
+                  <div className="text-white">
+                    <BadgeIcon type={def.iconType} size={20} />
+                  </div>
+                </MedalBadge>
+              </button>
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      {/* Achievement Detail Modal */}
+      <AnimatePresence>
+        {selectedDef && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
+            onClick={() => setSelectedAchievement(null)}
+          >
+            <motion.div
+              initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="bg-card border border-border rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <button onClick={() => setSelectedAchievement(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5" />
+              </button>
+
+              <p className="text-sm font-semibold text-muted-foreground mb-3">Achievement</p>
+
+              <div className="flex justify-center mb-4">
+                <WavyBadge size={110} color1="#4f8bff" color2="#6366f1">
+                  <div className="text-white">
+                    <BadgeIcon type={selectedDef.iconType} size={48} />
+                  </div>
+                </WavyBadge>
+              </div>
+
+              <h3 className="text-xl font-black">{selectedDef.label}</h3>
+              <p className="text-sm text-muted-foreground mt-2">{selectedDef.desc}</p>
+              <span className="inline-block mt-3 px-3 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold capitalize">{selectedDef.tier}</span>
+
+              <button onClick={() => setSelectedAchievement(null)}
+                className="mt-5 w-full text-xs text-primary font-medium hover:underline">
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
