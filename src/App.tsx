@@ -12,9 +12,7 @@ import AuthModal from "@/components/AuthModal";
 import SpotlightSearch from "@/components/SpotlightSearch";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BanNotice from "@/components/BanNotice";
-import OnboardingModal from "@/components/OnboardingModal";
 import GoogleOnboardingModal from "@/components/GoogleOnboardingModal";
-import TermsAcceptanceModal from "@/components/TermsAcceptanceModal";
 import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import NetworkStatus from "@/components/NetworkStatus";
 import { lazy, Suspense, useEffect } from "react";
@@ -192,9 +190,7 @@ const AppLayout = () => (
     <VerifyEmailBanner />
     <AuthModal />
     <SpotlightSearch />
-    <OnboardingModal />
     <GoogleOnboardingModal />
-    <TermsAcceptanceModal />
     <ErrorBoundary>
       <AnimatedRoutes />
     </ErrorBoundary>

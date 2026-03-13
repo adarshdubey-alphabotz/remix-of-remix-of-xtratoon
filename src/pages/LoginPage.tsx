@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import DynamicMeta from '@/components/DynamicMeta';
 
 const useRateLimit = (maxAttempts: number, windowMs: number) => {
@@ -43,7 +44,11 @@ const LoginPage: React.FC = () => {
     if (!email || !password) { setError('All fields required'); return; }
     setSubmitting(true);
     const res = await login(email, password);
-    if (!res.success) setError(res.error || 'Login failed');
+    if (res.success) {
+      toast.success('Logged In Successfully ✨');
+    } else {
+      setError(res.error || 'Login failed');
+    }
     setSubmitting(false);
   };
 
