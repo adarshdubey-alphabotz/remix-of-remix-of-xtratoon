@@ -381,6 +381,13 @@ const PublisherProfile: React.FC = () => {
           </div>
         )}
 
+        {/* Public Achievements */}
+        {profile?.user_id && (
+          <div className="mb-5">
+            <PublicAchievements userId={profile.user_id} />
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex border-b border-border/50">
           {tabs.map(tab => (
