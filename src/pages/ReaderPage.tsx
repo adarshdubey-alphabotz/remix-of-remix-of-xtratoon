@@ -366,7 +366,7 @@ const ReaderPage: React.FC = () => {
   const currentPageData = pages?.[currentPage];
 
   // Loading/Error guards
-  if (isLoading || pagesLoading) return (
+  if (mangaLoading || isLoading || pagesLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d0d0d]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
   );
   if (!chapterData || !manga) return (
