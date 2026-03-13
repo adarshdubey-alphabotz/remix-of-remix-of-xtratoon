@@ -300,11 +300,34 @@ const ReaderPage: React.FC = () => {
   });
 
   // Touch handlers — dynamic mode enables pinch-zoom & pan
+  // Use refs for scale/translate to avoid re-render storms during gestures
+  const scaleRef = useRef(1);
+  const txRef = useRef(0);
+  const tyRef = useRef(0);
+  const dynamicWrapperRef = useRef<HTMLDivElement>(null);
+  const isPinchingRef = useRef(false);
+  const lastSingleTouchRef = useRef<{ x: number; y: number } | null>(null);
+
+  const applyTransform = useCallback(() => {
+    const el = dynamicWrapperRef.current;
+    if (!el) return;
+    if (scaleRef.current <= 1) {
+      el.style.transform = '';
+      return;
+    }
+    el.style.transform = `scale(${scaleRef.current}) translate(${txRef.current / scaleRef.current}px, ${tyRef.current / scaleRef.current}px)`;
+  }, []);
+
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       touchStartXRef.current = e.touches[0].clientX;
+      if (dynamicMode && scaleRef.current > 1) {
+        lastSingleTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
     }
     if (dynamicMode && e.touches.length === 2) {
+      isPinchingRef.current = true;
+      lastSingleTouchRef.current = null;
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -316,22 +339,61 @@ const ReaderPage: React.FC = () => {
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!dynamicMode) return;
+    
+    // Pinch zoom
     if (e.touches.length === 2 && lastTouchRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const newScale = Math.min(5, Math.max(1, scale * (dist / lastTouchRef.current.dist)));
-      setScale(newScale);
+      const newScale = Math.min(5, Math.max(1, scaleRef.current * (dist / lastTouchRef.current.dist)));
+      scaleRef.current = newScale;
       const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
       const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      setTranslateX(prev => prev + (cx - lastTouchRef.current!.x));
-      setTranslateY(prev => prev + (cy - lastTouchRef.current!.y));
+      txRef.current += (cx - lastTouchRef.current.x);
+      tyRef.current += (cy - lastTouchRef.current.y);
       lastTouchRef.current = { dist, x: cx, y: cy };
+      applyTransform();
+      setScale(newScale); // sync state for UI indicator
+      return;
     }
-  }, [dynamicMode, scale]);
+    
+    // Single finger pan when zoomed
+    if (e.touches.length === 1 && scaleRef.current > 1 && lastSingleTouchRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      const dx = e.touches[0].clientX - lastSingleTouchRef.current.x;
+      const dy = e.touches[0].clientY - lastSingleTouchRef.current.y;
+      txRef.current += dx;
+      tyRef.current += dy;
+      lastSingleTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      applyTransform();
+      return;
+    }
+  }, [dynamicMode, applyTransform]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (e.changedTouches.length === 1 && displayMode !== 'strip' && scale <= 1) {
+    lastSingleTouchRef.current = null;
+    
+    // If was pinching, don't trigger swipe
+    if (isPinchingRef.current) {
+      if (e.touches.length === 0) {
+        isPinchingRef.current = false;
+        // Snap back if scale < 1
+        if (scaleRef.current <= 1.05) {
+          scaleRef.current = 1;
+          txRef.current = 0;
+          tyRef.current = 0;
+          applyTransform();
+          setScale(1);
+        }
+      }
+      lastTouchRef.current = null;
+      return;
+    }
+    
+    if (e.changedTouches.length === 1 && displayMode !== 'strip' && scaleRef.current <= 1) {
       const diff = e.changedTouches[0].clientX - touchStartXRef.current;
       const isRTL = readDirection === 'rtl';
       if (Math.abs(diff) > 50) {
@@ -340,7 +402,7 @@ const ReaderPage: React.FC = () => {
       }
     }
     lastTouchRef.current = null;
-  }, [displayMode, readDirection, currentPage, scale]);
+  }, [displayMode, readDirection, currentPage, applyTransform]);
 
   const resetZoom = () => { setScale(1); setTranslateX(0); setTranslateY(0); };
 
