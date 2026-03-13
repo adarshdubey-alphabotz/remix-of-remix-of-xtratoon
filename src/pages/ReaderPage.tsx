@@ -53,7 +53,7 @@ const ReaderPage: React.FC = () => {
   const chapterNum = parseInt(chapter?.replace('chapter-', '') || '1');
 
   // ── Queries ──
-  const { data: manga } = useQuery({
+  const { data: manga, isLoading: mangaLoading } = useQuery({
     queryKey: ['reader-manga', id],
     queryFn: async () => {
       const { data, error } = await supabase.from('manga').select('*').eq('slug', id).single();
