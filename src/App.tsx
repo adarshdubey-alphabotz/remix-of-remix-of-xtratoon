@@ -196,6 +196,7 @@ const AppLayout = () => (
       <AnimatedRoutes />
     </ErrorBoundary>
     <NetworkStatus />
+    <DailyStreakPopup />
     <Footer />
   </>
 );
