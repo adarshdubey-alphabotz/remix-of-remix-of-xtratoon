@@ -256,7 +256,7 @@ const SignupPage: React.FC = () => {
             </motion.p>
           )}
 
-          <motion.p 
+          <motion.p
             className="text-sm text-muted-foreground text-center mt-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -264,6 +264,7 @@ const SignupPage: React.FC = () => {
           >
             Already have an account? <Link to="/login" className="text-primary font-semibold hover:underline">Log In</Link>
           </motion.p>
+          </form>
         </motion.div>
       </motion.div>
     </div>
