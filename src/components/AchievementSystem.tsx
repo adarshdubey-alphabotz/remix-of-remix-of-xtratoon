@@ -578,8 +578,8 @@ export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => 
       </div>
 
       {/* Achievement Detail Modal */}
-      <AnimatePresence>
-        {selectedDef && (
+      {selectedDef && (
+        <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
@@ -589,7 +589,7 @@ export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => 
               initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="bg-card border border-border rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl"
-              onClick={e => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <button onClick={() => setSelectedAchievement(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
                 <X className="w-5 h-5" />
@@ -615,8 +615,8 @@ export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => 
               </button>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      )}
     </>
   );
 };
