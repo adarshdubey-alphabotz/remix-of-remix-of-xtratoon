@@ -1027,6 +1027,30 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_key: string
+          id: string
+          is_displayed: boolean
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_key: string
+          id?: string
+          is_displayed?: boolean
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_key?: string
+          id?: string
+          is_displayed?: boolean
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_library: {
         Row: {
           created_at: string
