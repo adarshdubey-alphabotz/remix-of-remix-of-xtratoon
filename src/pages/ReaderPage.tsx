@@ -287,6 +287,9 @@ const ReaderPage: React.FC = () => {
       else if (e.key === 'ArrowLeft') goToPage(currentPage + (isRTL ? 1 : -1));
       else if (e.key === 'ArrowDown') goToPage(currentPage + 1);
       else if (e.key === 'ArrowUp') goToPage(currentPage - 1);
+      else if (e.key === 'd' || e.key === 'D') {
+        setDynamicMode(prev => { if (prev) resetZoom(); return !prev; });
+      }
       else if (e.key === 'Escape') {
         if (scale > 1) resetZoom();
         else navigate(`/title/${manga?.slug}`);
