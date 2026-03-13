@@ -116,37 +116,37 @@ const VerifyEmailPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Build mailto with explicit `to` parameter for maximum compatibility
+  // Build mailto - ensure `to` is both in the path AND as a query param for maximum compatibility
   const mailtoSubject = encodeURIComponent(code + ' — Komixora Verification');
   const mailtoBody = encodeURIComponent(`My verification code is: ${code}\n\nEmail: ${userEmail}`);
-  const mailtoHref = `mailto:${SUPPORT_EMAIL}?subject=${mailtoSubject}&body=${mailtoBody}`;
+  const mailtoHref = `mailto:${SUPPORT_EMAIL}?to=${encodeURIComponent(SUPPORT_EMAIL)}&subject=${mailtoSubject}&body=${mailtoBody}`;
 
-  // Fallback: open mail app with intent on Android
   const handleSendEmail = (e: React.MouseEvent) => {
-    // Try standard mailto first
-    const link = document.createElement('a');
-    link.href = mailtoHref;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
+    e.preventDefault();
     
-    // For Android Gmail intent fallback
     const isAndroid = /android/i.test(navigator.userAgent);
+    
     if (isAndroid) {
-      // Use intent URL for Gmail as primary on Android
-      const gmailIntent = `intent://compose?to=${encodeURIComponent(SUPPORT_EMAIL)}&subject=${mailtoSubject}&body=${mailtoBody}#Intent;scheme=mailto;package=com.google.android.gm;end`;
-      // Try mailto first, Gmail intent as fallback
-      try {
+      // On Android, use Gmail compose intent as primary (most reliable)
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(SUPPORT_EMAIL)}&su=${mailtoSubject}&body=${mailtoBody}`;
+      
+      // Try opening Gmail web compose (works even when mailto fails)
+      const w = window.open(gmailUrl, '_blank');
+      if (!w) {
+        // Fallback to mailto
         window.location.href = mailtoHref;
-      } catch {
-        window.location.href = gmailIntent;
       }
-      e.preventDefault();
       return;
     }
     
-    // Desktop/iOS — standard mailto works fine
+    // iOS & Desktop - standard mailto via anchor click
+    const link = document.createElement('a');
+    link.href = mailtoHref;
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+    document.body.appendChild(link);
     link.click();
-    e.preventDefault();
+    document.body.removeChild(link);
   };
 
   const handleCheckInbox = () => {

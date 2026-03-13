@@ -359,26 +359,21 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Invite Friends Card - like reference image */}
+      {/* Achievements quick view */}
       <div className="px-4 pb-3">
-        <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+        <button onClick={() => setActiveSection('achievements')}
+          className="w-full rounded-2xl border border-border/30 bg-gradient-to-br from-amber-900/10 to-orange-900/10 p-4 text-left hover:from-amber-900/15 hover:to-orange-900/15 transition-colors">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-              <Share2 className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+              <Flame className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">Invite friends</p>
-              <p className="text-[11px] text-muted-foreground">Share Komixora with your friends</p>
+              <p className="text-sm font-semibold">{streak > 0 ? `${streak} Day Streak 🔥` : 'Start Your Streak!'}</p>
+              <p className="text-[11px] text-muted-foreground">Achievements & Leaderboard</p>
             </div>
-            <button onClick={() => {
-              const link = 'https://komixora.fun';
-              navigator.clipboard.writeText(link);
-              toast.success('Link copied!');
-            }} className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-              <Copy className="w-3.5 h-3.5" />
-            </button>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Wallet for creators */}
