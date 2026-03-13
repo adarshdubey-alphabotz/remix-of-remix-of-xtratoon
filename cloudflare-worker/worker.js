@@ -1,4 +1,4 @@
-// Cloudflare Worker — Komixora Unified Proxy
+/// Cloudflare Worker — Komixora Unified Proxy
 // Handles: API CORS Proxy (api.komixora.fun) + SEO Bot Renderer (komixora.fun / www.komixora.fun)
 
 const SUPABASE_URL = "https://lpozkutezttxiwafhwul.supabase.co";
