@@ -646,7 +646,11 @@ const ReaderPage: React.FC = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={displayMode !== 'strip' ? handleTap : undefined}
-        style={{ touchAction: displayMode === 'strip' ? 'pan-y' : 'pan-x' }}
+        style={{
+          touchAction: dynamicMode ? 'none' : displayMode === 'strip' ? 'pan-y' : 'pan-x',
+          transform: dynamicMode && scale > 1 ? `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)` : undefined,
+          transformOrigin: 'center center',
+        }}
       >
         {/* Strip mode */}
         {displayMode === 'strip' && pages && pages.length > 0 && (
