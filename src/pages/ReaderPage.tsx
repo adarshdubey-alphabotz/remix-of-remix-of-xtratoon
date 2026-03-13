@@ -717,9 +717,8 @@ const ReaderPage: React.FC = () => {
           <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden" onClick={() => setShowNav(s => !s)}
             style={{ touchAction: dynamicMode ? 'none' : 'pan-y' }}
           >
-            <div className="mx-auto" style={{
+            <div ref={dynamicWrapperRef} className="mx-auto" style={{
               width: widthStyle, maxWidth: '100%',
-              transform: dynamicMode && scale > 1 ? `scale(${scale}) translate(${translateX / scale}px, ${translateY / scale}px)` : undefined,
               transformOrigin: 'top center',
               willChange: dynamicMode ? 'transform' : undefined,
             }}>
