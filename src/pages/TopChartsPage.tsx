@@ -227,7 +227,6 @@ const TopChartsPage: React.FC = () => {
             <div className="space-y-3">
               {rankedManga.slice(3).map((m, i) => {
                 const rank = i + 4;
-                const rank = i + 1;
                 const style = getRankStyle(rank);
                 const rating = Number(m.rating_average) || 0;
                 const statValue = manhwaFilter === 'views' ? fmt(m.views || 0) : fmt(m.likes || 0);
