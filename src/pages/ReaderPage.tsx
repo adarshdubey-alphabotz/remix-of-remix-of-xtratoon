@@ -296,21 +296,39 @@ const ReaderPage: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   });
 
-  // Touch handlers - NO zoom, NO pinch, NO double-tap zoom
+  // Touch handlers — dynamic mode enables pinch-zoom & pan
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       touchStartXRef.current = e.touches[0].clientX;
     }
-    // Ignore multi-touch completely - no pinch zoom
-  }, []);
+    if (dynamicMode && e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      lastTouchRef.current = { dist, x: cx, y: cy };
+    }
+  }, [dynamicMode]);
 
-  const handleTouchMove = useCallback((_e: React.TouchEvent) => {
-    // No zoom handling - let native scroll work in strip mode
-  }, []);
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!dynamicMode) return;
+    if (e.touches.length === 2 && lastTouchRef.current) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const newScale = Math.min(5, Math.max(1, scale * (dist / lastTouchRef.current.dist)));
+      setScale(newScale);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      setTranslateX(prev => prev + (cx - lastTouchRef.current!.x));
+      setTranslateY(prev => prev + (cy - lastTouchRef.current!.y));
+      lastTouchRef.current = { dist, x: cx, y: cy };
+    }
+  }, [dynamicMode, scale]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    // Swipe detection for page navigation (single touch only)
-    if (e.changedTouches.length === 1 && displayMode !== 'strip') {
+    if (e.changedTouches.length === 1 && displayMode !== 'strip' && scale <= 1) {
       const diff = e.changedTouches[0].clientX - touchStartXRef.current;
       const isRTL = readDirection === 'rtl';
       if (Math.abs(diff) > 50) {
@@ -319,7 +337,7 @@ const ReaderPage: React.FC = () => {
       }
     }
     lastTouchRef.current = null;
-  }, [displayMode, readDirection, currentPage]);
+  }, [displayMode, readDirection, currentPage, scale]);
 
   const resetZoom = () => { setScale(1); setTranslateX(0); setTranslateY(0); };
 
