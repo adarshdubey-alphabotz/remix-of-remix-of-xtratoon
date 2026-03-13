@@ -145,11 +145,88 @@ const TopChartsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Manhwa list */}
+        {/* Top 3 Leaderboard Section */}
+        {section === 'manhwa' && rankedManga.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-6">Top Performers</h2>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
+              {rankedManga.slice(0, 3).map((m, i) => {
+                const rank = i + 1;
+                const medalEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                const statValue = manhwaFilter === 'views' ? fmt(m.views || 0) : fmt(m.likes || 0);
+                return (
+                  <motion.div
+                    key={m.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className={`flex flex-col items-center text-center p-4 rounded-2xl border-2 transition-all hover:shadow-lg ${
+                      rank === 1 ? 'border-gold bg-gold/5 scale-105 sm:scale-110' : rank === 2 ? 'border-silver bg-silver/5' : 'border-bronze bg-bronze/5'
+                    }`}
+                  >
+                    <Link to={`/title/${m.slug}`} className="w-full">
+                      <div className="text-3xl sm:text-4xl mb-2">{medalEmoji}</div>
+                      {m.cover_url ? (
+                        <img src={resolveCover(m.cover_url)!} alt={m.title} className="w-20 h-28 sm:w-24 sm:h-32 object-cover rounded-lg mx-auto mb-2 border border-foreground/10" />
+                      ) : (
+                        <div className="w-20 h-28 sm:w-24 sm:h-32 bg-muted rounded-lg mx-auto mb-2 border border-foreground/10" />
+                      )}
+                      <h4 className="font-display text-sm sm:text-base tracking-wide truncate hover:text-primary transition-colors">{m.title}</h4>
+                      <div className="mt-2 text-xs sm:text-sm text-muted-foreground">{statValue}</div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Creators Top 3 Leaderboard */}
+        {section === 'creators' && rankedCreators.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-6">Top Creators</h2>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
+              {rankedCreators.slice(0, 3).map((c, i) => {
+                const rank = i + 1;
+                const medalEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                const statValue = creatorFilter === 'followers' ? fmt(c.followers) : c.publications.toString();
+                return (
+                  <motion.div
+                    key={c.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className={`flex flex-col items-center text-center p-4 rounded-2xl border-2 transition-all hover:shadow-lg ${
+                      rank === 1 ? 'border-gold bg-gold/5 scale-105 sm:scale-110' : rank === 2 ? 'border-silver bg-silver/5' : 'border-bronze bg-bronze/5'
+                    }`}
+                  >
+                    <Link to={`/publisher/${c.username || c.user_id}`} className="w-full">
+                      <div className="text-3xl sm:text-4xl mb-2">{medalEmoji}</div>
+                      {c.avatar_url ? (
+                        <img src={c.avatar_url} alt={c.display_name || c.username || 'Creator'} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto mb-2 border-2 border-foreground/20" />
+                      ) : (
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary/10 mx-auto mb-2 border-2 border-foreground/20 flex items-center justify-center">
+                          <Users className="w-8 h-8 sm:w-10 sm:h-10 text-primary/50" />
+                        </div>
+                      )}
+                      <h4 className="font-display text-sm sm:text-base tracking-wide truncate hover:text-primary transition-colors">{c.display_name || c.username || 'Unknown'}</h4>
+                      <div className="mt-2 text-xs sm:text-sm text-muted-foreground">{statValue} {creatorFilter === 'followers' ? 'followers' : 'series'}</div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Full Manhwa list */}
         {section === 'manhwa' && (
           loadingManga ? <p className="text-muted-foreground">Loading charts...</p> : (
             <div className="space-y-3">
-              {rankedManga.map((m, i) => {
+              {rankedManga.slice(3).map((m, i) => {
+                const rank = i + 4;
                 const rank = i + 1;
                 const style = getRankStyle(rank);
                 const rating = Number(m.rating_average) || 0;
@@ -183,13 +260,13 @@ const TopChartsPage: React.FC = () => {
           )
         )}
 
-        {/* Creators list */}
+        {/* Full Creators list */}
         {section === 'creators' && (
           loadingCreators ? <p className="text-muted-foreground">Loading creators...</p> : (
             <div className="space-y-3">
               {rankedCreators.length === 0 && <p className="text-muted-foreground text-sm py-8">No creators found yet.</p>}
-              {rankedCreators.map((c, i) => {
-                const rank = i + 1;
+              {rankedCreators.slice(3).map((c, i) => {
+                const rank = i + 4;
                 const style = getRankStyle(rank);
                 const statValue = creatorFilter === 'followers' ? fmt(c.followers) : c.publications.toString();
                 const statLabel = creatorFilter === 'followers' ? 'followers' : 'series';

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -125,15 +126,30 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-16">
       <DynamicMeta title="Login — Komixora" description="Sign in to your Komixora account" />
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <Link to="/" className="text-display text-3xl">KOMI<span className="text-primary">XORA</span></Link>
+      <motion.div 
+        className="w-full max-w-sm"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Link to="/" className="text-display text-3xl inline-block">KOMI<span className="text-primary">XORA</span></Link>
           <p className="text-muted-foreground text-sm mt-2">
             {forgotMode ? 'Reset your password' : 'Welcome back'}
           </p>
-        </div>
+        </motion.div>
 
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <motion.div 
+          className="bg-card border border-border rounded-2xl p-6 shadow-sm"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+        >
           {error && <div className="p-3 mb-4 rounded-xl bg-destructive/10 text-destructive text-sm font-medium">{error}</div>}
           {successMsg && <div className="p-3 mb-4 rounded-xl bg-primary/10 text-primary text-sm font-medium">{successMsg}</div>}
 
@@ -199,8 +215,8 @@ const LoginPage: React.FC = () => {
               </button>
             )}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

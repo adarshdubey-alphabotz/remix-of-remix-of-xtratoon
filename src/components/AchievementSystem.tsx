@@ -577,40 +577,47 @@ export const PublicAchievements: React.FC<{ userId: string }> = ({ userId }) => 
         </div>
       </div>
 
-      {/* Achievement Detail Modal */}
+      {/* Achievement Detail Modal - Mobile optimized */}
       {selectedDef && (
         <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4 pb-4"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
             onClick={() => setSelectedAchievement(null)}
           >
             <motion.div
-              initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="bg-card border border-border rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl"
+              initial={{ y: 200, opacity: 0, scale: 0.95 }} 
+              animate={{ y: 0, opacity: 1, scale: 1 }} 
+              exit={{ y: 200, opacity: 0, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 40, mass: 0.4 }}
+              className="bg-card border border-border rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-sm w-full text-center shadow-2xl max-h-[85vh] overflow-y-auto"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
-              <button onClick={() => setSelectedAchievement(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-                <X className="w-5 h-5" />
+              <button 
+                onClick={() => setSelectedAchievement(null)} 
+                className="relative ml-auto flex items-center justify-center w-8 h-8 -mt-2 -mr-2 mb-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors active:scale-95"
+              >
+                <X className="w-4 h-4" />
               </button>
 
-              <p className="text-sm font-semibold text-muted-foreground mb-3">Achievement</p>
+              <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-4">Achievement</p>
 
-              <div className="flex justify-center mb-4">
-                <WavyBadge size={110} color1="#4f8bff" color2="#6366f1">
+              <div className="flex justify-center mb-5 sm:mb-6">
+                <WavyBadge size={Math.min(100, Math.max(80, window.innerWidth / 4))} color1="#4f8bff" color2="#6366f1">
                   <div className="text-white">
-                    <BadgeIcon type={selectedDef.iconType} size={48} />
+                    <BadgeIcon type={selectedDef.iconType} size={40} />
                   </div>
                 </WavyBadge>
               </div>
 
-              <h3 className="text-xl font-black">{selectedDef.label}</h3>
-              <p className="text-sm text-muted-foreground mt-2">{selectedDef.desc}</p>
-              <span className="inline-block mt-3 px-3 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold capitalize">{selectedDef.tier}</span>
+              <h3 className="text-lg sm:text-2xl font-black break-words">{selectedDef.label}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3 leading-relaxed">{selectedDef.desc}</p>
+              <span className="inline-block mt-3 sm:mt-4 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold capitalize">{selectedDef.tier}</span>
 
-              <button onClick={() => setSelectedAchievement(null)}
-                className="mt-5 w-full text-xs text-primary font-medium hover:underline">
+              <button 
+                onClick={() => setSelectedAchievement(null)}
+                className="mt-5 sm:mt-6 w-full py-2.5 sm:py-3 text-xs sm:text-sm text-primary font-medium hover:bg-primary/5 rounded-lg transition-colors active:scale-95">
                 Close
               </button>
             </motion.div>
