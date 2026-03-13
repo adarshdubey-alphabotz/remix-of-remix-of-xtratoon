@@ -2,7 +2,6 @@ import React from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { PublicAchievements } from '@/components/AchievementSystem';
 
 /**
  * Universal profile page for any user (reader or creator).
@@ -85,8 +84,6 @@ const UserProfilePage: React.FC = () => {
             <p className="text-sm text-muted-foreground mt-4 max-w-sm mx-auto">{p.bio}</p>
           )}
 
-          {/* Public Achievements */}
-          <PublicAchievements userId={p.user_id} />
 
           {/* Info grid */}
           <div className="grid grid-cols-2 gap-3 mt-6 text-left">

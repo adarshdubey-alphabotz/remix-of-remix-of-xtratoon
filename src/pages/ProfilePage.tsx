@@ -19,7 +19,6 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
 import WalletSection from '@/components/WalletSection';
-import { AchievementGrid, useAchievements } from '@/components/AchievementSystem';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
@@ -41,7 +40,7 @@ const timezones = [
 ];
 const currencies = ['USD','EUR','GBP','INR','BDT','JPY','KRW','CNY','BRL','CAD','AUD','NGN','PHP','IDR','MYR','THB','VND','PKR','EGP','ZAR','AED','SAR','TRY','SGD'];
 
-type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme' | 'wallet' | 'achievements';
+type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme' | 'wallet';
 
 const PROFILE_THEMES = [
   { key: 'default', label: 'Default', emoji: '🎨', preview: 'bg-gradient-to-br from-muted to-muted-foreground/10', desc: 'Clean & minimal' },
@@ -104,7 +103,6 @@ const ProfilePage: React.FC = () => {
   const { theme, toggleTheme, cycleTheme } = useTheme();
   const { nightShift, toggleNightShift } = useNightShift();
   const navigate = useNavigate();
-  const { streak } = useAchievements();
 
   const [activeSection, setActiveSection] = useState<ActiveSection>('main');
   const [username, setUsername] = useState('');
@@ -328,14 +326,6 @@ const ProfilePage: React.FC = () => {
           </h2>
           <p className="text-sm text-muted-foreground">@{username || 'set-username'}</p>
 
-          {/* Streak badge */}
-          {streak > 0 && (
-            <div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400">
-              <Flame className="w-3.5 h-3.5" />
-              <span className="text-xs font-bold">{streak} day streak</span>
-            </div>
-          )}
-
           {/* Email verification prompt */}
           {user && user.app_metadata?.email_verified !== true && (
             <button onClick={() => navigate('/verify')}
@@ -357,23 +347,6 @@ const ProfilePage: React.FC = () => {
             <p className="text-[11px] text-muted-foreground mt-1">{completionScore}% complete</p>
           </div>
         </div>
-      </div>
-
-      {/* Achievements quick view */}
-      <div className="px-4 pb-3">
-        <button onClick={() => setActiveSection('achievements')}
-          className="w-full rounded-2xl border border-border/30 bg-gradient-to-br from-amber-900/10 to-orange-900/10 p-4 text-left hover:from-amber-900/15 hover:to-orange-900/15 transition-colors">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
-              <Flame className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">{streak > 0 ? `${streak} Day Streak 🔥` : 'Start Your Streak!'}</p>
-              <p className="text-[11px] text-muted-foreground">Achievements & Leaderboard</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </div>
-        </button>
       </div>
 
       {/* Wallet for creators */}
@@ -458,8 +431,6 @@ const ProfilePage: React.FC = () => {
           <SettingsRow icon={<LinkIcon className="w-4 h-4" />} label="Social Links" value={socialCount ? `${socialCount} linked` : 'Add your socials'} onClick={() => setActiveSection('social')} />
           <div className="h-px bg-border/30 ml-16" />
           <SettingsRow icon={<MapPin className="w-4 h-4" />} label="Location & Currency" value={location || 'Not set'} onClick={() => setActiveSection('location')} />
-          <div className="h-px bg-border/30 ml-16" />
-          <SettingsRow icon={<Trophy className="w-4 h-4" />} label="Achievements & Streaks" value={streak > 0 ? `🔥 ${streak} day streak` : 'View your badges'} onClick={() => setActiveSection('achievements')} />
           <div className="h-px bg-border/30 ml-16" />
           <SettingsRow icon={<Palette className="w-4 h-4" />} label="Profile Skin" value={PROFILE_THEMES.find(t => t.key === profileTheme)?.label || 'Default'} onClick={() => setActiveSection('profile-theme')} />
         </div>
@@ -598,16 +569,6 @@ const ProfilePage: React.FC = () => {
           className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg">
           <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Changes'}
         </button>
-      </div>
-    </motion.div>
-  );
-
-  // ─── ACHIEVEMENTS ───
-  const renderAchievements = () => (
-    <motion.div key="achievements" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
-      <SectionHeader onBack={() => setActiveSection('main')} title="Achievements & Streaks" />
-      <div className="px-4 py-6">
-        <AchievementGrid />
       </div>
     </motion.div>
   );
@@ -791,7 +752,6 @@ const ProfilePage: React.FC = () => {
           {activeSection === 'creator' && renderCreator()}
           {activeSection === 'library' && renderLibrary()}
           {activeSection === 'profile-theme' && renderProfileTheme()}
-          {activeSection === 'achievements' && renderAchievements()}
           {activeSection === 'wallet' && (
             <motion.div key="wallet" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
               <SectionHeader onBack={() => setActiveSection('main')} title="My Wallet" />
