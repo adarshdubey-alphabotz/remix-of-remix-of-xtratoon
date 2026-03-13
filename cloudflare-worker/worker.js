@@ -16,21 +16,10 @@ const corsHeaders = {
   "Access-Control-Max-Age": "86400",
 };
 
-// ─── Security Headers (applied to all main site responses) ──
-const securityHeaders = {
-  "X-Frame-Options": "SAMEORIGIN",
-  "X-Content-Type-Options": "nosniff",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-  "X-XSS-Protection": "1; mode=block",
-  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-};
+// ─── Bot Detection ──────────────────────────────────────────
+const BOT_AGENTS = /googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|linkedinbot|slurp|duckduckbot|ia_archiver|semrushbot|ahrefsbot|mj12bot|dotbot|rogerbot|sogou|exabot|telegrambot|whatsapp|discord|slackbot|pinterestbot|applebot|petalbot|gptbot|chatgpt-user|claude-web|perplexitybot|bytespider/i;
 
-// ─── Bot Detection ───────────────────────────────────────────
-// Covers: search engines, social media scrapers, AI crawlers, SEO tools
-const BOT_AGENTS = /googlebot|google-inspectiontool|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|linkedinbot|slurp|duckduckbot|ia_archiver|semrushbot|ahrefsbot|mj12bot|dotbot|rogerbot|sogou|exabot|telegrambot|whatsapp|discord|slackbot|pinterestbot|applebot|petalbot|gptbot|chatgpt-user|claude-web|perplexitybot|bytespider|headlesschrome|puppeteer|scrapy|python-requests|curl\/|wget\//i;
-
-// ─── Main Handler ────────────────────────────────────────────
+// ─── Main Handler ───────────────────────────────────────────
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -41,19 +30,22 @@ export default {
     // Forwards all requests to Supabase with CORS headers
     // ══════════════════════════════════════════════════════════
     if (hostname === "api.komixora.fun") {
+      // Handle CORS preflight
       if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: corsHeaders });
       }
 
+      // OAuth authorize/callback need direct redirects (browser navigation)
+      // Token exchange and other auth POST requests must be proxied with CORS
       if (
         request.method === "GET" &&
-        (url.pathname.startsWith("/auth/v1/authorize") ||
-          url.pathname.startsWith("/auth/v1/callback"))
+        (url.pathname.startsWith("/auth/v1/authorize") || url.pathname.startsWith("/auth/v1/callback"))
       ) {
         const targetUrl = SUPABASE_URL + url.pathname + url.search;
         return Response.redirect(targetUrl, 302);
       }
 
+      // Forward request to Supabase
       const targetUrl = SUPABASE_URL + url.pathname + url.search;
       const headers = new Headers(request.headers);
       headers.delete("host");
@@ -61,13 +53,11 @@ export default {
       const response = await fetch(targetUrl, {
         method: request.method,
         headers: headers,
-        body:
-          request.method !== "GET" && request.method !== "HEAD"
-            ? request.body
-            : undefined,
+        body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
         redirect: "follow",
       });
 
+      // Clone response and apply CORS headers
       const newResponse = new Response(response.body, response);
       for (const [key, value] of Object.entries(corsHeaders)) {
         newResponse.headers.set(key, value);
@@ -82,32 +72,18 @@ export default {
 
     // Always pass through static assets, API routes, sitemap, robots
     if (
-      url.pathname.match(
-        /\.(js|css|png|jpg|jpeg|webp|gif|svg|ico|woff2?|ttf|eot|map|json|txt|xml)$/
-      ) ||
+      url.pathname.match(/\.(js|css|png|jpg|jpeg|webp|gif|svg|ico|woff2?|ttf|eot|map|json)$/) ||
       url.pathname.startsWith("/api/") ||
       url.pathname === "/robots.txt" ||
       url.pathname === "/sitemap.xml" ||
       url.pathname === "/sitemap-index.xml"
     ) {
-      const res = await fetch(request);
-      // Add security headers even to assets
-      const newRes = new Response(res.body, res);
-      for (const [k, v] of Object.entries(securityHeaders)) {
-        newRes.headers.set(k, v);
-      }
-      return newRes;
+      return fetch(request);
     }
 
-    // Server-side 301 redirects for old routes
+    // Server-side 301 redirects for old routes (fixes Google redirect errors)
     if (url.pathname === "/home" || url.pathname === "/explore") {
       return Response.redirect(`${SITE_URL}/`, 301);
-    }
-
-    // www → non-www canonical redirect
-    if (hostname === "www.komixora.fun") {
-      const canonical = `https://komixora.fun${url.pathname}${url.search}`;
-      return Response.redirect(canonical, 301);
     }
 
     // Check if request is from a bot
@@ -116,17 +92,12 @@ export default {
       return serveBotResponse(url);
     }
 
-    // Normal users — pass through to Vercel with security headers
-    const res = await fetch(request);
-    const newRes = new Response(res.body, res);
-    for (const [k, v] of Object.entries(securityHeaders)) {
-      newRes.headers.set(k, v);
-    }
-    return newRes;
+    // Normal users — proxy to Vercel (pass through)
+    return fetch(request);
   },
 };
 
-// ─── Bot Response Handler ────────────────────────────────────
+// ─── Bot Response Handler ───────────────────────────────────
 async function serveBotResponse(url) {
   const path = url.pathname;
 
@@ -136,25 +107,18 @@ async function serveBotResponse(url) {
     const slug = manhwaMatch[1];
     const data = await fetchFromSupabase(
       "manga",
-      `slug=eq.${slug}&approval_status=eq.APPROVED&select=title,description,cover_url,genres,views,rating_average,author,status&limit=1`
+      `slug=eq.${slug}&approval_status=eq.APPROVED&select=title,description,cover_url,genres,views,rating_average&limit=1`
     );
     if (data && data[0]) {
       const m = data[0];
-      const title = `${m.title} — Read Free on Komixora`;
-      const description =
-        m.description ||
-        `Read ${m.title} manhwa online for free on Komixora. HD quality, latest chapters updated daily. Genre: ${(m.genres || []).join(", ")}.`;
       return buildHtml({
-        title,
-        description,
+        title: `${m.title} — Read on Komixora`,
+        description:
+          m.description ||
+          `Read ${m.title} manhwa online for free on Komixora. HD quality, latest chapters updated daily.`,
         image: m.cover_url,
         url: `${SITE_URL}/manhwa/${slug}`,
         type: "article",
-        breadcrumbs: [
-          { name: "Home", url: SITE_URL },
-          { name: "Browse Manhwa", url: `${SITE_URL}/browse` },
-          { name: m.title, url: `${SITE_URL}/manhwa/${slug}` },
-        ],
         jsonLd: {
           "@context": "https://schema.org",
           "@type": "ComicSeries",
@@ -163,22 +127,7 @@ async function serveBotResponse(url) {
           image: m.cover_url,
           url: `${SITE_URL}/manhwa/${slug}`,
           genre: m.genres || [],
-          author: m.author
-            ? { "@type": "Person", name: m.author }
-            : undefined,
-          publisher: {
-            "@type": "Organization",
-            name: "Komixora",
-            url: SITE_URL,
-          },
-          aggregateRating: m.rating_average
-            ? {
-                "@type": "AggregateRating",
-                ratingValue: m.rating_average,
-                bestRating: 5,
-                ratingCount: m.views || 1,
-              }
-            : undefined,
+          publisher: { "@type": "Organization", name: "Komixora" },
         },
       });
     }
@@ -188,40 +137,13 @@ async function serveBotResponse(url) {
   const readMatch = path.match(/^\/read\/([^/]+)\/(\d+)$/);
   if (readMatch) {
     const [, slug, chapter] = readMatch;
-    const data = await fetchFromSupabase(
-      "manga",
-      `slug=eq.${slug}&select=title,cover_url,genres&limit=1`
-    );
+    const data = await fetchFromSupabase("manga", `slug=eq.${slug}&select=title,cover_url&limit=1`);
     const m = data?.[0];
-    const seriesTitle = m?.title || slug.replace(/-/g, " ");
     return buildHtml({
-      title: `${seriesTitle} Chapter ${chapter} — Read Free on Komixora`,
-      description: `Read ${seriesTitle} Chapter ${chapter} online for free in HD quality on Komixora. No ads, no subscription.`,
+      title: `${m?.title || slug} Chapter ${chapter} — Komixora`,
+      description: `Read ${m?.title || slug} Chapter ${chapter} online for free. HD quality on Komixora.`,
       image: m?.cover_url,
       url: `${SITE_URL}/read/${slug}/${chapter}`,
-      breadcrumbs: [
-        { name: "Home", url: SITE_URL },
-        { name: seriesTitle, url: `${SITE_URL}/manhwa/${slug}` },
-        { name: `Chapter ${chapter}`, url: `${SITE_URL}/read/${slug}/${chapter}` },
-      ],
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        headline: `${seriesTitle} Chapter ${chapter}`,
-        description: `Read ${seriesTitle} Chapter ${chapter} online for free in HD quality.`,
-        image: m?.cover_url,
-        url: `${SITE_URL}/read/${slug}/${chapter}`,
-        publisher: {
-          "@type": "Organization",
-          name: "Komixora",
-          url: SITE_URL,
-        },
-        isPartOf: {
-          "@type": "ComicSeries",
-          name: seriesTitle,
-          url: `${SITE_URL}/manhwa/${slug}`,
-        },
-      },
     });
   }
 
@@ -234,23 +156,12 @@ async function serveBotResponse(url) {
       `user_id=eq.${id}&select=display_name,bio,avatar_url,username&limit=1`
     );
     const p = data?.[0];
-    const name = p?.display_name || p?.username || "Creator";
     return buildHtml({
-      title: `${name} — Manhwa Creator on Komixora`,
+      title: `${p?.display_name || p?.username || "Creator"} — Creator on Komixora`,
       description:
-        p?.bio ||
-        `Follow ${name} on Komixora and read their manhwa, manga, and webtoon series for free.`,
+        p?.bio || `Follow ${p?.display_name || "this creator"} on Komixora. Read their manhwa and webtoons.`,
       image: p?.avatar_url,
       url: `${SITE_URL}/publisher/${id}`,
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        name,
-        description: p?.bio,
-        image: p?.avatar_url,
-        url: `${SITE_URL}/publisher/${id}`,
-        worksFor: { "@type": "Organization", name: "Komixora" },
-      },
     });
   }
 
@@ -263,171 +174,85 @@ async function serveBotResponse(url) {
       `username=eq.${username}&select=display_name,bio,avatar_url&limit=1`
     );
     const p = data?.[0];
-    const name = p?.display_name || username;
     return buildHtml({
-      title: `${name} — Manhwa Creator on Komixora`,
+      title: `${p?.display_name || username} — Creator on Komixora`,
       description:
-        p?.bio ||
-        `Follow ${name} on Komixora and read their manhwa, manga, and webtoon series for free.`,
+        p?.bio || `Follow ${p?.display_name || username} on Komixora. Read their manhwa and webtoons.`,
       image: p?.avatar_url,
       url: `${SITE_URL}/creator/${username}`,
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        name,
-        description: p?.bio,
-        image: p?.avatar_url,
-        url: `${SITE_URL}/creator/${username}`,
-      },
     });
   }
 
-  // ── Blog post: /blog/{slug} ──
+  // ── Blog: /blog/{slug} ──
   const blogMatch = path.match(/^\/blog\/([^/]+)$/);
   if (blogMatch) {
     const slug = blogMatch[1];
     const data = await fetchFromSupabase(
       "blogs",
-      `slug=eq.${slug}&is_published=eq.true&select=title,description,thumbnail_url,seo_title,seo_description,author,created_at&limit=1`
+      `slug=eq.${slug}&is_published=eq.true&select=title,description,thumbnail_url,seo_title,seo_description&limit=1`
     );
     const b = data?.[0];
-    const title = b?.seo_title || `${b?.title || slug} — Komixora Blog`;
-    const description =
-      b?.seo_description ||
-      b?.description ||
-      "Read the latest manhwa news, recommendations, and guides from the Komixora blog.";
     return buildHtml({
-      title,
-      description,
+      title: b?.seo_title || `${b?.title || slug} — Komixora Blog`,
+      description: b?.seo_description || b?.description || "Read the latest from the Komixora blog.",
       image: b?.thumbnail_url,
       url: `${SITE_URL}/blog/${slug}`,
-      type: "article",
-      breadcrumbs: [
-        { name: "Home", url: SITE_URL },
-        { name: "Blog", url: `${SITE_URL}/blog` },
-        { name: b?.title || slug, url: `${SITE_URL}/blog/${slug}` },
-      ],
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
-        headline: b?.title || slug,
-        description: b?.seo_description || b?.description,
-        image: b?.thumbnail_url,
-        url: `${SITE_URL}/blog/${slug}`,
-        datePublished: b?.created_at,
-        author: b?.author
-          ? { "@type": "Person", name: b.author }
-          : { "@type": "Organization", name: "Komixora" },
-        publisher: {
-          "@type": "Organization",
-          name: "Komixora",
-          url: SITE_URL,
-        },
-      },
     });
   }
 
   // ── Static pages ──
   const pageMeta = {
     "/": {
-      title: "Read Manhwa, Manga & Webtoons Online Free — Komixora",
-      description:
-        "Read manhwa, manga, webtoons, and comics online for free on Komixora. 500+ series — action, romance, fantasy, isekai, martial arts. HD quality, daily updates. No subscription needed.",
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: "Komixora",
-        alternateName: ["Komixora Manga", "Komixora Manhwa", "Komixora Webtoon"],
-        url: SITE_URL,
-        description:
-          "Free manhwa, manga, and webtoon reading platform with 500+ series and daily updates.",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${SITE_URL}/browse?q={search_term_string}`,
-          },
-          "query-input": "required name=search_term_string",
-        },
-      },
-      body: `
-        <section>
-          <h2>The Best Free Manhwa &amp; Manga Reading Site</h2>
-          <p>Komixora is a free online platform to read manhwa, manga, webtoons, and comics in HD quality. Discover hundreds of series across every genre — action, romance, fantasy, isekai, martial arts, school life, and more. New chapters added daily with no subscription required.</p>
-        </section>
-        <section>
-          <h2>Popular Manhwa &amp; Manga Categories</h2>
-          <ul>
-            <li><a href="${SITE_URL}/browse?genre=action">Action Manhwa</a> — Overpowered heroes, intense battles, and system manhwa</li>
-            <li><a href="${SITE_URL}/browse?genre=romance">Romance Manhwa</a> — Heartwarming love stories and romantic comedies</li>
-            <li><a href="${SITE_URL}/browse?genre=fantasy">Fantasy Manhwa</a> — Magic, guilds, dragons, and epic world-building</li>
-            <li><a href="${SITE_URL}/browse?genre=isekai">Isekai Manhwa</a> — Reincarnation, portal fantasy, and regression stories</li>
-            <li><a href="${SITE_URL}/browse?genre=martial-arts">Martial Arts Manhwa</a> — Cultivation, wuxia, and combat mastery</li>
-            <li><a href="${SITE_URL}/browse?genre=school-life">School Life Manga</a> — Coming-of-age stories set in high school</li>
-            <li><a href="${SITE_URL}/browse?genre=webtoon">Webtoons</a> — Vertical scroll comics from Korean and global creators</li>
-          </ul>
-        </section>
-        <section>
-          <h2>Publish Your Own Manhwa on Komixora</h2>
-          <p>Are you a comics creator? Komixora lets you publish your manhwa, manga, or webtoon and reach thousands of readers. <a href="${SITE_URL}/creators">Join as a Creator</a>.</p>
-        </section>`,
-    },
-    "/browse": {
-      title: "Browse Manhwa & Manga Online Free — Komixora",
-      description:
-        "Browse thousands of manhwa, manga, and webtoon series on Komixora. Filter by genre: action, romance, fantasy, isekai, martial arts. Free to read, HD quality, updated daily.",
-    },
-    "/charts": {
-      title: "Top Manhwa & Manga Charts — Most Popular Series — Komixora",
-      description:
-        "Discover the most popular manhwa and manga on Komixora. See top trending series by views, ratings, and new chapters. Updated daily.",
-    },
-    "/community": {
-      title: "Manhwa & Manga Community — Komixora",
-      description:
-        "Join the Komixora community. Discuss manhwa, manga, and webtoons with thousands of readers. Share recommendations, reviews, and fan theories.",
-    },
-    "/creators": {
-      title: "Top Manhwa Creators & Publishers — Komixora",
-      description:
-        "Find and follow the best manhwa and manga creators on Komixora. Publish your own comics and reach a global audience for free.",
-    },
-    "/blog": {
-      title: "Manhwa & Manga Blog — Recommendations, Reviews & News — Komixora",
-      description:
-        "Read the Komixora blog for the best manhwa recommendations, manga reviews, webtoon guides, and comics news. Find your next favorite series.",
+      title: "Komixora — Read Manhwa, Manga & Webtoons Online Free",
+      description: "The #1 platform to read manhwa, manga, and webtoons online for free. Discover trending series, follow top creators, and publish your own manhwa.",
     },
     "/about": {
-      title: "About Komixora — Free Manhwa & Manga Platform",
-      description:
-        "Learn about Komixora — a free platform to read manhwa, manga, and webtoons online. Our mission is to connect readers and creators worldwide.",
+      title: "About Komixora — Read Manhwa, Manga & Webtoons Online Free",
+      description: "Learn about Komixora — the #1 platform to read manhwa, manga, and webtoons online for free.",
+    },
+    "/browse": {
+      title: "Browse Manhwa & Manga — Komixora",
+      description: "Browse thousands of manhwa, manga, and webtoon series. Filter by genre, popularity, and latest releases.",
+    },
+    "/charts": {
+      title: "Top Charts — Komixora",
+      description: "Discover the most popular manhwa and manga on Komixora. Updated daily.",
+    },
+    "/community": {
+      title: "Community — Komixora",
+      description: "Join the Komixora community. Discuss manhwa, manga, and webtoons with other readers.",
+    },
+    "/creators": {
+      title: "Top Creators — Komixora",
+      description: "Find and follow the best manhwa creators on Komixora.",
+    },
+    "/blog": {
+      title: "Blog — Komixora",
+      description: "News, guides, and updates from Komixora.",
     },
     "/terms": {
       title: "Terms of Service — Komixora",
-      description: "Read Komixora's terms of service and user agreement.",
+      description: "Read Komixora's terms of service.",
     },
     "/privacy": {
       title: "Privacy Policy — Komixora",
-      description:
-        "Read Komixora's privacy policy. We are committed to protecting your data.",
+      description: "Read Komixora's privacy policy.",
     },
     "/content-guidelines": {
-      title: "Content Guidelines for Creators — Komixora",
-      description:
-        "Read Komixora's content guidelines for manhwa and manga publishers. Learn what is allowed on our platform.",
+      title: "Content Guidelines — Komixora",
+      description: "Read Komixora's content guidelines for publishers.",
     },
   };
 
   const meta = pageMeta[path] || {
-    title: "Read Manhwa Online Free — Komixora",
-    description:
-      "Read manhwa, manga, and webtoons on Komixora. Free, HD quality, updated daily.",
+    title: "Komixora — Read Manhwa Online Free",
+    description: "Read manhwa, manga, and webtoons on Komixora. Free, HD quality, updated daily.",
   };
 
   return buildHtml({ ...meta, url: `${SITE_URL}${path}` });
 }
 
-// ─── Supabase Fetch Helper ───────────────────────────────────
+// ─── Supabase Fetch Helper ──────────────────────────────────
 async function fetchFromSupabase(table, query) {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
@@ -441,45 +266,22 @@ async function fetchFromSupabase(table, query) {
   return null;
 }
 
-// ─── HTML Escape ─────────────────────────────────────────────
+// ─── HTML Escape ────────────────────────────────────────────
 function esc(s) {
-  return (s || "").replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+  return (s || "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
   );
 }
 
-// ─── Build Breadcrumb JSON-LD ────────────────────────────────
-function buildBreadcrumbJsonLd(breadcrumbs) {
-  if (!breadcrumbs || breadcrumbs.length === 0) return "";
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: breadcrumbs.map((b, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      name: b.name,
-      item: b.url,
-    })),
-  };
-  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
-}
-
-// ─── Build Pre-rendered HTML for Bots ───────────────────────
-function buildHtml({ title, description, image, url, type = "website", jsonLd, breadcrumbs, body }) {
-  const defaultImage = "https://storage.googleapis.com/gpt-engineer-file-uploads/fBX3qmXyGrXPWiSGlF9kHg13L552/social-images/social-1773130304984-1000327551.webp";
-  const ogImage = image || defaultImage;
+// ─── Build Pre-rendered HTML ────────────────────────────────
+function buildHtml({ title, description, image, url, type = "website", jsonLd }) {
+  const ogImage = image
+    ? `<meta property="og:image" content="${esc(image)}">
+    <meta name="twitter:image" content="${esc(image)}">`
+    : "";
 
   const jsonLdTag = jsonLd
     ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`
-    : "";
-
-  const breadcrumbTag = buildBreadcrumbJsonLd(breadcrumbs);
-
-  // Build breadcrumb HTML nav
-  const breadcrumbNav = breadcrumbs && breadcrumbs.length > 0
-    ? `<nav aria-label="Breadcrumb"><ol>${breadcrumbs.map((b) => `<li><a href="${esc(b.url)}">${esc(b.name)}</a></li>`).join(" › ")}</ol></nav>`
     : "";
 
   const html = `<!DOCTYPE html>
@@ -489,70 +291,38 @@ function buildHtml({ title, description, image, url, type = "website", jsonLd, b
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}">
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-  <link rel="canonical" href="${esc(url || SITE_URL)}">
-
-  <!-- Open Graph -->
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <meta property="og:type" content="${type}">
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(description)}">
   <meta property="og:url" content="${esc(url || SITE_URL)}">
   <meta property="og:site_name" content="Komixora">
-  <meta property="og:locale" content="en_US">
-  <meta property="og:image" content="${esc(ogImage)}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="${esc(title)}">
-
-  <!-- Twitter Card -->
+  ${ogImage}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@Xtratoonglobal">
   <meta name="twitter:title" content="${esc(title)}">
   <meta name="twitter:description" content="${esc(description)}">
-  <meta name="twitter:image" content="${esc(ogImage)}">
-
-  <!-- Structured Data -->
+  <link rel="canonical" href="${esc(url || SITE_URL)}">
   ${jsonLdTag}
-  ${breadcrumbTag}
 </head>
 <body>
-  <header>
-    <a href="${SITE_URL}">Komixora</a>
-    <nav aria-label="Main Navigation">
-      <a href="${SITE_URL}/browse">Browse Manhwa &amp; Manga</a>
-      <a href="${SITE_URL}/charts">Top Charts</a>
-      <a href="${SITE_URL}/community">Community</a>
-      <a href="${SITE_URL}/creators">Creators</a>
-      <a href="${SITE_URL}/blog">Blog</a>
-    </nav>
-  </header>
-
-  <main>
-    ${breadcrumbNav}
-    <h1>${esc(title)}</h1>
-    <p>${esc(description)}</p>
-    ${body || ""}
-  </main>
-
-  <footer>
-    <p>&copy; 2026 Komixora. Read manhwa, manga, webtoons, and comics online free.</p>
-    <nav aria-label="Footer Navigation">
-      <a href="${SITE_URL}/about">About</a> |
-      <a href="${SITE_URL}/blog">Blog</a> |
-      <a href="${SITE_URL}/terms">Terms</a> |
-      <a href="${SITE_URL}/privacy">Privacy</a> |
-      <a href="${SITE_URL}/content-guidelines">Content Guidelines</a>
-    </nav>
-  </footer>
+  <h1>${esc(title)}</h1>
+  <p>${esc(description)}</p>
+  <nav>
+    <a href="${SITE_URL}/">Home</a> |
+    <a href="${SITE_URL}/browse">Browse Manhwa</a> |
+    <a href="${SITE_URL}/charts">Top Charts</a> |
+    <a href="${SITE_URL}/community">Community</a> |
+    <a href="${SITE_URL}/blog">Blog</a>
+  </nav>
 </body>
 </html>`;
 
   return new Response(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=86400",
-      "X-Robots-Tag": "index, follow, max-image-preview:large",
-      ...securityHeaders,
+      "Cache-Control": "public, max-age=3600",
+      "X-Robots-Tag": "index, follow",
     },
   });
 }
