@@ -356,23 +356,6 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Achievements quick view */}
-      <div className="px-4 pb-3">
-        <button onClick={() => setActiveSection('achievements')}
-          className="w-full rounded-2xl border border-border/30 bg-gradient-to-br from-amber-900/10 to-orange-900/10 p-4 text-left hover:from-amber-900/15 hover:to-orange-900/15 transition-colors">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
-              <Flame className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">{streak > 0 ? `${streak} Day Streak 🔥` : 'Start Your Streak!'}</p>
-              <p className="text-[11px] text-muted-foreground">Achievements & Leaderboard</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </div>
-        </button>
-      </div>
-
       {/* Wallet for creators */}
       {isCreator && (
         <div className="px-4 pb-2">
