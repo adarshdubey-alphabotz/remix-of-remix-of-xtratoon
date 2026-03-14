@@ -759,7 +759,6 @@ const ProfilePage: React.FC = () => {
           {activeSection === 'creator' && renderCreator()}
           {activeSection === 'library' && renderLibrary()}
           {activeSection === 'profile-theme' && renderProfileTheme()}
-          {activeSection === 'achievements' && renderAchievements()}
           {activeSection === 'wallet' && (
             <motion.div key="wallet" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
               <SectionHeader onBack={() => setActiveSection('main')} title="My Wallet" />
