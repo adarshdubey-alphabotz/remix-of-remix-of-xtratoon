@@ -325,13 +325,6 @@ const ProfilePage: React.FC = () => {
           </h2>
           <p className="text-sm text-muted-foreground">@{username || 'set-username'}</p>
 
-          {/* Streak badge */}
-          {streak > 0 && (
-            <div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400">
-              <Flame className="w-3.5 h-3.5" />
-              <span className="text-xs font-bold">{streak} day streak</span>
-            </div>
-          )}
 
           {/* Email verification prompt */}
           {user && user.app_metadata?.email_verified !== true && (
