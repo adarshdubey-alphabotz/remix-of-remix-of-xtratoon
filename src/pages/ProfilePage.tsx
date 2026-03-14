@@ -103,8 +103,6 @@ const ProfilePage: React.FC = () => {
   const { theme, toggleTheme, cycleTheme } = useTheme();
   const { nightShift, toggleNightShift } = useNightShift();
   const navigate = useNavigate();
-  const { streak } = useAchievements();
-
   const [activeSection, setActiveSection] = useState<ActiveSection>('main');
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
