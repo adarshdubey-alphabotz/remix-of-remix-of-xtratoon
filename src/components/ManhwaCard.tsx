@@ -34,7 +34,7 @@ const ManhwaCard: React.FC<ManhwaCardProps> = ({ manhwa, index = 0, rank, rankCo
         {hasCover && (
           <img
             src={coverSrc}
-            alt={manhwa.title}
+            alt={`${manhwa.title} manhwa cover — read free on Komixora`}
             loading={shouldPrioritizeImage ? 'eager' : 'lazy'}
             fetchPriority={shouldPrioritizeImage ? 'high' : 'auto'}
             decoding="async"
