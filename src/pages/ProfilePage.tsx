@@ -580,16 +580,6 @@ const ProfilePage: React.FC = () => {
     </motion.div>
   );
 
-  // ─── ACHIEVEMENTS ───
-  const renderAchievements = () => (
-    <motion.div key="achievements" initial={slideVariants.enter} animate={slideVariants.center} exit={slideVariants.exit} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
-      <SectionHeader onBack={() => setActiveSection('main')} title="Achievements & Streaks" />
-      <div className="px-4 py-6">
-        <AchievementGrid />
-      </div>
-    </motion.div>
-  );
-
   // ─── SOCIAL LINKS ───
   const renderSocial = () => {
     const customLinks = Object.entries(socialLinks).filter(([k]) => k.startsWith('custom_'));
