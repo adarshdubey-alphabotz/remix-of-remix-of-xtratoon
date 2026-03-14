@@ -40,7 +40,7 @@ const timezones = [
 ];
 const currencies = ['USD','EUR','GBP','INR','BDT','JPY','KRW','CNY','BRL','CAD','AUD','NGN','PHP','IDR','MYR','THB','VND','PKR','EGP','ZAR','AED','SAR','TRY','SGD'];
 
-type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme' | 'wallet' | 'achievements';
+type ActiveSection = 'main' | 'edit' | 'social' | 'location' | 'security' | 'preferences' | 'creator' | 'library' | 'profile-theme' | 'wallet';
 
 const PROFILE_THEMES = [
   { key: 'default', label: 'Default', emoji: '🎨', preview: 'bg-gradient-to-br from-muted to-muted-foreground/10', desc: 'Clean & minimal' },
