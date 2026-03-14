@@ -178,6 +178,10 @@ const AnimatedRoutes = () => {
           <Route path="/blog/:slug" element={<BlogDetailPage />} />
           <Route path="/admin/blog" element={<AdminBlogEditor />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/genre/:genreName" element={<GenrePage />} />
+          <Route path="/tapas-alternative" element={<TapasAlternativePage />} />
+          <Route path="/webtoon-alternative" element={<WebtoonAlternativePage />} />
+          <Route path="/publish-manhwa" element={<PublishManhwaPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

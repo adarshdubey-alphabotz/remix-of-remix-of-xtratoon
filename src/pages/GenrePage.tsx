@@ -148,7 +148,7 @@ const GenrePage: React.FC = () => {
             ))}
           </div>
         ) : enriched.length === 0 ? (
-          <EmptyState type="search" message={`No ${genre} manhwa found yet.`} />
+          <EmptyState type="search" subtitle={`No ${genre} manhwa found yet.`} />
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
             {enriched.map((m, i) => (

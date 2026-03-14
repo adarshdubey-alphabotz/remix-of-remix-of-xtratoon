@@ -311,6 +311,34 @@ async function serveBotResponse(url) {
     });
   }
 
+  // ── Genre pages: /genre/{slug} ──
+  const genreMatch = path.match(/^\/genre\/([^/]+)$/);
+  if (genreMatch) {
+    const slug = genreMatch[1];
+    const genreName = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return buildHtml({
+      title: `Read ${genreName} Manhwa Free — Komixora`,
+      description: `Browse the best ${genreName.toLowerCase()} manhwa, manga & webtoons online for free. Updated daily on Komixora.`,
+      url: `${SITE_URL}/genre/${slug}`,
+      extraSchemas: [{
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": `${genreName} Manhwa`,
+        "description": `Free ${genreName.toLowerCase()} manhwa and webtoons on Komixora.`,
+        "url": `${SITE_URL}/genre/${slug}`,
+        "isPartOf": { "@type": "WebSite", "name": "Komixora", "url": SITE_URL }
+      }, {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": SITE_URL },
+          { "@type": "ListItem", "position": 2, "name": "Browse", "item": `${SITE_URL}/browse` },
+          { "@type": "ListItem", "position": 3, "name": genreName, "item": `${SITE_URL}/genre/${slug}` }
+        ]
+      }]
+    });
+  }
+
   // ── Browse with search: /browse?q=... ──
   if (path === "/browse" && url.searchParams.get("q")) {
     const q = url.searchParams.get("q");
@@ -354,6 +382,18 @@ async function serveBotResponse(url) {
     "/upcoming": {
       title: "Upcoming Releases — Komixora",
       description: "See upcoming manhwa and manga releases on Komixora. Vote for what gets published next.",
+    },
+    "/tapas-alternative": {
+      title: "Best Tapas Alternative for Manhwa & Manga Creators — Komixora",
+      description: "Looking for a Tapas alternative? Komixora offers free publishing, 70% revenue share, no exclusivity, and a growing community.",
+    },
+    "/webtoon-alternative": {
+      title: "Best WEBTOON Alternative — Publish Manhwa Free | Komixora",
+      description: "Looking for a WEBTOON alternative? Komixora offers no exclusivity, 70% revenue share, full IP ownership, and a passionate reader community.",
+    },
+    "/publish-manhwa": {
+      title: "Publish Your Manhwa Free — Komixora Creator Platform",
+      description: "Publish your manhwa, manga, or webtoon on Komixora for free. Get 70% revenue share and access to a global reader community.",
     },
     "/terms": {
       title: "Terms of Service — Komixora",

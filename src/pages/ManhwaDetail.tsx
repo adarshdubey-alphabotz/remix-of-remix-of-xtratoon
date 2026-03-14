@@ -516,6 +516,27 @@ const ManhwaDetail: React.FC = () => {
               </ScrollReveal>
             )}
 
+            {/* Related Genre Links */}
+            {manhwa.genres && manhwa.genres.length > 0 && (
+              <ScrollReveal delay={0.18}>
+                <section className="space-y-3">
+                  <h2 className="text-display text-lg tracking-wider flex items-center gap-2">
+                    <div className="w-1.5 h-5 rounded-full bg-primary" />
+                    EXPLORE MORE
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {manhwa.genres.map((g: string) => {
+                      const slug = g.toLowerCase().replace(/\s+/g, '-');
+                      return (
+                        <Link key={g} to={`/genre/${slug}`} className="px-3 py-2 text-xs font-medium border border-border rounded-lg hover:border-primary hover:text-primary transition-colors">
+                          Like {g.toLowerCase()} manhwa? Browse more {g} →
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </section>
+              </ScrollReveal>
+            )}
 
             <ScrollReveal delay={0.2}>
               <CommentSection mangaId={manhwa.id} mangaTitle={manhwa.title} creatorId={manhwa.creator_id} />
