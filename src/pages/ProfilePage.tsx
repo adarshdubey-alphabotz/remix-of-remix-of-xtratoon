@@ -439,8 +439,6 @@ const ProfilePage: React.FC = () => {
           <div className="h-px bg-border/30 ml-16" />
           <SettingsRow icon={<MapPin className="w-4 h-4" />} label="Location & Currency" value={location || 'Not set'} onClick={() => setActiveSection('location')} />
           <div className="h-px bg-border/30 ml-16" />
-          <SettingsRow icon={<Trophy className="w-4 h-4" />} label="Achievements & Streaks" value={streak > 0 ? `🔥 ${streak} day streak` : 'View your badges'} onClick={() => setActiveSection('achievements')} />
-          <div className="h-px bg-border/30 ml-16" />
           <SettingsRow icon={<Palette className="w-4 h-4" />} label="Profile Skin" value={PROFILE_THEMES.find(t => t.key === profileTheme)?.label || 'Default'} onClick={() => setActiveSection('profile-theme')} />
         </div>
 
