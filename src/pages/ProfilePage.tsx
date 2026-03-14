@@ -19,7 +19,6 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
 import WalletSection from '@/components/WalletSection';
-import { AchievementGrid, useAchievements } from '@/components/AchievementSystem';
 
 const USERNAME_REGEX = /^[a-z0-9_.]+$/;
 type ProfileType = 'reader' | 'publisher';
