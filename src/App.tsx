@@ -15,7 +15,6 @@ import BanNotice from "@/components/BanNotice";
 import GoogleOnboardingModal from "@/components/GoogleOnboardingModal";
 import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import NetworkStatus from "@/components/NetworkStatus";
-import { DailyStreakPopup } from "@/components/AchievementSystem";
 import { lazy, Suspense, useEffect } from "react";
 
 // ExplorePage loaded eagerly — it's the default route, no blank screen
