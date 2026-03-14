@@ -413,11 +413,14 @@ const ManhwaDetail: React.FC = () => {
                 </ProfileHoverCard>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
-                {(manhwa.genres || []).map((g: string) => (
-                  <Link key={g} to={`/browse?genre=${g}`} className="px-2.5 py-1 text-xs border border-foreground/20 hover:border-primary hover:text-primary transition-colors font-medium rounded-md">
-                    {g}
-                  </Link>
-                ))}
+        {(manhwa.genres || []).map((g: string) => {
+                  const slug = g.toLowerCase().replace(/\s+/g, '-');
+                  return (
+                    <Link key={g} to={`/genre/${slug}`} className="px-2.5 py-1 text-xs border border-foreground/20 hover:border-primary hover:text-primary transition-colors font-medium rounded-md">
+                      {g}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>
