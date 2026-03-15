@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import CreatorAnalytics from '@/components/CreatorAnalytics';
 import CreatorEarnings from '@/components/CreatorEarnings';
 import ScheduledContentManager from '@/components/ScheduledContentManager';
+import { generateSlug, isValidSlug, isSlugUnique } from '@/utils/slugUtils';
 
 const allGenres = [
   'Action', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Drama',
@@ -31,6 +32,10 @@ const PublisherDashboard: React.FC = () => {
   const [isNsfw, setIsNsfw] = useState(false);
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [slugIsAuto, setSlugIsAuto] = useState(true);
+  const [slug, setSlug] = useState('');
+  const [slugError, setSlugError] = useState('');
+  const [slugValidating, setSlugValidating] = useState(false);
   const [copyrightChecked, setCopyrightChecked] = useState(false);
   const [mangaScheduleEnabled, setMangaScheduleEnabled] = useState(false);
   const [mangaScheduledDate, setMangaScheduledDate] = useState('');
@@ -46,7 +51,7 @@ const PublisherDashboard: React.FC = () => {
 
   // Chapter upload state
   const [selectedMangaId, setSelectedMangaId] = useState<string | null>(null);
-  const [chapterNumber, setChapterNumber] = useState(1);
+  const [chapterNumber, setChapterNumber] = useState('');
   const [chapterTitle, setChapterTitle] = useState('');
   const [pageFiles, setPageFiles] = useState<File[]>([]);
   const [uploadingChapter, setUploadingChapter] = useState(false);
@@ -104,15 +109,47 @@ const PublisherDashboard: React.FC = () => {
     enabled: !!user && !!myManga && myManga.length > 0,
   });
 
-  // Auto-set chapter number when selecting a manga
+  // Reset chapter number when selecting a manga (stays empty for user input)
   useEffect(() => {
-    if (chapters && chapters.length > 0) {
-      const maxChapter = Math.max(...chapters.map(c => c.chapter_number));
-      setChapterNumber(maxChapter + 1);
-    } else if (selectedMangaId) {
-      setChapterNumber(1);
+    if (selectedMangaId) {
+      setChapterNumber('');
     }
-  }, [chapters, selectedMangaId]);
+  }, [selectedMangaId]);
+
+  // Auto-generate slug when title changes and auto mode is on
+  useEffect(() => {
+    if (slugIsAuto && uploadTitle) {
+      const generatedSlug = generateSlug(uploadTitle) + '-' + Date.now().toString(36);
+      setSlug(generatedSlug);
+      setSlugError('');
+    }
+  }, [uploadTitle, slugIsAuto]);
+
+  // Validate slug in real-time when manual
+  useEffect(() => {
+    if (!slugIsAuto && slug) {
+      const validateSlug = async () => {
+        setSlugValidating(true);
+
+        if (!isValidSlug(slug)) {
+          setSlugError('Slug must be lowercase, contain only letters, numbers, and hyphens');
+          setSlugValidating(false);
+          return;
+        }
+
+        const isUnique = await isSlugUnique(slug);
+        if (!isUnique) {
+          setSlugError('This slug is already taken');
+        } else {
+          setSlugError('');
+        }
+
+        setSlugValidating(false);
+      };
+
+      validateSlug();
+    }
+  }, [slug, slugIsAuto]);
 
   // Stats
   const totalManga = myManga?.length || 0;
@@ -143,9 +180,15 @@ const PublisherDashboard: React.FC = () => {
       return;
     }
 
+    // Validate manual slug if set
+    if (!slugIsAuto && slugError) {
+      toast.error(slugError);
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const slug = slugify(uploadTitle) + '-' + Date.now().toString(36);
+      const finalSlug = slugIsAuto ? slug : slug;
       const session = await supabase.auth.getSession();
       const token = session.data.session?.access_token;
       if (!token) throw new Error('Not authenticated');
@@ -157,12 +200,13 @@ const PublisherDashboard: React.FC = () => {
         .insert({
           creator_id: user.id,
           title: uploadTitle,
-          slug,
+          slug: finalSlug,
           description: uploadDesc,
           genres: [...uploadGenres, ...customTags.map(t => t.charAt(0).toUpperCase() + t.slice(1))],
           status: uploadStatus,
           approval_status: 'PENDING',
           is_nsfw: isNsfw,
+          slug_is_auto_generated: slugIsAuto,
         } as any)
         .select()
         .single();
@@ -229,6 +273,7 @@ const PublisherDashboard: React.FC = () => {
       const schedLabel = ch1ScheduledAt ? ` (scheduled for ${new Date(ch1ScheduledAt).toLocaleString()})` : '';
       toast.success(`Manhwa submitted with Chapter 1${schedLabel}! Admin will review within 48 hours.`);
       setUploadTitle(''); setUploadDesc(''); setUploadGenres([]); setCopyrightChecked(false); setIsNsfw(false);
+      setSlug(''); setSlugIsAuto(true); setSlugError('');
       setCoverFile(null); setCoverPreview(null); setCh1Files([]); setCh1Title('');
       setMangaScheduleEnabled(false); setMangaScheduledDate(''); setMangaScheduledTime('');
       queryClient.invalidateQueries({ queryKey: ['creator-manga'] });
@@ -255,6 +300,13 @@ const PublisherDashboard: React.FC = () => {
     e.preventDefault();
     if (!user || !selectedMangaId || pageFiles.length === 0) return;
 
+    // Validate chapter number
+    const chapNum = chapterNumber ? parseInt(chapterNumber as string) : null;
+    if (!chapNum || chapNum < 1) {
+      toast.error('Please enter a valid chapter number');
+      return;
+    }
+
     setUploadingChapter(true);
     setUploadProgress(0);
 
@@ -268,7 +320,7 @@ const PublisherDashboard: React.FC = () => {
         .from('chapters')
         .insert({
           manga_id: selectedMangaId,
-          chapter_number: chapterNumber,
+          chapter_number: chapNum,
           title: chapterTitle || null,
           is_published: !scheduledAt,
           scheduled_at: scheduledAt,
@@ -278,7 +330,7 @@ const PublisherDashboard: React.FC = () => {
 
       if (chapterError) {
         if (chapterError.code === '23505') {
-          toast.error(`Chapter ${chapterNumber} already exists`);
+          toast.error(`Chapter ${chapNum} already exists`);
         } else {
           toast.error(chapterError.message);
         }
@@ -317,16 +369,15 @@ const PublisherDashboard: React.FC = () => {
       }
 
       const schedLabel = scheduledAt ? ` (scheduled for ${new Date(scheduledAt).toLocaleString()})` : '';
-      const nextNum = chapterNumber + 1;
-      toast.success(`Chapter ${chapterNumber} uploaded!${schedLabel} (${result.pages_uploaded} pages) — Admin will review before publishing.`);
+      toast.success(`Chapter ${chapNum} uploaded!${schedLabel} (${result.pages_uploaded} pages) — Admin will review before publishing.`);
       setPageFiles([]);
       setChapterTitle('');
       setScheduleEnabled(false);
       setScheduledDate('');
       setScheduledTime('');
       await queryClient.invalidateQueries({ queryKey: ['creator-chapters'] });
-      // Force next chapter number after query refetch settles
-      setChapterNumber(nextNum);
+      // Clear chapter number for next upload
+      setChapterNumber('');
     } catch (err: any) {
       toast.error(err.message || 'Failed to upload chapter');
     } finally {
@@ -463,6 +514,9 @@ const PublisherDashboard: React.FC = () => {
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex gap-1">
+                                <button onClick={() => window.location.href = `/edit-manga/${m.id}`} className="p-1.5 hover:text-primary transition-colors" title="Edit details">
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
                                 <button onClick={() => { setSelectedMangaId(m.id); setActiveTab('chapters'); }} className="p-1.5 hover:text-primary transition-colors" title="Manage chapters">
                                   <FileText className="w-3.5 h-3.5" />
                                 </button>
@@ -535,6 +589,52 @@ const PublisherDashboard: React.FC = () => {
                 <div>
                   <label className="text-sm font-semibold block mb-1.5">Title *</label>
                   <input value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary transition-colors" required />
+                </div>
+
+                {/* Slug Management */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={slugIsAuto}
+                        onChange={e => setSlugIsAuto(e.target.checked)}
+                        className="accent-primary"
+                      />
+                      <span className="text-sm font-semibold">Auto-generate slug from title</span>
+                    </label>
+                  </div>
+
+                  <div className="pl-6">
+                    {slugIsAuto ? (
+                      <div className="p-3 bg-muted border border-foreground/10 rounded text-sm text-muted-foreground">
+                        <span className="font-mono">{slug || '(will be generated)'}</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={slug}
+                          onChange={e => setSlug(e.target.value.toLowerCase())}
+                          className={`w-full px-3 py-2.5 bg-background border-2 text-sm focus:outline-none transition-colors ${
+                            slugError
+                              ? 'border-destructive focus:border-destructive'
+                              : 'border-foreground focus:border-primary'
+                          }`}
+                          placeholder="my-manga-slug"
+                        />
+                        {slugValidating && (
+                          <p className="text-xs text-muted-foreground">Validating...</p>
+                        )}
+                        {slugError && (
+                          <p className="text-xs text-destructive">{slugError}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Lowercase letters, numbers, and hyphens only. No spaces.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -736,7 +836,7 @@ const PublisherDashboard: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-semibold block mb-1.5">Chapter Number *</label>
-                          <input type="number" min={1} value={chapterNumber} onChange={e => setChapterNumber(parseInt(e.target.value) || 1)} className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" />
+                          <input type="number" min={1} value={chapterNumber} onChange={e => setChapterNumber(e.target.value)} placeholder="e.g. 1" className="w-full px-3 py-2.5 bg-background border-2 border-foreground text-sm focus:outline-none focus:border-primary" />
                         </div>
                         <div>
                           <label className="text-sm font-semibold block mb-1.5">Title (optional)</label>
