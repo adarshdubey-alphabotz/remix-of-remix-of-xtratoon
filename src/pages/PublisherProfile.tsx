@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import DynamicMeta from '@/components/DynamicMeta';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import { Users, Eye, BookOpen, Calendar, MapPin, Clock, User, Heart, MessageCircle, Trash2, Send, Loader2, Link2, Check, Share2, ArrowLeft, Mail, ExternalLink } from 'lucide-react';

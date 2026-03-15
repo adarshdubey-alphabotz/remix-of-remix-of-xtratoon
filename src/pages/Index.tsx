@@ -144,7 +144,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <TrendingBlogs />
+      {/* Blog section removed — now accessible via /blog link in footer */}
 
       {/* Revenue section */}
       <section className="max-w-6xl mx-auto px-4 py-12">
