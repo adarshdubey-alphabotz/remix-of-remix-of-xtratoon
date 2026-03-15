@@ -301,6 +301,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      // Check if email is confirmed via Supabase Auth
+      const isEmailConfirmed = !!nextUser.email_confirmed_at;
+      
+      // Store verification status in user metadata for reference
+      if (isEmailConfirmed && nextUser.user_metadata && !nextUser.user_metadata.email_verified) {
+        await supabase.auth.updateUser({
+          data: { ...nextUser.user_metadata, email_verified: true }
+        }).catch(() => {});
+      }
+
       const { profile: ensuredProfile } = await ensureProfile(nextUser);
       await syncRoleFlags(nextUser.id, ensuredProfile);
       setLoading(false);

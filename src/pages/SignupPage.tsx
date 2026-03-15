@@ -38,7 +38,10 @@ const SignupPage: React.FC = () => {
   const checkRate = useRateLimit(5, 60000);
 
   React.useEffect(() => {
-    if (user) navigate('/verify', { replace: true });
+    if (user) {
+      // Redirect to verification page if email not yet confirmed
+      navigate('/verify', { replace: true });
+    }
   }, [user, navigate]);
 
   const handleSignup = async (e: React.FormEvent) => {

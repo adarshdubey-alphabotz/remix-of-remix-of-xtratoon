@@ -1,233 +1,93 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, CheckCircle, RefreshCw, AlertCircle, ShieldCheck, ExternalLink, Copy, Check } from 'lucide-react';
+import { Mail, CheckCircle, RefreshCw, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import DynamicMeta from '@/components/DynamicMeta';
 
-type VerifyState = 'loading' | 'ready' | 'checking' | 'verified' | 'error';
+type VerifyState = 'waiting' | 'checking' | 'verified' | 'error';
 
-const SUPPORT_EMAIL = 'support@komixora.fun';
-const VERIFICATION_CODE_TTL_SECONDS = 120; // 2 minutes
-const CHECK_DURATION_SECONDS = 10;
+const CHECK_INTERVAL = 3000; // Check every 3 seconds
+const MAX_CHECK_ATTEMPTS = 60; // Max 3 minutes of checking
 
 const VerifyEmailPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [state, setState] = useState<VerifyState>('loading');
-  const [code, setCode] = useState('');
+  const [state, setState] = useState<VerifyState>('waiting');
   const [error, setError] = useState('');
-  const [copied, setCopied] = useState(false);
   const [checkAttempts, setCheckAttempts] = useState(0);
-  const [checkCountdown, setCheckCountdown] = useState(0);
-  const [resendCooldown, setResendCooldown] = useState(0);
 
   const userEmail = user?.email || '';
-  const verificationCacheKey = user ? `komixora_verification_code_${user.id}` : '';
 
-  const clearCachedCode = useCallback(() => {
-    if (!verificationCacheKey) return;
-    sessionStorage.removeItem(verificationCacheKey);
-  }, [verificationCacheKey]);
-
-  const restoreCachedCode = useCallback(() => {
-    if (!verificationCacheKey || !userEmail) return false;
-    try {
-      const raw = sessionStorage.getItem(verificationCacheKey);
-      if (!raw) return false;
-      const parsed = JSON.parse(raw) as { code?: string; email?: string; expiresAt?: string };
-      if (!parsed?.code || !parsed?.expiresAt || parsed?.email !== userEmail) {
-        sessionStorage.removeItem(verificationCacheKey);
-        return false;
-      }
-      const remainingSeconds = Math.max(0, Math.ceil((new Date(parsed.expiresAt).getTime() - Date.now()) / 1000));
-      if (remainingSeconds <= 0) {
-        sessionStorage.removeItem(verificationCacheKey);
-        return false;
-      }
-      setCode(parsed.code);
-      setResendCooldown(remainingSeconds);
-      setState('ready');
-      setError('');
-      return true;
-    } catch {
-      sessionStorage.removeItem(verificationCacheKey);
-      return false;
-    }
-  }, [verificationCacheKey, userEmail]);
-
-  const cacheCode = useCallback((nextCode: string, expiresAt?: string | null, remainingSeconds?: number) => {
-    if (!verificationCacheKey || !nextCode) return;
-    const computedExpiresAt = expiresAt
-      ? expiresAt
-      : new Date(Date.now() + (Math.max(1, remainingSeconds ?? VERIFICATION_CODE_TTL_SECONDS) * 1000)).toISOString();
-    sessionStorage.setItem(verificationCacheKey, JSON.stringify({ code: nextCode, email: userEmail, expiresAt: computedExpiresAt }));
-  }, [verificationCacheKey, userEmail]);
-
-  const generateCode = useCallback(async () => {
-    if (!user || !userEmail) return;
-    if (!code) setState('loading');
-    setError('');
-    setCheckAttempts(0);
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke('super-handler', {
-        body: { action: 'send-verification', email: userEmail, userId: user.id },
-      });
-      if (fnError) throw new Error(fnError?.message || 'Failed to generate code');
-      if (!data?.code) throw new Error('Verification code not returned');
-      const remainingSeconds = Math.max(0, Number.isFinite(Number(data?.remainingSeconds)) ? Number(data?.remainingSeconds) : VERIFICATION_CODE_TTL_SECONDS);
-      setCode(data.code);
-      setResendCooldown(remainingSeconds);
-      cacheCode(data.code, data?.expiresAt, remainingSeconds);
-      setState('ready');
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
-      setState('error');
-    }
-  }, [user, userEmail, code, cacheCode]);
-
+  // Auto-detect email verification and refresh session
   useEffect(() => {
-    if (!user) { navigate('/login', { replace: true }); return; }
-    if (user.app_metadata?.email_verified === true) { navigate('/', { replace: true }); return; }
-    
-    // Check for direct verification link from email (e.g., /verify?code=123456)
-    const params = new URLSearchParams(window.location.search);
-    const codeFromUrl = params.get('code');
-    
-    if (codeFromUrl) {
-      // Auto-verify using the code from URL
-      setCode(codeFromUrl);
-      setState('checking');
-      setCheckCountdown(CHECK_DURATION_SECONDS);
-      // Remove the query param from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (!restoreCachedCode()) {
-      generateCode();
-    }
-  }, [user, navigate, restoreCachedCode, generateCode]);
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const t = setTimeout(() => setResendCooldown(c => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [resendCooldown]);
-
-  useEffect(() => {
-    if (checkCountdown <= 0) return;
-    const t = setTimeout(() => setCheckCountdown(c => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [checkCountdown]);
-
-  useEffect(() => {
-    if (checkCountdown === 0 && state === 'checking') {
-      doInboxCheck();
-    }
-  }, [checkCountdown, state]);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const extractCodeFromInput = (input: string): string | null => {
-    // Regex to find any 6-digit numeric sequence
-    const match = input.match(/\b\d{6}\b/);
-    return match ? match[0] : null;
-  };
-
-  const handlePasteCode = async () => {
-    try {
-      const clipboardText = await navigator.clipboard.readText();
-      const extractedCode = extractCodeFromInput(clipboardText);
-      
-      if (extractedCode) {
-        setCode(extractedCode);
-        setError('');
-        // Auto-verify the pasted code
-        setTimeout(() => {
-          setState('checking');
-          setCheckCountdown(CHECK_DURATION_SECONDS);
-        }, 300);
-      } else {
-        setError('No 6-digit code found in clipboard. Please copy the entire email or just the code.');
-      }
-    } catch (err) {
-      setError('Unable to access clipboard. Please manually enter the code.');
-    }
-  };
-
-  // Build mailto - ensure `to` is both in the path AND as a query param for maximum compatibility
-  const mailtoSubject = encodeURIComponent(code + ' — Komixora Verification');
-  const mailtoBody = encodeURIComponent(`My verification code is: ${code}\n\nEmail: ${userEmail}`);
-  const mailtoHref = `mailto:${SUPPORT_EMAIL}?to=${encodeURIComponent(SUPPORT_EMAIL)}&subject=${mailtoSubject}&body=${mailtoBody}`;
-
-  const handleSendEmail = (e: React.MouseEvent) => {
-    e.preventDefault();
-    
-    const isAndroid = /android/i.test(navigator.userAgent);
-    
-    if (isAndroid) {
-      // On Android, use Gmail compose intent as primary (most reliable)
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(SUPPORT_EMAIL)}&su=${mailtoSubject}&body=${mailtoBody}`;
-      
-      // Try opening Gmail web compose (works even when mailto fails)
-      const w = window.open(gmailUrl, '_blank');
-      if (!w) {
-        // Fallback to mailto
-        window.location.href = mailtoHref;
-      }
+    if (!user) {
+      navigate('/login', { replace: true });
       return;
     }
-    
-    // iOS & Desktop - standard mailto via anchor click
-    const link = document.createElement('a');
-    link.href = mailtoHref;
-    link.setAttribute('target', '_blank');
-    link.setAttribute('rel', 'noopener noreferrer');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
-  const handleCheckInbox = () => {
-    if (!code || resendCooldown <= 0) {
-      setError('Code expired. Generate a new code first.');
+    // If email is already confirmed, go to dashboard
+    if (user.email_confirmed_at) {
+      navigate('/', { replace: true });
       return;
     }
+
+    // Start checking for email verification
     setState('checking');
-    setError('');
-    setCheckCountdown(CHECK_DURATION_SECONDS);
-  };
+  }, [user, navigate]);
 
-  const doInboxCheck = async () => {
+  // Poll for email confirmation every 3 seconds
+  useEffect(() => {
+    if (state !== 'checking') return;
+    if (checkAttempts >= MAX_CHECK_ATTEMPTS) {
+      setState('error');
+      setError('Verification timeout. Please check your email and click the verification link.');
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        // Refresh session to get updated user data including email_confirmed_at
+        const { data, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) throw refreshError;
+
+        const updatedUser = data?.user;
+        if (updatedUser?.email_confirmed_at) {
+          // Email is now verified!
+          setState('verified');
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 1500);
+          return;
+        }
+
+        // Keep checking
+        setCheckAttempts(a => a + 1);
+      } catch (err: any) {
+        console.error('[v0] Verification check error:', err);
+        // Continue checking even on error
+        setCheckAttempts(a => a + 1);
+      }
+    }, CHECK_INTERVAL);
+
+    return () => clearTimeout(timer);
+  }, [state, checkAttempts, navigate]);
+
+  const handleResendEmail = async () => {
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('super-handler', {
-        body: { action: 'check-inbox', email: userEmail, code, userId: user?.id },
+      setError('');
+      // Resend verification email via Supabase
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: userEmail,
       });
-      if (fnError) throw new Error(fnError?.message || 'Check failed');
-
-      if (data?.verified) {
-        setState('verified');
-        clearCachedCode();
-        await supabase.auth.refreshSession();
-        setTimeout(() => navigate('/', { replace: true }), 1500);
-        return;
-      }
-
-      if (data?.codeExpired) {
-        setError(data?.error || 'Code expired. Generate a new code first.');
-        setState('ready');
-        return;
-      }
-
-      const nextAttempts = checkAttempts + 1;
-      setCheckAttempts(nextAttempts);
-      setError('Email not received yet. Make sure you sent it from ' + userEmail + ' and try again.');
-      setState('ready');
+      if (error) throw error;
+      
+      // Show success message and restart checking
+      setState('checking');
+      setCheckAttempts(0);
     } catch (err: any) {
-      setError(err.message || 'Check failed — please try again.');
-      setState('ready');
+      setError(err.message || 'Failed to resend email. Please try again.');
     }
   };
 
@@ -249,134 +109,103 @@ const VerifyEmailPage: React.FC = () => {
               <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
                 {state === 'verified'
                   ? <ShieldCheck className="w-5 h-5 text-primary" />
+                  : state === 'error'
+                  ? <AlertCircle className="w-5 h-5 text-destructive" />
                   : <Mail className="w-5 h-5 text-primary" />}
               </div>
               <div>
                 <h1 className="text-base font-bold text-foreground">
-                  {state === 'verified' ? 'Email Verified!' : 'Verify your email'}
+                  {state === 'verified' ? 'Email Verified!' : state === 'error' ? 'Verification Failed' : 'Check your email'}
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  {state === 'verified' ? 'Redirecting…' : userEmail}
+                  {userEmail}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="p-6">
-            {state === 'loading' && (
-              <div className="flex flex-col items-center gap-3 py-12">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Generating verification code…</p>
-              </div>
-            )}
-
-            {state === 'ready' && code && (
-              <div className="space-y-5">
-                <div className="text-center space-y-1">
-                  <p className="text-sm text-foreground font-medium">Send this code to verify your email</p>
-                  <p className="text-xs text-muted-foreground">
-                    Email the code below to <span className="font-semibold text-primary">{SUPPORT_EMAIL}</span> from your registered email address.
-                  </p>
+            {state === 'waiting' && (
+              <div className="flex flex-col items-center gap-4 py-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center animate-pulse">
+                  <Mail className="w-8 h-8 text-primary" />
                 </div>
-
-                <div className="relative bg-muted/50 border border-border rounded-xl p-5 text-center">
-                  <p className="font-mono text-2xl sm:text-3xl tracking-[0.3em] font-black text-foreground select-all">
-                    {code}
+                <div className="space-y-2">
+                  <h2 className="text-lg font-bold text-foreground">Email sent!</h2>
+                  <p className="text-sm text-muted-foreground">
+                    We've sent a verification link to your email. Click the link to verify your account.
                   </p>
-                  <button onClick={handleCopy} className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-accent transition-colors" title="Copy code">
-                    {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
-                  </button>
-                </div>
-                <p className="text-[11px] text-center text-muted-foreground">
-                  {resendCooldown > 0 ? `Code expires in ${resendCooldown}s` : 'Code expired. Generate a new code.'}
-                </p>
-
-                <button
-                  onClick={handleSendEmail}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Click here to send verification email
-                </button>
-
-                <button
-                  onClick={handleCheckInbox}
-                  disabled={resendCooldown <= 0}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-accent-foreground font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity border border-border disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  I've sent it — Verify now
-                </button>
-
-                {error && (
-                  <div className="p-3 rounded-xl bg-destructive/10 text-destructive text-xs flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> <span>{error}</span>
-                  </div>
-                )}
-
-                <div className="flex flex-col items-center gap-2 pt-2">
-                  <button
-                    onClick={handlePasteCode}
-                    className="text-xs text-primary hover:underline font-medium"
-                  >
-                    Paste code from clipboard
-                  </button>
-                  <button
-                    onClick={generateCode}
-                    disabled={resendCooldown > 0}
-                    className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    {resendCooldown > 0 ? `New code in ${resendCooldown}s` : 'Generate new code'}
-                  </button>
                 </div>
               </div>
             )}
 
             {state === 'checking' && (
-              <div className="flex flex-col items-center gap-4 py-12">
+              <div className="flex flex-col items-center gap-4 py-12 text-center">
                 <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <div className="text-center space-y-1.5">
-                  <p className="text-sm font-medium text-foreground">Verifying your email…</p>
-                  <p className="text-xs text-muted-foreground">This may take up to 30 seconds</p>
-                  {checkCountdown > 0 && (
-                    <p className="text-xs text-primary font-semibold">{checkCountdown}s remaining</p>
-                  )}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-foreground">Checking for verification…</p>
+                  <p className="text-xs text-muted-foreground">
+                    This may take a few seconds. Make sure you click the link in your email.
+                  </p>
                 </div>
               </div>
             )}
 
             {state === 'verified' && (
-              <div className="flex flex-col items-center gap-3 py-12">
+              <div className="flex flex-col items-center gap-3 py-12 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <CheckCircle className="w-8 h-8 text-primary" />
                 </div>
-                <h2 className="text-lg font-bold text-foreground">All set! 🎉</h2>
-                <p className="text-sm text-muted-foreground">Your email has been verified.</p>
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold text-foreground">All set!</h2>
+                  <p className="text-sm text-muted-foreground">Your email has been verified. Redirecting to dashboard…</p>
+                </div>
               </div>
             )}
 
             {state === 'error' && (
-              <div className="flex flex-col items-center gap-3 py-12">
+              <div className="flex flex-col items-center gap-4 py-12 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center">
                   <AlertCircle className="w-8 h-8 text-destructive" />
                 </div>
-                <h2 className="text-lg font-bold text-foreground">Something went wrong</h2>
-                <p className="text-sm text-muted-foreground text-center">{error}</p>
-                <button onClick={generateCode} className="mt-2 px-6 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90">
-                  Try Again
+                <div className="space-y-2">
+                  <h2 className="text-lg font-bold text-foreground">Verification timeout</h2>
+                  <p className="text-sm text-muted-foreground">{error}</p>
+                </div>
+                <button 
+                  onClick={handleResendEmail}
+                  className="mt-4 px-6 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-90 flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Resend verification email
+                </button>
+              </div>
+            )}
+
+            {(state === 'waiting' || state === 'checking' || state === 'error') && (
+              <div className="flex flex-col gap-2 mt-6 pt-6 border-t border-border">
+                <button 
+                  onClick={handleResendEmail}
+                  disabled={state === 'checking'}
+                  className="px-4 py-2.5 bg-accent text-accent-foreground font-medium rounded-xl text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Resend email
+                </button>
+                <button 
+                  onClick={() => navigate('/')}
+                  className="px-4 py-2.5 text-primary font-medium rounded-xl text-sm hover:bg-primary/5 transition-colors"
+                >
+                  Continue without verifying
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground text-center mt-4">
-          You can browse without verifying, but commenting, publishing, and other features require verification.
+        <p className="text-xs text-muted-foreground text-center mt-6">
+          Can't find the email? Check your spam folder or <button onClick={handleResendEmail} className="text-primary hover:underline font-medium">request a new one</button>.
         </p>
-        <button onClick={() => navigate('/')} className="block mx-auto mt-2 text-xs text-primary hover:underline font-medium">
-          Skip for now →
-        </button>
       </div>
     </div>
   );
