@@ -186,6 +186,9 @@ const AnimatedRoutes = () => {
           <Route path="/tapas-alternative" element={<TapasAlternativePage />} />
           <Route path="/webtoon-alternative" element={<WebtoonAlternativePage />} />
           <Route path="/publish-manhwa" element={<PublishManhwaPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/about-us" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
