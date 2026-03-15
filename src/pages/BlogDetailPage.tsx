@@ -68,6 +68,27 @@ const BlogDetailPage: React.FC = () => {
         keywords={(blog.seo_keywords || []).join(', ') + ', Komixora, komixora, manhwa, manga, webtoon'}
         url={`https://komixora.fun/blog/${blog.slug}`}
       />
+      {/* BlogPosting structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": blog.title,
+            "description": blog.seo_description || blog.description || '',
+            "image": blog.thumbnail_url || undefined,
+            "datePublished": blog.created_at,
+            "dateModified": blog.updated_at || blog.created_at,
+            "author": { "@type": "Organization", "name": "Komixora", "url": "https://komixora.fun" },
+            "publisher": { "@type": "Organization", "name": "Komixora", "url": "https://komixora.fun", "logo": { "@type": "ImageObject", "url": "https://komixora.fun/favicon.ico" } },
+            "mainEntityOfPage": { "@type": "WebPage", "@id": `https://komixora.fun/blog/${blog.slug}` },
+            "keywords": (blog.seo_keywords || []).join(', '),
+            "wordCount": (blog.content || '').replace(/<[^>]*>/g, '').split(/\s+/).length,
+            "articleSection": "Manhwa & Manga"
+          })
+        }}
+      />
 
       <article className="max-w-3xl mx-auto px-4" itemScope itemType="https://schema.org/BlogPosting">
         <Link to="/blog" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
