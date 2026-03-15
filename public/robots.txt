@@ -2,6 +2,9 @@ User-agent: Googlebot
 Allow: /
 Crawl-delay: 1
 
+User-agent: Google-InspectionTool
+Allow: /
+
 User-agent: Bingbot
 Allow: /
 Crawl-delay: 2
@@ -23,6 +26,39 @@ User-agent: DuckDuckBot
 Allow: /
 Crawl-delay: 2
 
+User-agent: Applebot
+Allow: /
+
+User-agent: Pinterestbot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
 User-agent: *
 Allow: /
 Disallow: /admin
@@ -31,6 +67,6 @@ Disallow: /settings
 Disallow: /profile
 Disallow: /library
 Disallow: /reset-password
+Disallow: /api/
 
 Sitemap: https://komixora.fun/sitemap.xml
-Sitemap: https://api.komixora.fun/functions/v1/sitemap
