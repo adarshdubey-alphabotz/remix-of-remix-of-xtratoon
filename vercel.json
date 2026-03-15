@@ -7,11 +7,18 @@
     { "source": "/api/img", "destination": "https://api.komixora.fun/functions/v1/telegram-proxy" },
     { "source": "/sitemap.xml", "destination": "https://api.komixora.fun/functions/v1/sitemap" },
     { "source": "/sitemap-index.xml", "destination": "https://api.komixora.fun/functions/v1/sitemap" },
-    { "source": "/((?!robots\\.txt|favicon\\.ico|assets/|images/).*)", "destination": "/index.html" }
+    { "source": "/((?!robots\\.txt|favicon\\.ico|assets/|images/|sitemap\\.xml|sitemap-index\\.xml).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
       "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    },
+    {
+      "source": "/sitemap-index.xml",
       "headers": [
         { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
         { "key": "Cache-Control", "value": "public, max-age=3600" }
