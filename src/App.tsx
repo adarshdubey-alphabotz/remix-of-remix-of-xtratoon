@@ -211,6 +211,7 @@ const AppLayout = () => (
     </ErrorBoundary>
     <NetworkStatus />
     <Footer />
+    <CookieConsent />
   </>
 );
 
