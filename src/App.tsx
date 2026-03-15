@@ -59,6 +59,9 @@ const GenrePage = lazy(() => import("./pages/GenrePage"));
 const TapasAlternativePage = lazy(() => import("./pages/TapasAlternativePage"));
 const WebtoonAlternativePage = lazy(() => import("./pages/WebtoonAlternativePage"));
 const PublishManhwaPage = lazy(() => import("./pages/PublishManhwaPage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
