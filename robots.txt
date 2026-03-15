@@ -70,3 +70,4 @@ Disallow: /reset-password
 Disallow: /api/
 
 Sitemap: https://komixora.fun/sitemap.xml
+Sitemap: https://komixora.fun/sitemap-index.xml
