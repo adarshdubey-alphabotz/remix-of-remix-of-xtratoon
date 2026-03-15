@@ -178,6 +178,21 @@ serve(async (req) => {
   }
 
   try {
+    // Reject non-POST requests
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check if request has a body
+    const contentLength = req.headers.get('content-length');
+    if (!contentLength || parseInt(contentLength, 10) === 0) {
+      return new Response(JSON.stringify({ error: 'Request body is required' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const body = await req.json();
     const { action } = body;
 
