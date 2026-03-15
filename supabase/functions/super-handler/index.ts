@@ -152,14 +152,14 @@ async function checkImapForEmail(fromEmail: string, codeToFind: string): Promise
         const tag = `S${i + 1}`;
         const searchRes = await cmd(tag, searchCommands[i]);
         if (hasSearchMatches(searchRes)) {
-          await cmd('A9', 'LOGOUT');
-          try { conn.close(); } catch {}
+      await cmd('A9', 'LOGOUT');
+          try { conn!.close(); } catch {}
           return true;
         }
       }
 
       await cmd('A9', 'LOGOUT');
-      try { conn.close(); } catch {}
+      try { conn!.close(); } catch {}
       return false;
     } catch (error) {
       lastError = error;

@@ -38,7 +38,6 @@ Allow: /
 User-agent: TelegramBot
 Allow: /
 
-# Allow AI crawlers (helps with AI-powered search traffic)
 User-agent: GPTBot
 Allow: /
 
@@ -48,7 +47,6 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
-# Block bad bots and scrapers
 User-agent: AhrefsBot
 Disallow: /
 
@@ -72,4 +70,3 @@ Disallow: /reset-password
 Disallow: /api/
 
 Sitemap: https://komixora.fun/sitemap.xml
-Sitemap: https://komixora.fun/sitemap-index.xml

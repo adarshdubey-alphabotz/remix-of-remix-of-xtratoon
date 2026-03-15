@@ -12,6 +12,7 @@ import AuthModal from "@/components/AuthModal";
 import SpotlightSearch from "@/components/SpotlightSearch";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BanNotice from "@/components/BanNotice";
+import CookieConsent from "@/components/CookieConsent";
 import GoogleOnboardingModal from "@/components/GoogleOnboardingModal";
 import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import NetworkStatus from "@/components/NetworkStatus";
@@ -58,6 +59,9 @@ const GenrePage = lazy(() => import("./pages/GenrePage"));
 const TapasAlternativePage = lazy(() => import("./pages/TapasAlternativePage"));
 const WebtoonAlternativePage = lazy(() => import("./pages/WebtoonAlternativePage"));
 const PublishManhwaPage = lazy(() => import("./pages/PublishManhwaPage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -182,6 +186,9 @@ const AnimatedRoutes = () => {
           <Route path="/tapas-alternative" element={<TapasAlternativePage />} />
           <Route path="/webtoon-alternative" element={<WebtoonAlternativePage />} />
           <Route path="/publish-manhwa" element={<PublishManhwaPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/about-us" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
@@ -204,6 +211,7 @@ const AppLayout = () => (
     </ErrorBoundary>
     <NetworkStatus />
     <Footer />
+    <CookieConsent />
   </>
 );
 
