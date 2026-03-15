@@ -12,6 +12,7 @@ import AuthModal from "@/components/AuthModal";
 import SpotlightSearch from "@/components/SpotlightSearch";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BanNotice from "@/components/BanNotice";
+import CookieConsent from "@/components/CookieConsent";
 import GoogleOnboardingModal from "@/components/GoogleOnboardingModal";
 import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import NetworkStatus from "@/components/NetworkStatus";
