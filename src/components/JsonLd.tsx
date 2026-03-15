@@ -164,66 +164,6 @@ const JsonLd: React.FC = () => (
       }}
     />
 
-    {/* FAQPage for rich snippets in search results */}
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "What is Komixora?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Komixora is a free online platform to read manhwa, manga, and webtoons in HD quality. It features thousands of series across all genres with daily updates from world-class creators."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Is Komixora free to use?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes, Komixora is completely free for readers. Chapters are unlocked through a short ad view, and the ad revenue goes directly to the creators."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do creators earn money on Komixora?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Creators earn ad revenue generated when readers unlock their chapters. Payouts are processed via PayPal, UPI, bKash, Binance, and USDT."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do I publish my manhwa on Komixora?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Create a publisher account on Komixora, upload your manhwa chapters with cover art, and submit for review. Once approved, your series goes live and starts earning from day one."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "What genres are available on Komixora?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Komixora offers manhwa and manga across all genres including Action, Romance, Fantasy, Isekai, Slice of Life, Horror, Comedy, Drama, Martial Arts, School Life, Sci-Fi, and many more."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Where can I read manhwa online for free?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "You can read manhwa online for free on Komixora (komixora.fun). It offers thousands of manhwa, manga, and webtoon series in HD quality with daily updates."
-              }
-            }
-          ]
-        })
-      }}
-    />
   </>
 );
 
