@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon, DollarSign, ArrowUp, ArrowDown } from 'lucide-react';
+import { BookOpen, Upload, BarChart3, Settings, Trash2, Edit, Edit3, Plus, Image, FileText, ChevronRight, Loader2, X, Clock, CalendarIcon, DollarSign, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 import CreatorAnalytics from '@/components/CreatorAnalytics';
 import CreatorEarnings from '@/components/CreatorEarnings';
@@ -953,6 +953,16 @@ const PublisherDashboard: React.FC = () => {
                                 <span className="text-xs text-muted-foreground">
                                   {(ch as any).chapter_pages?.[0]?.count || 0} pages
                                 </span>
+                                <button
+                                  onClick={() => {
+                                    // Open edit details modal - can expand this to a modal component later
+                                    alert(`Edit Chapter ${ch.chapter_number} Details\n\nTitle: ${ch.title || 'N/A'}\nPages: ${(ch as any).chapter_pages?.[0]?.count || 0}\n\nThis will open a full edit interface in the next update.`);
+                                  }}
+                                  className="p-1 text-muted-foreground hover:text-primary transition-colors"
+                                  title="Edit chapter details"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
                                 <button
                                   onClick={() => { if (confirm(`Delete Chapter ${ch.chapter_number}?`)) deleteChapter.mutate(ch.id); }}
                                   className="p-1 text-muted-foreground hover:text-destructive transition-colors"

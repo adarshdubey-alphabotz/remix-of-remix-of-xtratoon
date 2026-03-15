@@ -63,6 +63,7 @@ const FAQPage = lazy(() => import("./pages/FAQPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const MangaEditPage = lazy(() => import("./pages/MangaEditPage"));
+const AnnouncementsPage = lazy(() => import("./pages/AnnouncementsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -165,6 +166,7 @@ const AnimatedRoutes = () => {
           <Route path="/upcoming/:slug/:chapter" element={<UpcomingDetailPage />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/edit-manga/:id" element={<MangaEditPage />} />
+          <Route path="/announcements" element={<AnnouncementsPage />} />
           <Route path="/library" element={<MyLibrary />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<ProfilePage />} />

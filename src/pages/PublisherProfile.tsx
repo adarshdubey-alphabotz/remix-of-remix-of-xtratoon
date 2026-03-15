@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import DynamicMeta from '@/components/DynamicMeta';
+import CreatorSchema from '@/components/CreatorSchema';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import { Users, Eye, BookOpen, Calendar, MapPin, Clock, User, Heart, MessageCircle, Trash2, Send, Loader2, Link2, Check, Share2, ArrowLeft, Mail, ExternalLink } from 'lucide-react';
@@ -245,30 +246,20 @@ const PublisherProfile: React.FC = () => {
         url={`https://komixora.fun/publisher/${profile?.username}`}
         type="profile"
       />
-      {/* Person structured data for creator */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Person",
-            "name": profile?.display_name || profile?.username,
-            "url": `https://komixora.fun/publisher/${profile?.username}`,
-            "image": profile?.avatar_url || undefined,
-            "description": profile?.bio || `Creator on Komixora`,
-            "sameAs": (() => {
-              const links: string[] = [];
-              const sl = profile?.social_links as any;
-              if (sl?.instagram) links.push(`https://instagram.com/${sl.instagram}`);
-              if (sl?.twitter) links.push(`https://x.com/${sl.twitter}`);
-              if (sl?.youtube) links.push(sl.youtube);
-              return links;
-            })(),
-            "mainEntityOfPage": `https://komixora.fun/publisher/${profile?.username}`,
-            "worksFor": { "@type": "Organization", "name": "Komixora", "url": "https://komixora.fun" }
-          })
-        }}
-      />
+      {/* Creator structured data schema */}
+      {profile && (
+        <CreatorSchema
+          creatorName={profile.display_name || profile.username || ''}
+          username={profile.username || ''}
+          profileImageUrl={profile.avatar_url}
+          bio={profile.bio}
+          seriesCount={creatorManga.length}
+          totalViews={totalViews}
+          followerCount={followersCount}
+          socialLinks={profile.social_links as Record<string, string>}
+          createdDate={profile.created_at}
+        />
+      )}
       <div className="relative h-44 sm:h-56 lg:h-64 overflow-hidden">
         {creatorManga.length > 0 && creatorManga[0].cover_url && profileTheme === 'default' ? (
           <img

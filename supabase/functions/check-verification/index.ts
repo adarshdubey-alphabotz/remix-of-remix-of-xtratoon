@@ -25,12 +25,15 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Find pending verification
+    // Find pending verification - code can be 6-digit number or alphanumeric
+    // Trim and normalize the code for comparison
+    const normalizedCode = code.toString().trim().toUpperCase();
+    
     const { data: pending, error: fetchError } = await supabase
       .from('pending_verifications')
       .select('*')
       .eq('email', email)
-      .eq('code', code.toUpperCase().trim())
+      .eq('code', normalizedCode)
       .eq('verified', false)
       .gt('expires_at', new Date().toISOString())
       .maybeSingle();

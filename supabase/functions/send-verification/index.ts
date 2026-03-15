@@ -8,12 +8,8 @@ const corsHeaders = {
 };
 
 function generateCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code.slice(0, 4) + '-' + code.slice(4);
+  // Generate 6-digit numeric code for easy manual entry and regex extraction
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 serve(async (req) => {
@@ -60,7 +56,7 @@ serve(async (req) => {
 
     // Generate new code
     const code = generateCode();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 min
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // 2 min
 
     // Save to DB
     const { error: insertError } = await supabase
@@ -91,6 +87,7 @@ serve(async (req) => {
       const SMTP_HOST = Deno.env.get('SMTP_HOST') || 'smtp.gmail.com';
       const SMTP_PORT = Number(Deno.env.get('SMTP_PORT') || '465');
 
+      const verificationLink = `https://komixora.fun/verify?code=${code}`;
       const htmlContent = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
           <div style="text-align: center; margin-bottom: 32px;">
@@ -100,11 +97,13 @@ serve(async (req) => {
           </div>
           <div style="background: #f9fafb; border-radius: 16px; padding: 32px; text-align: center;">
             <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px;">Verify your email</h2>
-            <p style="color: #6b7280; font-size: 14px; margin: 0 0 24px;">Enter this code on the verification page:</p>
-            <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; margin: 0 0 24px;">
-              <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; font-family: monospace; color: #111827;">${code}</span>
+            <p style="color: #6b7280; font-size: 14px; margin: 0 0 24px;">Click the button below to verify instantly:</p>
+            <a href="${verificationLink}" style="display: inline-block; background: #22c55e; color: white; font-weight: 700; padding: 14px 32px; border-radius: 12px; text-decoration: none; margin: 0 0 20px; font-size: 14px;">Verify Now</a>
+            <p style="color: #6b7280; font-size: 13px; margin: 16px 0;">Or use this code if the link doesn't work:</p>
+            <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 16px; margin: 0 0 16px;">
+              <span style="font-size: 32px; font-weight: 800; letter-spacing: 4px; font-family: monospace; color: #111827;">${code}</span>
             </div>
-            <p style="color: #9ca3af; font-size: 12px; margin: 0;">This code expires in 15 minutes.</p>
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">This code expires in 2 minutes.</p>
           </div>
           <p style="color: #9ca3af; font-size: 11px; text-align: center; margin-top: 24px;">
             If you didn't create an account on Komixora, please ignore this email.
@@ -125,7 +124,7 @@ serve(async (req) => {
           from: SMTP_USER,
           to: email,
           subject: `${code} — Komixora Email Verification`,
-          content: `Your Komixora verification code is: ${code}`,
+          content: `Verify your email by clicking this link: ${verificationLink}\n\nOr use this code if the link doesn't work: ${code}\n\nThis code expires in 2 minutes.`,
           html: htmlContent,
         });
 

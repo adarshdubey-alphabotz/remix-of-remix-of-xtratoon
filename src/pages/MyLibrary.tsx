@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, ChevronRight, Heart } from 'lucide-react';
 import ScrollReveal from '@/components/ScrollReveal';
+import { getImageUrl } from '@/lib/imageUrl';
 
 const MyLibrary: React.FC = () => {
   const { user } = useAuth();
@@ -58,8 +59,8 @@ const MyLibrary: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen pt-24 pb-12 bg-background">
-      <div className="max-w-5xl mx-auto px-4">
+    <div className="min-h-screen pt-24 pb-[80px] md:pb-12 bg-background">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <ScrollReveal>
           <h1 className="text-display text-5xl sm:text-6xl mb-8 tracking-wider">
             <span className="text-primary">MY</span> LIBRARY
@@ -85,18 +86,35 @@ const MyLibrary: React.FC = () => {
         {isLoading ? (
           <p className="text-muted-foreground">Loading library...</p>
         ) : library.length > 0 ? (
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {library.map((item: any) => (
-              <Link key={item.id} to={`/title/${item.slug}`} className="flex items-center gap-4 brutal-card p-4 group">
-                {item.cover ? (
-                  <img src={item.cover} alt={`${item.title} cover`} className="w-12 h-16 object-cover flex-shrink-0 border border-foreground/20" />
-                ) : (
-                  <div className="w-12 h-16 bg-muted flex-shrink-0 border border-foreground/20" />
-                )}
-                <div className="flex-1">
-                  <h3 className="font-display text-base tracking-wide group-hover:text-primary transition-colors">{item.title}</h3>
+              <Link 
+                key={item.id} 
+                to={`/title/${item.slug}`} 
+                className="group flex flex-col overflow-hidden rounded-lg border border-border hover:border-primary/50 transition-all duration-200 hover:shadow-md"
+              >
+                {/* Image Container with 3:4 aspect ratio */}
+                <div className="aspect-[3/4] overflow-hidden bg-muted relative">
+                  {item.cover ? (
+                    <img 
+                      src={getImageUrl(item.cover) || ''} 
+                      alt={`${item.title} cover`} 
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <BookOpen className="w-8 h-8 text-muted-foreground/40" />
+                    </div>
+                  )}
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                
+                {/* Title Container */}
+                <div className="p-2 md:p-3 bg-card">
+                  <h3 className="font-display text-xs md:text-sm tracking-wide group-hover:text-primary transition-colors line-clamp-2">
+                    {item.title}
+                  </h3>
+                </div>
               </Link>
             ))}
           </div>

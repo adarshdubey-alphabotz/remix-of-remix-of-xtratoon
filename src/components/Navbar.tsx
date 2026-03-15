@@ -84,6 +84,7 @@ const Navbar: React.FC = () => {
   const desktopNavItems = [
     ...bottomNavItems,
     { to: '/creators', label: 'Creators', icon: Users },
+    { to: '/announcements', label: 'Updates', icon: AlertTriangle },
   ];
 
   if (isReaderPage) return null;
@@ -330,6 +331,9 @@ const Navbar: React.FC = () => {
                 {/* Legal & Info section */}
                 <div className="my-1 border-t border-border/50" />
                 <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Info & Legal</p>
+                <Link to="/announcements" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg transition-colors">
+                  <AlertTriangle className="w-4 h-4" /> Updates
+                </Link>
                 <Link to="/blog" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-lg transition-colors">
                   <Newspaper className="w-4 h-4" /> Blog
                 </Link>

@@ -8,8 +8,8 @@ import DynamicMeta from '@/components/DynamicMeta';
 type VerifyState = 'loading' | 'ready' | 'checking' | 'verified' | 'error';
 
 const SUPPORT_EMAIL = 'support@komixora.fun';
-const VERIFICATION_CODE_TTL_SECONDS = 60;
-const CHECK_DURATION_SECONDS = 30;
+const VERIFICATION_CODE_TTL_SECONDS = 120; // 2 minutes
+const CHECK_DURATION_SECONDS = 10;
 
 const VerifyEmailPage: React.FC = () => {
   const { user } = useAuth();
@@ -89,7 +89,21 @@ const VerifyEmailPage: React.FC = () => {
   useEffect(() => {
     if (!user) { navigate('/login', { replace: true }); return; }
     if (user.app_metadata?.email_verified === true) { navigate('/', { replace: true }); return; }
-    if (!restoreCachedCode()) { generateCode(); }
+    
+    // Check for direct verification link from email (e.g., /verify?code=123456)
+    const params = new URLSearchParams(window.location.search);
+    const codeFromUrl = params.get('code');
+    
+    if (codeFromUrl) {
+      // Auto-verify using the code from URL
+      setCode(codeFromUrl);
+      setState('checking');
+      setCheckCountdown(CHECK_DURATION_SECONDS);
+      // Remove the query param from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (!restoreCachedCode()) {
+      generateCode();
+    }
   }, [user, navigate, restoreCachedCode, generateCode]);
 
   useEffect(() => {
@@ -114,6 +128,33 @@ const VerifyEmailPage: React.FC = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const extractCodeFromInput = (input: string): string | null => {
+    // Regex to find any 6-digit numeric sequence
+    const match = input.match(/\b\d{6}\b/);
+    return match ? match[0] : null;
+  };
+
+  const handlePasteCode = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      const extractedCode = extractCodeFromInput(clipboardText);
+      
+      if (extractedCode) {
+        setCode(extractedCode);
+        setError('');
+        // Auto-verify the pasted code
+        setTimeout(() => {
+          setState('checking');
+          setCheckCountdown(CHECK_DURATION_SECONDS);
+        }, 300);
+      } else {
+        setError('No 6-digit code found in clipboard. Please copy the entire email or just the code.');
+      }
+    } catch (err) {
+      setError('Unable to access clipboard. Please manually enter the code.');
+    }
   };
 
   // Build mailto - ensure `to` is both in the path AND as a query param for maximum compatibility
@@ -273,7 +314,13 @@ const VerifyEmailPage: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex items-center justify-center pt-1">
+                <div className="flex flex-col items-center gap-2 pt-2">
+                  <button
+                    onClick={handlePasteCode}
+                    className="text-xs text-primary hover:underline font-medium"
+                  >
+                    Paste code from clipboard
+                  </button>
                   <button
                     onClick={generateCode}
                     disabled={resendCooldown > 0}
