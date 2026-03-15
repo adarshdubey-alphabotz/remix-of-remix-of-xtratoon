@@ -147,14 +147,14 @@ Deno.serve(async (req) => {
 `;
   }
 
-  // Publisher profile pages
+  // Publisher profile pages  
   for (const p of publisherProfiles || []) {
     const lastmod = p.updated_at ? p.updated_at.split("T")[0] : today;
     xml += `  <url>
-    <loc>${SITE_URL}/creator/${p.username}</loc>
+    <loc>${SITE_URL}/publisher/${p.username}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.6</priority>
   </url>
 `;
   }
